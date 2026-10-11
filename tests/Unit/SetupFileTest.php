@@ -1,10 +1,10 @@
 <?php
 
-use OpenSimKit\Setup\SetupFile;
 use OpenSimKit\Ui\PresetUi;
 use OpenSimKit\Ui\QuietUi;
 use OpenSim\Provisioning\AccountList;
 use OpenSim\Provisioning\GridPlan;
+use OpenSim\Provisioning\SetupFile;
 use OpenSim\Provisioning\SimPlan;
 
 const SETUP_YAML = <<<'YAML'

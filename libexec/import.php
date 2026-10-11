@@ -18,10 +18,10 @@
  */
 
 use OpenSimKit\Setup\InstallConfig;
-use OpenSimKit\Setup\SetupFile;
 use OpenSimKit\Setup\SetupRunner;
 use OpenSimKit\Ui\PromptsUi;
 use OpenSimKit\Ui\QuietUi;
+use OpenSim\Provisioning\SetupFile;
 
 require dirname(__DIR__) . '/bootstrap.php';
 
