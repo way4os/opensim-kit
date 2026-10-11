@@ -39,7 +39,7 @@ while read -r name _; do
 done <packaging/siblings
 for src in "$BUILD"/share/ossl-scripts/*-src; do
     [[ -d "$src" ]] || continue
-    php "$BUILD/libexec/oar.php" pack "$src" >/dev/null
+    php "$BUILD/bin/opensim" oar pack "$src" >/dev/null
 done
 [[ ${#linked[@]} -eq 0 ]] || rm -f "${linked[@]}"
 
