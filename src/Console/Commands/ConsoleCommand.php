@@ -23,7 +23,7 @@ final class ConsoleCommand extends EngineCommand
         $this->setName('console')
             ->setAliases(['screen'])
             ->setDescription('Attach to the console of a running instance')
-            ->addArgument('instance', InputArgument::REQUIRED, 'the instance (a simulator, robust:<grid>)');
+            ->addArgument('instance', InputArgument::REQUIRED, 'the instance (a simulator, the Robust of a grid by its name)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

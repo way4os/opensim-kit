@@ -122,7 +122,7 @@ final class Actions
         foreach ($instances as $instance) {
             $now = $warn ? '' : 'now ';
             if (is_file("$etcRoot/robust.d/$instance.ini")) {
-                $ok = System::run(System::arg($opensim) . ' restart now ' . System::arg("robust:$instance")) === 0 && $ok;
+                $ok = System::run(System::arg($opensim) . ' restart now ' . System::arg($instance)) === 0 && $ok;
 
                 continue;
             }

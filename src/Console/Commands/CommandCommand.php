@@ -22,7 +22,7 @@ final class CommandCommand extends EngineCommand
     {
         $this->setName('command')
             ->setDescription('Send commands to the console of a running instance')
-            ->addArgument('instance', InputArgument::REQUIRED, 'the instance (a simulator, robust:<grid>)')
+            ->addArgument('instance', InputArgument::REQUIRED, 'the instance (a simulator, the Robust of a grid by its name)')
             ->addArgument('text', InputArgument::IS_ARRAY, 'the command, or - for each line of the standard input (-- before a text that starts with a dash)');
     }
 

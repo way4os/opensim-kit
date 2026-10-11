@@ -735,7 +735,7 @@ final class NewSim
     private function restartGrid(GridInfo $grid): void
     {
         $opensim = dirname(__DIR__, 3) . '/bin/opensim';
-        [$code] = System::runShown(System::arg($opensim) . ' restart now ' . System::arg("robust:{$grid->nick}"));
+        [$code] = System::runShown(System::arg($opensim) . ' restart now ' . System::arg($grid->nick));
         if ($code !== 0) {
             $this->ui->warn(
                 sprintf(
@@ -767,7 +767,7 @@ final class NewSim
         if (!$grid->remote) {
             // Robust reads the roles of its regions when it starts: it starts again to give them
             $action = $plan->regionRoles !== [] ? 'restart now' : 'start';
-            [$code] = System::runShown(System::arg($opensim) . " $action " . System::arg("robust:{$grid->nick}"));
+            [$code] = System::runShown(System::arg($opensim) . " $action " . System::arg($grid->nick));
             if ($code !== 0) {
                 $this->failed(
                     $plan,

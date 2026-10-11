@@ -153,11 +153,11 @@ The ports of an instance are a block of ten, the same on any machine, so an inst
 
 The console of an instance is one of two kinds, asked by the wizard (remote by default). The remote one (REST) is reached through a port, x4 of the block of the instance, with a user and a password the wizard makes: it gives every right on the instance, so it works the same from this machine, from a container or from another machine, and its port is only published to the machines that need it. The other is a screen session, attached on the machine that runs the instance.
 
-The commands take what they work on right after the command: a grid (`vonda`: its Robust and its simulators), a simulator (`vonda_welcome`), or `robust:vonda` for the Robust of a grid alone.
+The commands take what they work on right after the command: a grid (`vonda`: its services, its Robust) or a simulator (`vonda_welcome`). The simulators of a grid do not need to restart when its Robust does: `--sims` adds the ones that are enabled.
 
 ```bash
 opensim status
-opensim start|stop|restart [now] [target...]     # stop warns the users, and does not wait when nobody is there
+opensim start|stop|restart [--sims] [now] [target...]   # stop warns the users, and does not wait when nobody is there
 opensim enable|disable <instance...>
 opensim console <instance>                       # a screen session, or a prompt on the remote console (Ctrl-D leaves it)
 opensim command <instance> <text>|-              # one command, or the lines of the standard input

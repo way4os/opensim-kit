@@ -66,7 +66,7 @@ describe('The command line', function () {
         $status = $app->dispatch($argv);
         $text = (string) ob_get_clean();
 
-        expect($status)->toBe(0)->and($text)->toContain('usage: opensim')->toContain('start [target...]')->and($handed)->toBe([]);
+        expect($status)->toBe(0)->and($text)->toContain('usage: opensim')->toContain('start [--sims] [target...]')->and($handed)->toBe([]);
     })->with([
         [['opensim']],
         [['opensim', '-h']],
@@ -211,6 +211,16 @@ describe('The commands start, stop and restart', function () {
         $status = machine_application($machine)->run(new ArrayInput(['command' => 'start', 'targets' => ['nosuch']]), $output);
 
         expect($status)->toBe(1);
+    });
+
+    test('take --sims for the simulators of the grid, which a grid alone leaves out', function () {
+        $machine = new Machine();
+        $machine->processes->add('dotnet OpenSim.dll -inifile=' . $machine->etc . '/opensim.d/alpha.ini');
+        $machine->consoles->console('alpha')->onSend = fn(string $l) => $l === 'shutdown' && $machine->processes->remove(4000);
+
+        $status = machine_application($machine)->run(new ArrayInput(['command' => 'stop', 'targets' => ['now', 'demo'], '--sims' => true]), new BufferedOutput());
+
+        expect($status)->toBe(0)->and($machine->processes->all())->toBe([]);
     });
 
     test('stop now a simulator that is not running, which is no failure', function () {
