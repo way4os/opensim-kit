@@ -14,6 +14,15 @@ It uses libraries `opensim-helpers`, `opensim-engine`, and `opensim-rest-php`. E
 
 Where code and files go, and how the current layout is to move there, is in [REFACTORING.md](REFACTORING.md). New code is written at the place it describes.
 
+The engine owns the operations, the kit is a front-end that calls them:
+
+- `OpenSim\OpenSim` (engine) is what a front-end calls: `OpenSim::start('vonda')`, `stop`, `restart`, `status`; a grid is its services (its Robust), `simulators: true` adds the simulators that depend on it. It finds the `Grid`, `Robust` and `Simulator` models (`OpenSim\Models`), which start and stop through `OpenSim\Runtime` (processes, launching, waiting for readiness, warning users) and `OpenSim\Console` (remote console, screen). Everything is given an `Environment`: the machine, as fakes in the tests (`OpenSim\Testing\Machine`).
+- `OpenSim\Config` reads and edits the files (`Layout` for opensim.conf, `IniEditor` to edit without losing the comments), `OpenSim\Provisioning` decides and writes what makes a grid, a simulator, a region, an account (the plans, `SimConfig`, `RobustConfig`, `Presets`, `Features`, `GridProvisioner`, `SimulatorProvisioner`), asking through `UiInterface`.
+- `OpenSimKit\Console` is the command line (`bin/opensim`): one class per command in `Commands/`, which reads its arguments, calls the engine and prints; `OpenSimKit\Setup` and `OpenSimKit\Ui` are the screens of the wizard; `OpenSimKit\System` is what is Debian's.
+- A command works as the system user of the install when it works on the instances (`Application::SYSTEM_USER_COMMANDS`), as the caller otherwise.
+
+`tests/Packaging/lifecycle-scenario.sh` runs the launcher on a real machine with a fake dotnet (`SCENARIO=lifecycle-scenario.sh tests/Packaging/run`, about ten minutes), `package-scenario.sh` the whole family with a real OpenSim.
+
 ## Configuration files
 
 The folder of a grid (`/etc/opensim/grids/<grid>`) holds the configuration files of the OpenSim environment as the distributions ship them (Robust.HG.ini, OpenSim.ini, config-include/, MoneyServer.ini...), completed. They are shared by the OpenSim executables and the helpers: every setting keeps its name, its section and its file, the helpers read them there (with their `Include-` and `${Const|...}`), and what the helpers need that OpenSim has no place for is in `Helpers.ini`, `[Helpers]`.
