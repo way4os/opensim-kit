@@ -182,10 +182,13 @@ cp $ini /tmp/Robust.startgrid.good
 sed -i '/UserAgentServerConnector/d;/GatekeeperServiceInConnector/d' $ini
 opensim start startgrid >/tmp/nohg.out 2>&1; nohg=$?
 check "a grid without Hypergrid is ready, not waited for" "[ $nohg = 0 ] && grep -aq 'startgrid started' /tmp/nohg.out"
+dump /tmp/nohg.out 15
+ps -axo pid,user,args | grep -E 'dotnet|SCREEN' | grep -v grep | cut -c1-200 | sed 's/^/   ps /'
 opensim stop now startgrid >/dev/null 2>&1
 cp /tmp/Robust.startgrid.good $ini
 sed -i 's/Password=[^;"]*;/Password=wrongpass;/' $ini
 opensim start startgrid >/tmp/baddb.out 2>&1; baddb=$?
+dump /tmp/baddb.out 15
 check "a grid whose database cannot be used is reported, with the failed services" "[ $baddb != 0 ] &&
     grep -aq 'services failed to load' /tmp/baddb.out && grep -aq 'AssetServiceConnector: failed to load' /tmp/baddb.out"
 opensim stop now startgrid >/dev/null 2>&1
@@ -194,6 +197,7 @@ rm -rf /etc/opensim/grids/startgrid /etc/opensim/robust.d/startgrid.ini /var/lib
 rm -rf /etc/opensim/grids/rootgrid /var/lib/opensim/data/rootgrid /var/cache/opensim/rootgrid \
     /etc/opensim/grids/grid2 /var/lib/opensim/data/grid2 /var/cache/opensim/grid2
 check "setup command" "opensim help | grep -q setup"
+[[ ${STOP_AFTER:-} != startgrid ]] || { ts "done after the start of a grid: $([ $FAILED = 0 ] && echo 'all checks passed' || echo 'SOME CHECKS FAILED')"; exit $FAILED; }
 
 ts "service start"
 systemctl start opensim

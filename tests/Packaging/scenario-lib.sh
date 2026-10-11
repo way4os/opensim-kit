@@ -3,6 +3,8 @@
 # the Magiiic repository for the dependencies (bash-tools).
 
 FAILED=0
+# What a file holds, indented, to read why a check failed
+dump() { echo "   --- $1"; sed 's/^/   | /' "$1" | cut -c1-240 | tail -${2:-25}; }
 ts() { echo "[$(date +%T)] == $*"; }
 check() {
     if eval "$2"; then
