@@ -5,8 +5,9 @@
  * brought to Unix ones wherever the kit reads or copies them.
  */
 
-use OpenSim\Installer\Grid\GridPlan;
-use OpenSim\Installer\Grid\RobustConfig;
+
+use OpenSim\Provisioning\GridPlan;
+use OpenSim\Provisioning\RobustConfig;
 
 /**
  * A folder of its own for a test.

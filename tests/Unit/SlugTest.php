@@ -1,7 +1,8 @@
 <?php
 
-use OpenSim\Installer\Grid\GridInfo;
-use OpenSim\Installer\Grid\Slug;
+
+use OpenSim\Models\GridInfo;
+use OpenSim\Provisioning\Slug;
 
 test('keeps the words apart, in snake_case', function (string $name, string $slug) {
     expect(Slug::slug($name))->toBe($slug)->and(Slug::nick($name))->toBe($slug);

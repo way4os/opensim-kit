@@ -1,11 +1,10 @@
 <?php
 
-
 namespace OpenSim\Installer\Setup;
 
 use OpenSim\Installer\Grid\GridAccounts;
 use OpenSim\Installer\Grid\NewGrid;
-use OpenSim\Installer\Ui\InstallerUi;
+use OpenSim\Provisioning\UiInterface;
 
 /**
  * The quick setup: one screen with what a grid needs from its owner (its name, where it is reached, its
@@ -15,7 +14,7 @@ use OpenSim\Installer\Ui\InstallerUi;
  */
 final class QuickSetup
 {
-    public function __construct(private InstallerUi $ui) {}
+    public function __construct(private UiInterface $ui) {}
 
     /**
      * What the form gives, as a setup (see SetupFile): a grid, its owner, one simulator with its first region.

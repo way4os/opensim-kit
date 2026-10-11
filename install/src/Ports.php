@@ -1,9 +1,9 @@
 <?php
 
-
 namespace OpenSim\Installer;
 
-use OpenSim\Installer\Grid\GridFiles;
+use OpenSim\Config\GridFileService;
+use OpenSim\Runtime\ShellService;
 
 /**
  * The next free ports, shared by the setup and `opensim next port`: a port is
@@ -131,7 +131,7 @@ final class Ports
 
         $profile = (new Config())->profile();
         foreach (self::configFiles($profile['EtcRoot'] ?? '', $profile['DataRoot'] ?? '') as $file) {
-            $text = GridFiles::read($file);
+            $text = GridFileService::read($file);
             if (
                 preg_match_all(
                     '/^[\s;]*(?:InternalPort|PublicPort|PrivatePort|http_listener_port|http_listener_sslport|console_port|ConsolePort)\s*=\s*"?(\d+)/im',
@@ -199,7 +199,7 @@ final class Ports
     /** @return list<int> ports currently bound here, from netstat */
     private static function boundPorts(): array
     {
-        [, $out] = System::capture('netstat -an');
+        [, $out] = ShellService::capture('netstat -an');
 
         return self::parseBound($out);
     }

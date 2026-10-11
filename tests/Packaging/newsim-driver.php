@@ -1,13 +1,13 @@
 <?php
 
+
+use OpenSim\Installer\Grid\NewSim;
+
 // Runs the simulator wizard of the installed kit with scripted answers, for
 // tests/Packaging/package-scenario.sh.
 
 require '/usr/share/opensim-tools/vendor/autoload.php';
 require __DIR__ . '/ScriptedUi.php';
-
-use OpenSim\Installer\Grid\NewSim;
-use OpenSim\Installer\SetupFailed;
 
 // TEST_GRID: the grid, TEST_SIM: the simulator, TEST_REGION: its first region,
 // TEST_OWNER: an account of the grid for the estate (else the first one),
@@ -77,7 +77,7 @@ try {
     } else {
         $wizard->run(getenv('TEST_REMOTE_GRID') ? null : (getenv('TEST_GRID') ?: null));
     }
-} catch (SetupFailed) {
+} catch (SetupFailedException) {
     echo "setup failed\n";
     exit(1);
 }

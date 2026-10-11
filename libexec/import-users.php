@@ -17,14 +17,17 @@
  * file (mode 600) and never on the screen.
  */
 
-require dirname(__DIR__) . '/bootstrap.php';
+
+
 
 use OpenSim\Installer\Config;
 use OpenSim\Installer\Grid\AccountImporter;
 use OpenSim\Installer\Grid\AccountList;
 use OpenSim\Installer\Grid\Database;
-use OpenSim\Installer\Grid\GridInfo;
 use OpenSim\Installer\Ui\QuietUi;
+use OpenSim\Models\GridInfo;
+
+require dirname(__DIR__) . '/bootstrap.php';
 
 const USAGE = "usage: opensim users [GRID] import FILE [--apply] [--keep-going] [--result FILE] [--format csv|json|yaml]\n";
 

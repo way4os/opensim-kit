@@ -1,10 +1,9 @@
 <?php
 
-
 namespace OpenSim\Installer\Archive;
 
-use OpenSim\Installer\Grid\GridInfo;
-use OpenSim\Installer\Grid\RegionState;
+use OpenSim\Models\GridInfo;
+use OpenSim\Models\RegionState;
 
 /**
  * Which grid, and which simulator or region of it, the words of a command name: `GRID`, `GRID SIM`, `GRID _SIM`,

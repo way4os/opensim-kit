@@ -1,17 +1,35 @@
 <?php
 
-
 namespace OpenSim\Installer\Grid;
 
+use OpenSim\Config\GridFileService;
 use OpenSim\Installer\Config;
 use OpenSim\Installer\Console;
 use OpenSim\Installer\Elevated;
-use OpenSim\Installer\PendingRestarts;
 use OpenSim\Installer\Ports;
 use OpenSim\Installer\Setup\SetupFile;
-use OpenSim\Installer\SetupFailed;
-use OpenSim\Installer\System;
-use OpenSim\Installer\Ui\InstallerUi;
+use OpenSim\Models\GridInfo;
+use OpenSim\Models\GridState;
+use OpenSim\Models\RegionState;
+use OpenSim\Models\SimState;
+use OpenSim\Provisioning\GridConf;
+use OpenSim\Provisioning\GridPlan;
+use OpenSim\Provisioning\GridShared;
+use OpenSim\Provisioning\LocationFinder;
+use OpenSim\Provisioning\PendingRestarts;
+use OpenSim\Provisioning\Places;
+use OpenSim\Provisioning\Presets;
+use OpenSim\Provisioning\RandomName;
+use OpenSim\Provisioning\RegionFlags;
+use OpenSim\Provisioning\RegionName;
+use OpenSim\Provisioning\RobustGrid;
+use OpenSim\Provisioning\SetupFailedException;
+use OpenSim\Provisioning\SimConfig;
+use OpenSim\Provisioning\SimName;
+use OpenSim\Provisioning\SimPlan;
+use OpenSim\Provisioning\Slug;
+use OpenSim\Provisioning\UiInterface;
+use OpenSim\Runtime\ShellService;
 
 /**
  * Create (or reconfigure) one simulator of a grid, with its first region.
@@ -29,7 +47,7 @@ final class NewSim
     private const LANDING = 'At least a default landing region should be created.';
     private const FIRST = 'Welcome';
 
-    public function __construct(private InstallerUi $ui) {}
+    public function __construct(private UiInterface $ui) {}
 
     /**
      * @param ?string $gridNick the grid it joins, asked when there are several and none is given
@@ -93,13 +111,13 @@ final class NewSim
             if ($result === Database::ABORT) {
                 $this->ui->error(_('Stopped, nothing was changed: OpenSim cannot run without its database.'));
 
-                throw new SetupFailed('database');
+                throw new SetupFailedException('database');
             }
             // The error is on screen: the settings are asked again at once, they may be what is wrong
             if (++$attempts > 10) {
                 $this->ui->error(_('Stopped, nothing was changed: OpenSim cannot run without its database.'));
 
-                throw new SetupFailed('database');
+                throw new SetupFailedException('database');
             }
             $this->askDatabase($plan, $grid);
             $check = $plan->databasePlan();
@@ -361,7 +379,7 @@ final class NewSim
         $plan->httpPort = (int) (GridInfo::parse($plan->iniPath())['httpPort'] ?? 0);
         // The address the regions of this simulator already announce
         foreach (glob("{$plan->regionsDir()}/*.ini") ?: [] as $file) {
-            if (preg_match('/^\s*ExternalHostName\s*=\s*(\S+)/m', GridFiles::read($file), $m)) {
+            if (preg_match('/^\s*ExternalHostName\s*=\s*(\S+)/m', GridFileService::read($file), $m)) {
                 $plan->externalHost = $m[1];
                 break;
             }
@@ -462,7 +480,7 @@ final class NewSim
         if ($grid === null) {
             $this->ui->error(sprintf(_("Grid '%s' not found."), $plan->gridNick));
 
-            throw new SetupFailed('grid');
+            throw new SetupFailedException('grid');
         }
 
         if ($plan->regionOnly) {
@@ -476,7 +494,7 @@ final class NewSim
         if ($plan->createOwner) {
             $accounts = new GridAccounts(new Database($this->ui), $this->ui);
             if (!$accounts->create($grid, $plan->estateOwner, $plan->ownerPassword, $plan->ownerEmail)) {
-                throw new SetupFailed('account');
+                throw new SetupFailedException('account');
             }
             $this->ui->note(sprintf(_("Account %s created in the grid '%s'."), $plan->estateOwner, $grid->nick));
         }
@@ -533,7 +551,7 @@ final class NewSim
             true,
         );
         // The ini files may hold passwords and the web server reads them (the helpers): 640, the group of the web server
-        GridFiles::protect($plan->gridDir);
+        GridFileService::protect($plan->gridDir);
 
         if ($plan->enable) {
             if (SimState::enable($etcRoot, $plan->slug, $plan->iniPath())) {
@@ -564,7 +582,7 @@ final class NewSim
                 : sprintf(_('Region %s already described, left as it is.'), $plan->regionName),
         );
         $this->giveToSystemUser($profile['SystemUser'] ?? '', [$plan->regionsDir()], true);
-        GridFiles::protect($plan->gridDir);
+        GridFileService::protect($plan->gridDir);
         $this->giveRoles($plan, $grid);
         if ($plan->overwriteRegion) {
             $this->needRestart($profile, $plan, 'changed');
@@ -735,7 +753,7 @@ final class NewSim
     private function restartGrid(GridInfo $grid): void
     {
         $opensim = dirname(__DIR__, 3) . '/bin/opensim';
-        [$code] = System::runShown(System::arg($opensim) . ' restart now ' . System::arg($grid->nick));
+        [$code] = ShellService::runShown(ShellService::arg($opensim) . ' restart now ' . ShellService::arg($grid->nick));
         if ($code !== 0) {
             $this->ui->warn(
                 sprintf(
@@ -767,7 +785,7 @@ final class NewSim
         if (!$grid->remote) {
             // Robust reads the roles of its regions when it starts: it starts again to give them
             $action = $plan->regionRoles !== [] ? 'restart now' : 'start';
-            [$code] = System::runShown(System::arg($opensim) . " $action " . System::arg($grid->nick));
+            [$code] = ShellService::runShown(ShellService::arg($opensim) . " $action " . ShellService::arg($grid->nick));
             if ($code !== 0) {
                 $this->failed(
                     $plan,
@@ -785,7 +803,7 @@ final class NewSim
 
         // The simulator restarts at once, unless its users are to be warned first (see opensim restart)
         $now = $plan->warnUsers ? '' : 'now ';
-        [$code, $said] = System::runShown(System::arg($opensim) . " restart $now" . System::arg($plan->slug));
+        [$code, $said] = ShellService::runShown(ShellService::arg($opensim) . " restart $now" . ShellService::arg($plan->slug));
         $pending = $code === 0 && str_contains($said, 'still starting');
         if ($code === 0 && !$pending) {
             if ($plan->createRegion && !$grid->remote && !$this->registered($plan, $grid)) {
@@ -838,10 +856,10 @@ final class NewSim
         $log = $plan->logsDirectory . '/' . $plan->slug . '.log';
         if (is_file($log)) {
             $this->ui->note(_('Recent log:'));
-            System::run('tail -n 30 ' . System::arg($log));
+            ShellService::run('tail -n 30 ' . ShellService::arg($log));
         }
 
-        throw new SetupFailed($message);
+        throw new SetupFailedException($message);
     }
 
     /** Whether the grid knows the region, waiting a little for it to tell. */
@@ -886,8 +904,8 @@ final class NewSim
         }
         foreach ($paths as $path) {
             if (is_link($path) || file_exists($path)) {
-                System::run(
-                    'chown -h' . ($recursive ? 'R' : '') . ' ' . System::arg($user) . ': ' . System::arg($path),
+                ShellService::run(
+                    'chown -h' . ($recursive ? 'R' : '') . ' ' . ShellService::arg($user) . ': ' . ShellService::arg($path),
                 );
             }
         }

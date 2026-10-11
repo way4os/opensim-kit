@@ -17,14 +17,14 @@
  * Nothing is written without --apply: what would be made is told.
  */
 
-require dirname(__DIR__) . '/bootstrap.php';
 
 use OpenSim\Installer\Config;
 use OpenSim\Installer\Setup\SetupFile;
 use OpenSim\Installer\Setup\SetupRunner;
-use OpenSim\Installer\SetupFailed;
 use OpenSim\Installer\Ui\PromptsUi;
 use OpenSim\Installer\Ui\QuietUi;
+
+require dirname(__DIR__) . '/bootstrap.php';
 
 const USAGE = "usage: opensim import [GRID] FILE [--grid] [--simulator] [--users] [--apply] [--core DIR] [--name NAME]\n";
 
@@ -249,7 +249,7 @@ if (!$apply) {
 
 try {
     $made = (new SetupRunner(new PromptsUi()))->run($data, [], $options['result']);
-} catch (SetupFailed) {
+} catch (SetupFailedException) {
     exit(1);
 }
 exit($made === null ? 1 : 0);

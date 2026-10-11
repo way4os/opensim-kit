@@ -4,12 +4,15 @@
  * what differs from the defaults of the core is kept.
  */
 
-use OpenSim\Installer\Grid\GridInfo;
-use OpenSim\Installer\Grid\GridPlan;
-use OpenSim\Installer\Grid\SimPlan;
-use OpenSim\Installer\Import\IniReader;
+
+
+
+use OpenSim\Config\IniReader;
 use OpenSim\Installer\Import\RobustImporter;
 use OpenSim\Installer\Import\SimImporter;
+use OpenSim\Models\GridInfo;
+use OpenSim\Provisioning\GridPlan;
+use OpenSim\Provisioning\SimPlan;
 
 /**
  * An install of the old way in a temporary tree: Robust.ini with an include, and a ConfigDirectory.

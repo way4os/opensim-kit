@@ -4,10 +4,11 @@
  * added (settings, sections), and what the setup only proposes, stay.
  */
 
-use OpenSim\Installer\Grid\GridPlan;
-use OpenSim\Installer\Grid\RobustConfig;
-use OpenSim\Installer\Grid\SimConfig;
-use OpenSim\Installer\Grid\SimPlan;
+
+use OpenSim\Provisioning\GridPlan;
+use OpenSim\Provisioning\RobustConfig;
+use OpenSim\Provisioning\SimConfig;
+use OpenSim\Provisioning\SimPlan;
 
 describe('Configuring a grid that exists', function () {
     /** A grid plan over a folder that has the Robust.HG.ini.example of a distribution. */

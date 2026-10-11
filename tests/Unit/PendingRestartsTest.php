@@ -3,8 +3,11 @@
  * What waits for an instance to restart, and the actions of the menus that leave it there.
  */
 
+
+
+
 use OpenSim\Installer\Actions;
-use OpenSim\Installer\PendingRestarts;
+use OpenSim\Provisioning\PendingRestarts;
 
 /** A profile with its own data folder. */
 function pending_profile()

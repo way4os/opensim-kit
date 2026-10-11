@@ -1,9 +1,9 @@
 <?php
 
-
 namespace OpenSim\Installer;
 
-use OpenSim\Installer\Ui\InstallerUi;
+use OpenSim\Provisioning\UiInterface;
+use OpenSim\Runtime\ShellService;
 
 /**
  * Discriminating runtime gate: decides whether the chosen OpenSim version can
@@ -18,7 +18,7 @@ final class Runtime
     private const DOTNET_THRESHOLD = '0.9.3.0';
     private const DOTNET_MAJOR = 8; // OpenSim 0.9.3.x targets .NET 8 (net8.0)
 
-    public function __construct(private InstallerUi $ui) {}
+    public function __construct(private UiInterface $ui) {}
 
     public function gate(Plan $plan): void
     {
@@ -73,7 +73,7 @@ final class Runtime
     {
         $plan->runtime = 'mono';
 
-        if (System::commandExists('mono')) {
+        if (ShellService::commandExists('mono')) {
             $this->ui->note(sprintf(_('Mono is installed; OpenSim %s will use it.'), $plan->version));
 
             return;
@@ -104,7 +104,7 @@ final class Runtime
     private function installDotnet(int $major): void
     {
         // Install into the active dotnet root so the existing 'dotnet' finds it.
-        [$code, $path] = System::capture('command -v dotnet');
+        [$code, $path] = ShellService::capture('command -v dotnet');
         $dir =
             $code === 0 && trim($path) !== ''
                 ? dirname(realpath(trim($path)) ?: trim($path))
@@ -113,9 +113,9 @@ final class Runtime
 
         $script = sys_get_temp_dir() . '/dotnet-install.sh';
         if (
-            System::run(
+            ShellService::run(
                 'curl -fsSL https://builds.dotnet.microsoft.com/dotnet/scripts/v1/dotnet-install.sh -o ' .
-                    System::arg($script),
+                    ShellService::arg($script),
             ) !== 0
         ) {
             $this->ui->error(_('Could not fetch dotnet-install.sh.'));
@@ -123,14 +123,14 @@ final class Runtime
         }
 
         $this->ui->note(sprintf(_('Installing .NET %s into %s'), $major, $dir));
-        $code = System::run(
+        $code = ShellService::run(
             $sudo .
                 'bash ' .
-                System::arg($script) .
+                ShellService::arg($script) .
                 ' --runtime dotnet --channel ' .
-                System::arg("$major.0") .
+                ShellService::arg("$major.0") .
                 ' --install-dir ' .
-                System::arg($dir),
+                ShellService::arg($dir),
         );
         if ($code !== 0) {
             $this->ui->error(sprintf(_('.NET %s installation failed.'), $major));
@@ -147,23 +147,23 @@ final class Runtime
         // step (e.g. Homebrew's mono GAC setup) while mono itself is perfectly
         // usable, so judge success by whether the binary ends up available.
         (new Packages($this->ui))->install($package);
-        if (!System::commandExists('mono')) {
+        if (!ShellService::commandExists('mono')) {
             $this->ui->error(sprintf(_('Mono installation failed (%s not on PATH).'), $package));
             exit(1);
         }
 
-        [, $version] = System::capture('mono --version');
+        [, $version] = ShellService::capture('mono --version');
         $this->ui->note(sprintf(_('mono ready: %s'), strtok($version, "\n") ?: _('installed')));
     }
 
     /** @return list<int> installed Microsoft.NETCore.App major versions, ascending */
     private function dotnetMajors(): array
     {
-        if (!System::commandExists('dotnet')) {
+        if (!ShellService::commandExists('dotnet')) {
             return [];
         }
 
-        [, $out] = System::capture('dotnet --list-runtimes');
+        [, $out] = ShellService::capture('dotnet --list-runtimes');
         preg_match_all('/Microsoft\.NETCore\.App (\d+)\./', $out, $m);
         $majors = array_values(array_unique(array_map('intval', $m[1])));
         sort($majors);

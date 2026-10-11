@@ -1,7 +1,9 @@
 <?php
 
-
 namespace OpenSim\Installer\Grid;
+
+use OpenSim\Models\GridInfo;
+use OpenSim\Provisioning\GridPlan;
 
 /**
  * Makes the accounts of a list in the database of a grid (see AccountWriter), or tells what it would make: the

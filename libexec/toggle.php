@@ -16,16 +16,19 @@
  *   opensim enable|disable <grid> profiles
  */
 
-require dirname(__DIR__) . '/bootstrap.php';
+
+
 
 use OpenSim\Installer\Actions;
 use OpenSim\Installer\Archive\Instances;
 use OpenSim\Installer\Config;
-use OpenSim\Installer\Grid\Features;
-use OpenSim\Installer\Grid\GridInfo;
-use OpenSim\Installer\Grid\GridState;
-use OpenSim\Installer\Grid\SimState;
 use OpenSim\Installer\Ui\QuietUi;
+use OpenSim\Models\GridInfo;
+use OpenSim\Models\GridState;
+use OpenSim\Models\SimState;
+use OpenSim\Provisioning\Features;
+
+require dirname(__DIR__) . '/bootstrap.php';
 
 $verb = $argv[1] ?? '';
 $names = array_slice($argv, 2);

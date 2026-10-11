@@ -1,15 +1,18 @@
 <?php
 
+
+
+
+use OpenSim\Installer\Config;
+use OpenSim\Installer\Grid\Database;
+use OpenSim\Installer\Grid\GridAccounts;
+use OpenSim\Models\GridInfo;
+
 // Makes an account in the grid TEST_GRID (default testgrid), through the console of its Robust, as the setup does,
 // for tests/Packaging/package-scenario.sh. TEST_ACCOUNT (default "Later User"), its password TEST_ACCOUNT_PASSWORD.
 
 require '/usr/share/opensim-tools/vendor/autoload.php';
 require __DIR__ . '/ScriptedUi.php';
-
-use OpenSim\Installer\Config;
-use OpenSim\Installer\Grid\Database;
-use OpenSim\Installer\Grid\GridAccounts;
-use OpenSim\Installer\Grid\GridInfo;
 
 $ui = new ScriptedUi([]);
 $grid = GridInfo::load((new Config())->profile(), getenv('TEST_GRID') ?: 'testgrid');

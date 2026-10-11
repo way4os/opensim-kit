@@ -2,6 +2,8 @@
 
 namespace OpenSim\Installer;
 
+use OpenSim\Runtime\ShellService;
+
 /**
  * The console of a running instance, through the launcher (which acts as the
  * user running the instances, whoever calls it).
@@ -11,7 +13,7 @@ final class Console
     /** Whether an instance runs, from the config file it was started with (the link in opensim.d or robust.d). */
     public static function running(string $ini): bool
     {
-        [$code] = System::capture('pgrep -f -- ' . System::arg("-inifile=$ini( |\$)"));
+        [$code] = ShellService::capture('pgrep -f -- ' . ShellService::arg("-inifile=$ini( |\$)"));
 
         return $code === 0;
     }

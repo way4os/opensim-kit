@@ -1,9 +1,9 @@
 <?php
 
-
 namespace OpenSim\Installer;
 
-use OpenSim\Installer\Ui\InstallerUi;
+use OpenSim\Provisioning\SetupFailedException;
+use OpenSim\Provisioning\UiInterface;
 
 /**
  * Hands the writing of the files and the instances to the system user of the
@@ -36,7 +36,7 @@ final class Elevated
      * @param array<string,mixed> $payload
      * @throws SetupFailed when it fails
      */
-    public static function run(InstallerUi $ui, string $flag, array $payload, string $user): void
+    public static function run(UiInterface $ui, string $flag, array $payload, string $user): void
     {
         $process = proc_open(
             ['sudo', '-H', '-u', $user, PHP_BINARY, dirname(__DIR__) . '/install.php', $flag],
@@ -46,12 +46,12 @@ final class Elevated
         if (!is_resource($process)) {
             $ui->error(sprintf(_('Could not run the writing as %s.'), $user));
 
-            throw new SetupFailed('write');
+            throw new SetupFailedException('write');
         }
         fwrite($pipes[0], json_encode($payload, JSON_THROW_ON_ERROR));
         fclose($pipes[0]);
         if (proc_close($process) !== 0) {
-            throw new SetupFailed('write');
+            throw new SetupFailedException('write');
         }
     }
 }

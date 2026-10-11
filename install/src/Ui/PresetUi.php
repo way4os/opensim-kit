@@ -2,6 +2,8 @@
 
 namespace OpenSim\Installer\Ui;
 
+use OpenSim\Provisioning\UiInterface;
+
 /**
  * Answers the questions of the setup from a table, so the same flows run without anyone typing: the quick
  * setup (a form for what matters, the defaults for the rest) and the setup from a file.
@@ -16,7 +18,7 @@ namespace OpenSim\Installer\Ui;
  *
  * When the user tries the database again after a failure, its settings are asked.
  */
-final class PresetUi implements InstallerUi
+final class PresetUi implements UiInterface
 {
     use AsksForms {
         form as private askForm;
@@ -30,7 +32,7 @@ final class PresetUi implements InstallerUi
      * @param list<string> $ask the questions the interface behind asks, whatever the table says
      */
     public function __construct(
-        private InstallerUi $inner,
+        private UiInterface $inner,
         private array $answers,
         private array $ask = [],
         private bool $prefill = false,

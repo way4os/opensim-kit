@@ -3,8 +3,9 @@
  * `opensim web`: the web side of a grid, from libexec/web.php.
  */
 
-use OpenSim\Installer\Grid\GridPlan;
-use OpenSim\Installer\Grid\RobustConfig;
+
+use OpenSim\Provisioning\GridPlan;
+use OpenSim\Provisioning\RobustConfig;
 
 /**
  * Run libexec/web.php as a user whose setup is a temporary tree.

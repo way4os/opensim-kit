@@ -6,8 +6,9 @@
  * region on port 1).
  */
 
-use OpenSim\Installer\Grid\GridFiles;
-use OpenSim\Installer\SetupFailed;
+
+use OpenSim\Config\GridFileService;
+use OpenSim\Provisioning\SetupFailedException;
 
 /** A file nobody but its owner and root reads, in a folder of its own. */
 function locked_file(string $text): string
@@ -33,9 +34,9 @@ describe('Reading a file of the grid', function () {
         $file = test_tmp() . '/gridfiles-' . bin2hex(random_bytes(4)) . '.ini';
         file_put_contents($file, "[Network]\nhttp_listener_port = 9120\n");
 
-        expect(GridFiles::read($file))
+        expect(GridFileService::read($file))
             ->toBe("[Network]\nhttp_listener_port = 9120\n")
-            ->and(GridFiles::read("$file.missing"))
+            ->and(GridFileService::read("$file.missing"))
             ->toBe('');
         unlink($file);
     });
@@ -43,7 +44,7 @@ describe('Reading a file of the grid', function () {
     test('is done by the system user when the person cannot read it', function () {
         $file = locked_file("http_listener_port = 9120\n");
         $asked = '';
-        $text = GridFiles::read($file, function (string $path) use (&$asked): string {
+        $text = GridFileService::read($file, function (string $path) use (&$asked): string {
             $asked = $path;
 
             return "http_listener_port = 9120\n";
@@ -58,7 +59,7 @@ describe('Reading a file of the grid', function () {
         $file = locked_file("http_listener_port = 9120\n");
 
         try {
-            expect(fn() => GridFiles::read($file, fn() => null))->toThrow(SetupFailed::class);
+            expect(fn() => GridFileService::read($file, fn() => null))->toThrow(SetupFailedException::class);
         } finally {
             unlock($file);
         }

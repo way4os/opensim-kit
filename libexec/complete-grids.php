@@ -7,10 +7,13 @@
  * not touched: the setup does the merging.
  */
 
-require dirname(__DIR__) . '/bootstrap.php';
+
+
 
 use OpenSim\Installer\Config;
-use OpenSim\Installer\Grid\MoneyServerConfig;
+use OpenSim\Provisioning\MoneyServerConfig;
+
+require dirname(__DIR__) . '/bootstrap.php';
 
 $etcRoot = (new Config())->profile()['EtcRoot'] ?? '';
 foreach (glob("$etcRoot/grids/*", GLOB_ONLYDIR) ?: [] as $dir) {

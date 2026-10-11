@@ -12,12 +12,15 @@
  *                                             are published (default 127.0.0.1)
  */
 
-require dirname(__DIR__) . '/bootstrap.php';
 
+
+
+use OpenSim\Config\GridFileService;
 use OpenSim\Installer\Config;
-use OpenSim\Installer\Grid\GridFiles;
-use OpenSim\Installer\Grid\GridInfo;
+use OpenSim\Models\GridInfo;
 use OpenSim\Network\InstancePorts;
+
+require dirname(__DIR__) . '/bootstrap.php';
 
 $mode = 'table';
 $address = '127.0.0.1';
@@ -52,7 +55,7 @@ if ($instances === []) {
 
 $rows = [];
 foreach ($instances as [$name, $type, $ini]) {
-    foreach (InstancePorts::of($ini, GridFiles::read(...)) as $use) {
+    foreach (InstancePorts::of($ini, GridFileService::read(...)) as $use) {
         $rows[] = $use + ['instance' => $name, 'type' => $type];
     }
 }

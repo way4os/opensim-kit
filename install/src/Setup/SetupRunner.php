@@ -1,20 +1,19 @@
 <?php
 
-
 namespace OpenSim\Installer\Setup;
 
 use OpenSim\Installer\Config;
 use OpenSim\Installer\Grid\AccountImporter;
 use OpenSim\Installer\Grid\AccountList;
 use OpenSim\Installer\Grid\Database;
-use OpenSim\Installer\Grid\GridInfo;
 use OpenSim\Installer\Grid\NewGrid;
 use OpenSim\Installer\Grid\NewSim;
-use OpenSim\Installer\Grid\SimConfig;
-use OpenSim\Installer\SetupFailed;
 use OpenSim\Installer\Ui\EditConfig;
-use OpenSim\Installer\Ui\InstallerUi;
 use OpenSim\Installer\Ui\PresetUi;
+use OpenSim\Models\GridInfo;
+use OpenSim\Provisioning\SetupFailedException;
+use OpenSim\Provisioning\SimConfig;
+use OpenSim\Provisioning\UiInterface;
 
 /**
  * Makes a setup that is described in a file (see SetupFile): the grid, its simulators and their regions,
@@ -26,7 +25,7 @@ final class SetupRunner
     /** The questions the user still answers when asked to (the plan to accept, the administrator of the database). */
     public const ASK = ['Enter the credentials', 'Administrator user', 'Password of ', 'Try again'];
 
-    public function __construct(private InstallerUi $ui) {}
+    public function __construct(private UiInterface $ui) {}
 
     /**
      * The quick setup: the plan of the grid and of its first simulator are made first, shown together, and nothing
@@ -89,7 +88,7 @@ final class SetupRunner
             if ($nick !== '' && is_dir("$etcRoot/grids/$nick")) {
                 $this->ui->error(sprintf(_("The grid '%s' exists already: this setup makes new ones."), $nick));
 
-                throw new SetupFailed('grid exists');
+                throw new SetupFailedException('grid exists');
             }
             $nick = (new NewGrid(new PresetUi($this->ui, $answers, $ask, $prefill)))->run(null);
             if ($nick === null) {
@@ -102,7 +101,7 @@ final class SetupRunner
             if ($nick === '') {
                 $this->ui->error(_('This setup has no grid, and there is not exactly one on this machine to use.'));
 
-                throw new SetupFailed('no grid');
+                throw new SetupFailedException('no grid');
             }
         }
 

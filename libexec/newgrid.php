@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * newgrid (PHP) — configure a grid on top of an installed framework.
  *
@@ -8,14 +7,14 @@
  * setup hub can reuse it. Runnable standalone too.
  */
 
-require dirname(__DIR__) . '/bootstrap.php';
 
 use OpenSim\Installer\Grid\NewGrid;
-use OpenSim\Installer\SetupFailed;
 use OpenSim\Installer\Ui\PromptsUi;
+
+require dirname(__DIR__) . '/bootstrap.php';
 
 try {
     (new NewGrid(new PromptsUi()))->run();
-} catch (SetupFailed) {
+} catch (SetupFailedException) {
     exit(1);
 }

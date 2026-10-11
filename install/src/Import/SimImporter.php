@@ -1,11 +1,11 @@
 <?php
 
-
 namespace OpenSim\Installer\Import;
 
-use OpenSim\Installer\Grid\GridInfo;
-use OpenSim\Installer\Grid\SimPlan;
-use OpenSim\Installer\Grid\GridFiles;
+use OpenSim\Config\GridFileService;
+use OpenSim\Config\IniReader;
+use OpenSim\Models\GridInfo;
+use OpenSim\Provisioning\SimPlan;
 
 /**
  * Ports the configuration of a simulator of a grid (an OpenSim.ini with its includes, its regions folder) the way
@@ -112,7 +112,7 @@ final class SimImporter
     public static function externalHost(array $files): string
     {
         foreach ($files as $file) {
-            if (preg_match('/^\s*ExternalHostName\s*=\s*"?([^"\s]+)/m', GridFiles::read($file), $m)) {
+            if (preg_match('/^\s*ExternalHostName\s*=\s*"?([^"\s]+)/m', GridFileService::read($file), $m)) {
                 return $m[1];
             }
         }

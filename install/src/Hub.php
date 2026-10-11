@@ -2,19 +2,21 @@
 
 namespace OpenSim\Installer;
 
-use OpenSim\Installer\Grid\GridInfo;
-use OpenSim\Installer\Grid\GridState;
 use OpenSim\Installer\Grid\NewGrid;
 use OpenSim\Installer\Grid\NewSim;
-use OpenSim\Installer\Grid\RegionState;
-use OpenSim\Installer\Grid\SimConfig;
-use OpenSim\Installer\Grid\SimState;
 use OpenSim\Installer\Setup\QuickSetup;
 use OpenSim\Installer\Setup\SetupRunner;
 use OpenSim\Installer\Ui\Back;
 use OpenSim\Installer\Ui\EditConfig;
-use OpenSim\Installer\Ui\InstallerUi;
 use OpenSim\Installer\Ui\Quit;
+use OpenSim\Models\GridInfo;
+use OpenSim\Models\GridState;
+use OpenSim\Models\RegionState;
+use OpenSim\Models\SimState;
+use OpenSim\Provisioning\PendingRestarts;
+use OpenSim\Provisioning\SetupFailedException;
+use OpenSim\Provisioning\SimConfig;
+use OpenSim\Provisioning\UiInterface;
 
 /**
  * Setup hub: screens one level deeper each time, from the home to a region:
@@ -32,7 +34,7 @@ use OpenSim\Installer\Ui\Quit;
  */
 final class Hub
 {
-    public function __construct(private InstallerUi $ui) {}
+    public function __construct(private UiInterface $ui) {}
 
     public function run(): void
     {
@@ -150,7 +152,7 @@ final class Hub
                 ['op' => $op, 'args' => $args, 'profile' => $profile],
                 $profile['SystemUser'],
             );
-        } catch (SetupFailed) {
+        } catch (SetupFailedException) {
             return false;
         }
 

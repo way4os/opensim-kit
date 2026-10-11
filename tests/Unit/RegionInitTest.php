@@ -1,7 +1,8 @@
 <?php
 
-use OpenSim\Installer\Grid\SimConfig;
-use OpenSim\Installer\Grid\SimPlan;
+
+use OpenSim\Provisioning\SimConfig;
+use OpenSim\Provisioning\SimPlan;
 
 test('enables OSSL for the estate owner', function () {
     $plan = new SimPlan();
@@ -34,7 +35,7 @@ test('enables OSSL in a grid', function () {
         "[OSSL]\n    AllowOSFunctions = false\n    ; Allow_osSetParcelDetails = true\n",
     );
     $grid = "$bin/grid";
-    (new OpenSim\Installer\Grid\GridShared())->prepare($grid, $bin, false);
+    (new \OpenSim\Provisioning\GridShared())->prepare($grid, $bin, false);
 
     $default = file_get_contents("$grid/config-include/osslDefaultEnable.ini");
     $enable = OpenSim\Config\IniEditor::load("$grid/config-include/osslEnable.ini");

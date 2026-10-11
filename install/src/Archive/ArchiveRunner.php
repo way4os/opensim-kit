@@ -3,9 +3,9 @@
 namespace OpenSim\Installer\Archive;
 
 use OpenSim\Installer\Console;
-use OpenSim\Installer\Grid\GridInfo;
-use OpenSim\Installer\Grid\RegionState;
-use OpenSim\Installer\Grid\SimState;
+use OpenSim\Models\GridInfo;
+use OpenSim\Models\RegionState;
+use OpenSim\Models\SimState;
 
 /**
  * `opensim save|load iar|oar`: find the simulator, the region and the file, give the console of the simulator its command,

@@ -15,16 +15,19 @@
  * -e can be given several times.
  */
 
-require dirname(__DIR__) . '/bootstrap.php';
+
+
 
 use OpenSim\Installer\Config;
 use OpenSim\Installer\Grid\Database;
-use OpenSim\Installer\Grid\GridInfo;
 use OpenSim\Installer\Grid\GridRegistry;
-use OpenSim\Installer\Grid\LocationFinder;
-use OpenSim\Installer\Grid\Places;
 use OpenSim\Installer\Ports;
 use OpenSim\Installer\Ui\QuietUi;
+use OpenSim\Models\GridInfo;
+use OpenSim\Provisioning\LocationFinder;
+use OpenSim\Provisioning\Places;
+
+require dirname(__DIR__) . '/bootstrap.php';
 
 const USAGE = "usage: opensim next port [-e PORT] [MIN] [COUNT]\n       opensim next GRID location [X,Y] [COUNT] [-e X,Y]\n";
 

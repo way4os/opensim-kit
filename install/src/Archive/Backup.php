@@ -1,11 +1,10 @@
 <?php
 
-
 namespace OpenSim\Installer\Archive;
 
-use OpenSim\Installer\Grid\GridInfo;
-use OpenSim\Installer\Grid\GridState;
-use OpenSim\Installer\Grid\SimState;
+use OpenSim\Models\GridInfo;
+use OpenSim\Models\GridState;
+use OpenSim\Models\SimState;
 
 /**
  * The backup of the administrator: what it takes to install a grid again as it is, on another machine or after a crash.

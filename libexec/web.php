@@ -16,13 +16,16 @@
  * grid (see Web\HelpersConfig).
  */
 
-require dirname(__DIR__) . '/bootstrap.php';
+
+
 
 use OpenSim\Installer\Config;
-use OpenSim\Installer\Grid\GridState;
-use OpenSim\Installer\Web\HelpersConfig;
-use OpenSim\Installer\Web\Services;
-use OpenSim\Installer\Web\Snippets;
+use OpenSim\Models\GridState;
+use OpenSim\Provisioning\Web\HelpersConfig;
+use OpenSim\Provisioning\Web\Services;
+use OpenSim\Provisioning\Web\Snippets;
+
+require dirname(__DIR__) . '/bootstrap.php';
 
 const USAGE = "usage: opensim web [GRID] [show]\n       opensim web [GRID] snippet <caddy|nginx|apache> [--docroot DIR] [--socket PATH]\n       opensim web [GRID] check\n";
 

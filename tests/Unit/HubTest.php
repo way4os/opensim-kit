@@ -5,13 +5,16 @@
  * are real ones in a temporary tree.
  */
 
+
+
+
 use OpenSim\Installer\Hub;
-use OpenSim\Installer\Ui\InstallerUi;
+use OpenSim\Provisioning\UiInterface;
 
 /**
  * An interface that answers the choices from a script and records the screens.
  */
-final class RecordingUi implements InstallerUi
+final class RecordingUi implements UiInterface
 {
     use \OpenSim\Installer\Ui\AsksForms;
 
@@ -259,7 +262,7 @@ describe('RegionState', function () {
             "[Far]\nRegionUUID = 607c44e9-3d01-45eb-a07e-937dc72dbadb\nLocation = 1200,1200\nSizeX = 512\nInternalPort = 8015\nExternalHostName = \"play.example.org\"\n",
         );
 
-        expect(\OpenSim\Installer\Grid\RegionState::values("$etc/Far.ini"))->toBe([
+        expect(\OpenSim\Models\RegionState::values("$etc/Far.ini"))->toBe([
             'RegionUUID' => '607c44e9-3d01-45eb-a07e-937dc72dbadb',
             'Location' => '1200,1200',
             'SizeX' => '512',
@@ -273,7 +276,7 @@ describe('RegionState', function () {
         $regions = "$etc/grids/alpha/sims/alpha_sim1/regions";
         file_put_contents("$regions/Far.ini", "[Far]\n");
 
-        expect(\OpenSim\Installer\Grid\RegionState::enable("$regions/Far.ini.disabled"))->toBeNull();
+        expect(\OpenSim\Models\RegionState::enable("$regions/Far.ini.disabled"))->toBeNull();
     });
 });
 

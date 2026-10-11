@@ -1,7 +1,11 @@
 <?php
 
-
 namespace OpenSim\Installer\Grid;
+
+use OpenSim\Config\GridFileService;
+use OpenSim\Models\GridInfo;
+use OpenSim\Models\RegionState;
+use OpenSim\Provisioning\LocationFinder;
 
 /**
  * What the grid knows of its regions, from the database of its Robust: their
@@ -144,7 +148,7 @@ final class GridRegistry
             }
         }
         foreach (glob("{$grid->dir}/sims/*/regions/*.ini") ?: [] as $file) {
-            foreach (preg_split('/^\s*\[/m', GridFiles::read($file)) ?: [] as $section) {
+            foreach (preg_split('/^\s*\[/m', GridFileService::read($file)) ?: [] as $section) {
                 if (preg_match('/^\s*Location\s*=\s*(\d+)\s*,\s*(\d+)/m', $section, $m)) {
                     $width = preg_match('/^\s*SizeX\s*=\s*(\d+)/m', $section, $w) ? intdiv((int) $w[1], 256) : 1;
                     $height = preg_match('/^\s*SizeY\s*=\s*(\d+)/m', $section, $h) ? intdiv((int) $h[1], 256) : 1;

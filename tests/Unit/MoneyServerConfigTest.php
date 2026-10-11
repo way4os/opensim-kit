@@ -4,7 +4,8 @@
  * helpers share with the server made at random once.
  */
 
-use OpenSim\Installer\Grid\MoneyServerConfig;
+
+use OpenSim\Provisioning\MoneyServerConfig;
 
 /** A folder for a grid. */
 function money_grid(): string

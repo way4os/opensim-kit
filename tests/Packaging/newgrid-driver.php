@@ -1,12 +1,12 @@
 <?php
 
+
+use OpenSim\Installer\Grid\NewGrid;
+
 // Runs the grid wizard of the installed kit with scripted answers, for
 // tests/Packaging/package-scenario.sh.
 
 require '/usr/share/opensim-tools/vendor/autoload.php';
-
-use OpenSim\Installer\Grid\NewGrid;
-use OpenSim\Installer\SetupFailed;
 
 require __DIR__ . '/ScriptedUi.php';
 
@@ -54,7 +54,7 @@ try {
     for ($i = 0; $i < (int) (getenv('TEST_REPEAT') ?: 1); $i++) {
         (new NewGrid(new ScriptedUi($answers)))->run(getenv('TEST_MODIFY') ?: null);
     }
-} catch (SetupFailed) {
+} catch (SetupFailedException) {
     echo "setup failed\n";
     exit(1);
 }

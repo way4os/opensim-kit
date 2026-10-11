@@ -1,20 +1,30 @@
 <?php
 
-
 namespace OpenSim\Installer\Grid;
 
+use OpenSim\Config\GridFileService;
+use OpenSim\Config\IniEditor;
+use OpenSim\Config\TextFileService;
 use OpenSim\Installer\Config;
 use OpenSim\Installer\Elevated;
 use OpenSim\Installer\Ports;
 use OpenSim\Installer\Setup\SetupFile;
-use OpenSim\Installer\SetupFailed;
-use OpenSim\Installer\System;
-use OpenSim\Config\TextFileService;
-use OpenSim\Installer\Ui\InstallerUi;
-use OpenSim\Installer\Web\HelpersConfig;
-use OpenSim\Installer\Web\Services;
-use OpenSim\Installer\Web\Snippets;
-use OpenSim\Config\IniEditor;
+use OpenSim\Models\GridInfo;
+use OpenSim\Models\GridState;
+use OpenSim\Provisioning\GridConf;
+use OpenSim\Provisioning\GridPlan;
+use OpenSim\Provisioning\GridShared;
+use OpenSim\Provisioning\LocationFinder;
+use OpenSim\Provisioning\MoneyServerConfig;
+use OpenSim\Provisioning\RobustConfig;
+use OpenSim\Provisioning\RobustLogConfig;
+use OpenSim\Provisioning\SetupFailedException;
+use OpenSim\Provisioning\Slug;
+use OpenSim\Provisioning\UiInterface;
+use OpenSim\Provisioning\Web\HelpersConfig;
+use OpenSim\Provisioning\Web\Services;
+use OpenSim\Provisioning\Web\Snippets;
+use OpenSim\Runtime\ShellService;
 
 /**
  * Configure (or reconfigure) one grid on top of an installed framework.
@@ -25,7 +35,7 @@ use OpenSim\Config\IniEditor;
  */
 final class NewGrid
 {
-    public function __construct(private InstallerUi $ui) {}
+    public function __construct(private UiInterface $ui) {}
 
     /** @return ?string the nick of the grid configured, null when nothing was */
     public function run(?string $modifyNick = null): ?string
@@ -90,13 +100,13 @@ final class NewGrid
             if ($result === Database::ABORT) {
                 $this->ui->error(_('Stopped, nothing was changed: OpenSim cannot run without its database.'));
 
-                throw new SetupFailed('database');
+                throw new SetupFailedException('database');
             }
             // The error is on screen: the settings are asked again at once, they may be what is wrong
             if (++$attempts > 10) {
                 $this->ui->error(_('Stopped, nothing was changed: OpenSim cannot run without its database.'));
 
-                throw new SetupFailed('database');
+                throw new SetupFailedException('database');
             }
             $this->askDatabase($plan, [
                 'dbHost' => $plan->dbHost,
@@ -185,7 +195,7 @@ final class NewGrid
         $this->writeHelpers($plan);
         $this->copyConfigInclude($plan);
 
-        $logConfig = (new LogConfig())->write($plan);
+        $logConfig = (new RobustLogConfig())->write($plan);
         if ($logConfig !== null) {
             $this->ui->note(sprintf(_('Wrote %s'), $logConfig));
         }
@@ -196,7 +206,7 @@ final class NewGrid
         $systemUser = $profile['SystemUser'] ?? '';
         $this->giveToSystemUser($systemUser, [$plan->etcDirectory, $plan->dataDirectory, $plan->cacheDirectory], true);
         // Every ini file may hold a password, and the web server reads them: 640, the group of the web server
-        if (!GridFiles::protect($plan->gridDir) && $plan->helpers) {
+        if (!GridFileService::protect($plan->gridDir) && $plan->helpers) {
             $this->ui->warn(
                 sprintf(
                     _(
@@ -256,8 +266,8 @@ final class NewGrid
         }
         foreach ($paths as $path) {
             if (is_link($path) || file_exists($path)) {
-                System::run(
-                    'chown -h' . ($recursive ? 'R' : '') . ' ' . System::arg($user) . ': ' . System::arg($path),
+                ShellService::run(
+                    'chown -h' . ($recursive ? 'R' : '') . ' ' . ShellService::arg($user) . ': ' . ShellService::arg($path),
                 );
             }
         }
@@ -273,7 +283,7 @@ final class NewGrid
         $opensim = dirname(__DIR__, 3) . '/bin/opensim';
         $nick = $plan->gridNick;
 
-        [$code, $said] = System::runShown(System::arg($opensim) . ' restart ' . System::arg($nick));
+        [$code, $said] = ShellService::runShown(ShellService::arg($opensim) . ' restart ' . ShellService::arg($nick));
         // The launcher waits for the ready signal in the console. After its
         // delay it says the instance is still starting, and succeeds: a
         // healthy Robust is ready within a minute, so that is a failure too.
@@ -297,10 +307,10 @@ final class NewGrid
         $log = $plan->logsDirectory . '/' . $plan->gridSlug . '_robust.log';
         if (is_file($log)) {
             $this->ui->note(_('Recent log:'));
-            System::run('tail -n 30 ' . System::arg($log));
+            ShellService::run('tail -n 30 ' . ShellService::arg($log));
         }
 
-        throw new SetupFailed("Grid '$nick' did not start.");
+        throw new SetupFailedException("Grid '$nick' did not start.");
     }
 
     private function makeDirs(GridPlan $plan): void
@@ -679,7 +689,7 @@ final class NewGrid
     /** The host name a grid is proposed: the one of the machine. */
     public static function defaultHost(): string
     {
-        return trim(System::capture('hostname -f')[1]) ?: 'localhost';
+        return trim(ShellService::capture('hostname -f')[1]) ?: 'localhost';
     }
 
     /** The public port a grid is proposed: the one of the first block of ten ports that is free, ending with 2. */
@@ -691,10 +701,10 @@ final class NewGrid
     /** The name a grid is proposed: the one of the machine. */
     public static function defaultName(): string
     {
-        [, $host] = System::capture('hostname -s');
+        [, $host] = ShellService::capture('hostname -s');
         $short = trim($host);
         if ($short === '') {
-            [, $fqdn] = System::capture('hostname -f');
+            [, $fqdn] = ShellService::capture('hostname -f');
             $short = strtok(trim($fqdn), '.') ?: 'My';
         }
 

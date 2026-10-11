@@ -1,10 +1,10 @@
 <?php
 
-
 namespace OpenSim\Installer\Grid;
 
-use OpenSim\Installer\System;
-use OpenSim\Installer\Ui\InstallerUi;
+use OpenSim\Provisioning\GridPlan;
+use OpenSim\Provisioning\UiInterface;
+use OpenSim\Runtime\ShellService;
 
 /**
  * The database of a grid: OpenSim cannot run without it, so the setup checks
@@ -54,7 +54,7 @@ final class Database
     /** @var string why there is no administrator access */
     private string $adminReason = '';
 
-    public function __construct(private InstallerUi $ui) {}
+    public function __construct(private UiInterface $ui) {}
 
     /** Keep the password of an account for the rest of the session. */
     public static function remember(string $host, string $user, string $password): void
@@ -338,7 +338,7 @@ final class Database
     /** How to get the administrator access, for a user who is not root. */
     private function adminHint(): string
     {
-        return function_exists('posix_geteuid') && posix_geteuid() !== 0 && System::commandExists('sudo')
+        return function_exists('posix_geteuid') && posix_geteuid() !== 0 && ShellService::commandExists('sudo')
             ? ' Run as root (e.g. sudo opensim setup), the setup has that access.'
             : '';
     }
@@ -357,7 +357,7 @@ final class Database
     private function client(): ?string
     {
         foreach (['mysql', 'mariadb'] as $command) {
-            if (System::commandExists($command)) {
+            if (ShellService::commandExists($command)) {
                 return $command;
             }
         }
@@ -458,7 +458,7 @@ final class Database
 
         if ($this->isLocal($plan->dbHost)) {
             $candidates = [[$client]];
-            if (System::commandExists('sudo')) {
+            if (ShellService::commandExists('sudo')) {
                 $candidates[] = ['sudo', '-n', $client];
             }
             foreach ($candidates as $candidate) {

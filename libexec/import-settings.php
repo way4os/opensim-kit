@@ -20,20 +20,22 @@
  * Nothing is enabled or started: compare, then `opensim enable <instance>`.
  */
 
-require dirname(__DIR__) . '/bootstrap.php';
 
+
+
+use OpenSim\Config\IniReader;
 use OpenSim\Installer\Actions;
 use OpenSim\Installer\Config;
 use OpenSim\Installer\Elevated;
-use OpenSim\Installer\Grid\GridInfo;
 use OpenSim\Installer\Grid\NewGrid;
 use OpenSim\Installer\Grid\NewSim;
-use OpenSim\Installer\Grid\SimConfig;
-use OpenSim\Installer\Import\IniReader;
 use OpenSim\Installer\Import\RobustImporter;
 use OpenSim\Installer\Import\SimImporter;
-use OpenSim\Installer\SetupFailed;
 use OpenSim\Installer\Ui\QuietUi;
+use OpenSim\Models\GridInfo;
+use OpenSim\Provisioning\SimConfig;
+
+require dirname(__DIR__) . '/bootstrap.php';
 
 const USAGE = "usage: opensim import [NICK] robust FILE [--core DIR] [--apply]\n       opensim import GRID sim FILE [--name NAME] [--core DIR] [--apply]\n";
 
@@ -57,7 +59,7 @@ function act(array $profile, string $op, array $args): bool
             ['op' => $op, 'args' => $args, 'profile' => $profile],
             $profile['SystemUser'],
         );
-    } catch (SetupFailed) {
+    } catch (SetupFailedException) {
         return false;
     }
 
@@ -195,7 +197,7 @@ if ($what === 'robust') {
                 $profile['SystemUser'],
             );
         }
-    } catch (SetupFailed) {
+    } catch (SetupFailedException) {
         fail('the grid could not be written');
     }
     $done = act($profile, 'inject-config', [
@@ -287,7 +289,7 @@ try {
             $profile['SystemUser'],
         );
     }
-} catch (SetupFailed) {
+} catch (SetupFailedException) {
     fail('the simulator could not be written');
 }
 $copied = $regions === [] || act($profile, 'copy-regions', ['files' => $regions, 'to' => $plan->regionsDir()]);

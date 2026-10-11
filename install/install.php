@@ -9,16 +9,18 @@
  * frontend can reuse them later.
  */
 
-require dirname(__DIR__) . '/bootstrap.php';
+
+
 
 use OpenSim\Installer\Actions;
-use OpenSim\Installer\Grid\GridPlan;
 use OpenSim\Installer\Grid\NewGrid;
 use OpenSim\Installer\Grid\NewSim;
-use OpenSim\Installer\Grid\SimPlan;
 use OpenSim\Installer\Hub;
-use OpenSim\Installer\SetupFailed;
 use OpenSim\Installer\Ui\PromptsUi;
+use OpenSim\Provisioning\GridPlan;
+use OpenSim\Provisioning\SimPlan;
+
+require dirname(__DIR__) . '/bootstrap.php';
 
 // A failure is already explained on screen: end with an error code, rather
 // than going back to the menu
@@ -39,6 +41,6 @@ try {
     } else {
         (new Hub(new PromptsUi()))->run();
     }
-} catch (SetupFailed) {
+} catch (SetupFailedException) {
     exit(1);
 }

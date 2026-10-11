@@ -4,10 +4,13 @@
  * region when it is made, which does not exist yet for that account, so the setup writes it.
  */
 
+
+
+
 use OpenSim\Installer\Grid\Database;
 use OpenSim\Installer\Grid\GridAccounts;
-use OpenSim\Installer\Grid\GridInfo;
 use OpenSim\Installer\Ui\QuietUi;
+use OpenSim\Models\GridInfo;
 
 describe('The home of an account', function () {
     test('is a row of GridUser', function () {

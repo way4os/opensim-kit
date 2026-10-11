@@ -5,11 +5,12 @@
  * read back from it.
  */
 
-use OpenSim\Installer\Grid\GridInfo;
-use OpenSim\Installer\Grid\GridPlan;
-use OpenSim\Installer\Grid\RegionFlags;
-use OpenSim\Installer\Grid\RegionName;
-use OpenSim\Installer\Grid\RobustConfig;
+
+use OpenSim\Models\GridInfo;
+use OpenSim\Provisioning\GridPlan;
+use OpenSim\Provisioning\RegionFlags;
+use OpenSim\Provisioning\RegionName;
+use OpenSim\Provisioning\RobustConfig;
 
 /**
  * The Robust config a plan generates, from a minimal example.
@@ -187,7 +188,7 @@ describe('The landing region of a grid', function () {
 
 describe('A name to propose', function () {
     test('is an alliteration the caller accepts', function () {
-        $name = OpenSim\Installer\Grid\RandomName::make(static fn(string $v): ?string => RegionName::problem($v));
+        $name = \OpenSim\Provisioning\RandomName::make(static fn(string $v): ?string => RegionName::problem($v));
 
         expect($name)->toMatch('/^(\S+) (\S+)$/');
         expect(RegionName::problem($name))->toBeNull();
@@ -195,13 +196,13 @@ describe('A name to propose', function () {
     });
 
     test('is transliterated', function () {
-        expect(OpenSim\Installer\Grid\Slug::ascii('Joyeux Noël'))->toBe('Joyeux Noel');
+        expect(\OpenSim\Provisioning\Slug::ascii('Joyeux Noël'))->toBe('Joyeux Noel');
 
-        $name = OpenSim\Installer\Grid\RandomName::make(static fn(string $v): ?string => null);
+        $name = \OpenSim\Provisioning\RandomName::make(static fn(string $v): ?string => null);
         expect($name)->toMatch('/^[\x20-\x7e]+$/');
     });
 
     test('is empty when no name is accepted', function () {
-        expect(OpenSim\Installer\Grid\RandomName::make(static fn(string $v): ?string => 'no'))->toBe('');
+        expect(\OpenSim\Provisioning\RandomName::make(static fn(string $v): ?string => 'no'))->toBe('');
     });
 });

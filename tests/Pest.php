@@ -10,3 +10,6 @@ function test_tmp(): string
 {
     return realpath(sys_get_temp_dir()) ?: sys_get_temp_dir();
 }
+
+// What the kit ships (presets, original MoneyServer.ini), where the engine looks for it
+\OpenSim\Provisioning\ResourceRegistry::add(dirname(__DIR__));

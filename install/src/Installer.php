@@ -1,9 +1,9 @@
 <?php
 
-
 namespace OpenSim\Installer;
 
-use OpenSim\Installer\Ui\InstallerUi;
+use OpenSim\Provisioning\UiInterface;
+use OpenSim\Runtime\ShellService;
 
 /**
  * Install (or add) an OpenSim core: pick a version, gather the plan, apply it.
@@ -13,7 +13,7 @@ use OpenSim\Installer\Ui\InstallerUi;
  */
 final class Installer
 {
-    public function __construct(private InstallerUi $ui) {}
+    public function __construct(private UiInterface $ui) {}
 
     public function run(): void
     {
@@ -113,7 +113,7 @@ final class Installer
         // A packaged kit ships its submodules
         if (file_exists("$root/.git")) {
             $ui->note(_('Updating git submodules…'));
-            System::run('git -C ' . System::arg($root) . ' submodule update --init');
+            ShellService::run('git -C ' . ShellService::arg($root) . ' submodule update --init');
         }
 
         $user = getenv('USER') ?: get_current_user();
@@ -132,7 +132,7 @@ final class Installer
         ];
         foreach (array_unique($dirs) as $dir) {
             if (!is_dir($dir)) {
-                System::run('sudo install -d -o ' . System::arg($user) . ' ' . System::arg($dir));
+                ShellService::run('sudo install -d -o ' . ShellService::arg($user) . ' ' . ShellService::arg($dir));
             }
         }
 

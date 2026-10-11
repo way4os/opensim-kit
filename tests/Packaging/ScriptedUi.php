@@ -1,11 +1,12 @@
 <?php
 
+
+use OpenSim\Provisioning\UiInterface;
+
 // A frontend of the setup that answers from a table, for the scripted tests
 // (newgrid-driver.php, newsim-driver.php).
 
-use OpenSim\Installer\Ui\InstallerUi;
-
-final class ScriptedUi implements InstallerUi
+final class ScriptedUi implements UiInterface
 {
     use \OpenSim\Installer\Ui\AsksForms;
 

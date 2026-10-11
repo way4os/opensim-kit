@@ -3,8 +3,9 @@
 namespace OpenSim\Installer\Grid;
 
 use OpenSim\Installer\Console;
-use OpenSim\Installer\System;
-use OpenSim\Installer\Ui\InstallerUi;
+use OpenSim\Models\GridInfo;
+use OpenSim\Provisioning\UiInterface;
+use OpenSim\Runtime\ShellService;
 
 /**
  * The user accounts of a grid, kept by its Robust: read from its database,
@@ -13,7 +14,7 @@ use OpenSim\Installer\Ui\InstallerUi;
  */
 final class GridAccounts
 {
-    public function __construct(private Database $database, private InstallerUi $ui) {}
+    public function __construct(private Database $database, private UiInterface $ui) {}
 
     /** What a name of a person is made of: first and last name, as OpenSimulator has it. */
     public static function validName(string $name): bool
@@ -115,7 +116,7 @@ final class GridAccounts
 
         if (!Console::send($instance, $lines)) {
             $this->ui->note(sprintf(_("Starting the grid '%s' to create the account."), $grid->nick));
-            [$code] = System::runShown(System::arg($opensim) . ' start ' . System::arg($grid->nick));
+            [$code] = ShellService::runShown(ShellService::arg($opensim) . ' start ' . ShellService::arg($grid->nick));
             if ($code !== 0 || !Console::send($instance, $lines)) {
                 $this->ui->error(
                     sprintf(_("Could not reach the console of the grid '%s' to create the account."), $grid->nick),

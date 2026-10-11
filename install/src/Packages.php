@@ -1,25 +1,25 @@
 <?php
 
-
 namespace OpenSim\Installer;
 
-use OpenSim\Installer\Ui\InstallerUi;
+use OpenSim\Provisioning\UiInterface;
+use OpenSim\Runtime\ShellService;
 
 /**
  * OS package manager abstraction (brew on macOS, apt on Debian/Ubuntu).
  */
 final class Packages
 {
-    public function __construct(private InstallerUi $ui) {}
+    public function __construct(private UiInterface $ui) {}
 
     /** Install packages; returns the command exit code. */
     public function install(string ...$packages): int
     {
-        $list = implode(' ', array_map([System::class, 'arg'], $packages));
+        $list = implode(' ', array_map([ShellService::class, 'arg'], $packages));
 
         return match (PHP_OS_FAMILY) {
-            'Darwin' => System::run("brew install $list"),
-            'Linux' => System::run("sudo apt-get install -y $list"),
+            'Darwin' => ShellService::run("brew install $list"),
+            'Linux' => ShellService::run("sudo apt-get install -y $list"),
             default => 1,
         };
     }
@@ -30,7 +30,7 @@ final class Packages
      */
     public function ensure(string $command, string $package, bool $required = true): void
     {
-        if (System::commandExists($command)) {
+        if (ShellService::commandExists($command)) {
             return;
         }
 
@@ -38,7 +38,7 @@ final class Packages
             // Judge success by the binary appearing, not the package manager's
             // exit code (post-install warnings can make it non-zero).
             $this->install($package);
-            if (!System::commandExists($command)) {
+            if (!ShellService::commandExists($command)) {
                 $this->ui->error(sprintf(_('Could not install %s.'), $package));
                 exit(1);
             }

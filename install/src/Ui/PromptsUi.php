@@ -8,6 +8,7 @@ use OpenSim\Installer\Ui\Prompts\MultiSelectPrompt;
 use OpenSim\Installer\Ui\Prompts\PasswordPrompt;
 use OpenSim\Installer\Ui\Prompts\SelectPrompt;
 use OpenSim\Installer\Ui\Prompts\TextPrompt;
+use OpenSim\Provisioning\UiInterface;
 
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\intro;
@@ -21,7 +22,7 @@ use function Laravel\Prompts\warning;
  * validation, spinners), with the shortcuts of a terminal: Escape gives up the screen
  * (Back), Ctrl-Q leaves the setup (Quit), Ctrl-U and Ctrl-W erase in a text.
  */
-final class PromptsUi implements InstallerUi
+final class PromptsUi implements UiInterface
 {
     public function intro(string $title): void
     {

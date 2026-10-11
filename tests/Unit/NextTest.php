@@ -144,13 +144,13 @@ describe('opensim next location', function () {
 
 describe('opensim next location default', function () {
     test('starts from the public port of the grid, on both axes', function () {
-        expect(OpenSim\Installer\Grid\LocationFinder::first(8012))->toBe([8012, 8012]);
+        expect(\OpenSim\Provisioning\LocationFinder::first(8012))->toBe([8012, 8012]);
     });
 });
 
 describe('the center of a grid', function () {
     test('is the port twice, until the grid has its own', function () {
-        $grid = new OpenSim\Installer\Grid\GridInfo();
+        $grid = new \OpenSim\Models\GridInfo();
         $grid->publicPort = 8012;
         expect($grid->centerPlace())->toBe([8012, 8012]);
 

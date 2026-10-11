@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 require __DIR__ . '/vendor/autoload.php';
 
+use OpenSim\Provisioning\ResourceRegistry;
 use OpenSimKit\I18n\I18n;
+
+// The presets and the original MoneyServer.ini the kit ships, for the engine
+ResourceRegistry::add(__DIR__);
 
 I18n::init();

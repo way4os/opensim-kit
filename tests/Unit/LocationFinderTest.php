@@ -4,7 +4,8 @@
  * point, so that regions added one after the other fill a disc around it.
  */
 
-use OpenSim\Installer\Grid\LocationFinder;
+
+use OpenSim\Provisioning\LocationFinder;
 
 /**
  * Places taken, from a list of [x, y].

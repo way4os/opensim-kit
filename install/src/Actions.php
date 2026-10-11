@@ -2,11 +2,13 @@
 
 namespace OpenSim\Installer;
 
-use OpenSim\Installer\Grid\GridState;
-use OpenSim\Installer\Grid\RegionState;
-use OpenSim\Installer\Grid\SimState;
 use OpenSim\Installer\Import\RobustImporter;
-use OpenSim\Installer\Ui\InstallerUi;
+use OpenSim\Models\GridState;
+use OpenSim\Models\RegionState;
+use OpenSim\Models\SimState;
+use OpenSim\Provisioning\PendingRestarts;
+use OpenSim\Provisioning\UiInterface;
+use OpenSim\Runtime\ShellService;
 
 /**
  * What the setup menus do to the install once the questions are answered: enabling or disabling a
@@ -15,7 +17,7 @@ use OpenSim\Installer\Ui\InstallerUi;
  */
 final class Actions
 {
-    public function __construct(private InstallerUi $ui) {}
+    public function __construct(private UiInterface $ui) {}
 
     /**
      * @param array<string,mixed> $args
@@ -122,16 +124,16 @@ final class Actions
         foreach ($instances as $instance) {
             $now = $warn ? '' : 'now ';
             if (is_file("$etcRoot/robust.d/$instance.ini")) {
-                $ok = System::run(System::arg($opensim) . ' restart now ' . System::arg($instance)) === 0 && $ok;
+                $ok = ShellService::run(ShellService::arg($opensim) . ' restart now ' . ShellService::arg($instance)) === 0 && $ok;
 
                 continue;
             }
             $running = Console::running("$etcRoot/opensim.d/$instance.ini");
             if ($running) {
-                $ok = System::run(System::arg($opensim) . " stop $now" . System::arg($instance)) === 0 && $ok;
+                $ok = ShellService::run(ShellService::arg($opensim) . " stop $now" . ShellService::arg($instance)) === 0 && $ok;
             }
             if ($running) {
-                $ok = System::run(System::arg($opensim) . ' start ' . System::arg($instance)) === 0 && $ok;
+                $ok = ShellService::run(ShellService::arg($opensim) . ' start ' . ShellService::arg($instance)) === 0 && $ok;
             }
         }
         if ($ok) {

@@ -1,12 +1,12 @@
 <?php
 
-
 namespace OpenSim\Installer\Import;
 
-use OpenSim\Installer\Grid\GridPlan;
-use OpenSim\Installer\Grid\RobustConfig;
-use OpenSim\Installer\Grid\Slug;
 use OpenSim\Config\IniEditor;
+use OpenSim\Config\IniReader;
+use OpenSim\Provisioning\GridPlan;
+use OpenSim\Provisioning\RobustConfig;
+use OpenSim\Provisioning\Slug;
 
 /**
  * Ports the configuration of a Robust that was not made by the kit: what the setup asks is detected in its config

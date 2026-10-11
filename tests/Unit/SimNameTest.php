@@ -4,7 +4,8 @@
  * The name proposed for a simulator: the one of its region, a random one when that does not fit.
  */
 
-use OpenSim\Installer\Grid\SimName;
+
+use OpenSim\Provisioning\SimName;
 
 describe('The name proposed for a simulator', function () {
     $fine = static fn(string $v): ?string => null;

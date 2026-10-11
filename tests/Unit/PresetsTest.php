@@ -1,14 +1,14 @@
 <?php
 
-
 /**
  * The presets of the grids a simulator can join: folders with the structure of the folder of a grid, any file of it optional,
  * read where they are.
  */
 
-use OpenSim\Installer\Grid\Presets;
-use OpenSim\Installer\Grid\SimConfig;
-use OpenSim\Installer\Grid\SimPlan;
+
+use OpenSim\Provisioning\Presets;
+use OpenSim\Provisioning\SimConfig;
+use OpenSim\Provisioning\SimPlan;
 
 /** A folder of presets in a temporary tree. @param array<string,string> $files path => content */
 function presets_root(array $files): string

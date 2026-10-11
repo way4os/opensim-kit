@@ -3,9 +3,10 @@
  * The web side of a grid: where its services are, its Helpers.ini, what the web server needs.
  */
 
-use OpenSim\Installer\Web\HelpersConfig;
-use OpenSim\Installer\Web\Services;
-use OpenSim\Installer\Web\Snippets;
+
+use OpenSim\Provisioning\Web\HelpersConfig;
+use OpenSim\Provisioning\Web\Services;
+use OpenSim\Provisioning\Web\Snippets;
 
 describe('Services', function () {
     test('are under /helpers by default', function () {
