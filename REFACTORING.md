@@ -1,8 +1,8 @@
 # Refactoring plan
 
 Reference for where code and files go, and in what order it moves there. Draft 2, written after the freeze of
-v3.0.0-beta.6 (engine, helpers, kit). Nothing here is done yet: new code is written directly at its final place, existing
-code moves one step at a time (see [Order](#order)), each step leaving everything working and tested.
+v3.0.0-beta.6 (engine, helpers, kit). New code is written directly at its final place, existing code moves one step at a
+time (see [Order](#order), with where each step stands), each step leaving everything working and tested.
 
 ## Goal
 
@@ -17,18 +17,21 @@ One application, several front-ends that call the same code:
 administration and w4os call the same method, with the same result:
 
 ```php
-OpenSim::start('speculoos');            // the grid (its Robust) and its simulators
-OpenSim::start('speculoos_welcome');    // one simulator
+OpenSim::start('speculoos');                       // the services of the grid, its Robust
+OpenSim::start('speculoos', simulators: true);     // and the simulators that depend on it
+OpenSim::start('speculoos_welcome');               // one simulator
 // which call
-$grid->start();                         // OpenSim\Models\Grid
-$simulator->start();                    // OpenSim\Models\Simulator
+$grid->start();                                    // OpenSim\Models\Grid
+$simulator->start();                               // OpenSim\Models\Simulator
 ```
 
-Where it stands today, the opposite: the logic of start, stop, status, console and port mapping is in bash
-(`bin/opensim`, 929 lines, and `libexec/os-helpers`, 1017 lines); the PHP of the kit is a set of independent scripts
-(`libexec/*.php`) over installer classes that live in a namespace of the engine (`OpenSim\Installer`); the engine is a set
-of global prefixed classes (`OpenSim_Grid`, `Engine_Settings`...) with no namespace. The day the administration or w4os
-needs to start a simulator, all of it has to be written again. This plan is about not having to.
+A grid is its services: restarting Robust does not need its simulators to restart, so they join only when asked
+(`--sims` on the command line).
+
+Where it stood before: the logic of start, stop, status, console and port mapping was in bash (`bin/opensim`, 929 lines,
+`libexec/os-helpers`, 1017 lines); the PHP of the kit was a set of independent scripts over installer classes that lived in a
+namespace of the engine (`OpenSim\Installer`). This plan is about not having to write it all again for the administration
+and w4os.
 
 ## Principles
 
@@ -210,26 +213,31 @@ Decided (2026-10-11), the standard shape, two files at run time:
 ## Order
 
 Each step: the code at its final place, the old one removed (or left as a legacy alias), tests and the package scenario
-green, then the next one. The bash commands that are not ported yet keep working: `bin/opensim` hands what it does not know
-yet to the old script.
+green, then the next one.
 
-1. **Skeleton.** The engine gets `src/` and the `OpenSim\` namespace; the kit gets `OpenSimKit\Console\Application`
-   (symfony/console) behind `bin/opensim`, with the old script as the fallback. Tests: the commands answer `--help`.
-2. **Lifecycle, the example of the goal.** `OpenSim::start/stop/restart/status`, `Models\Grid`, `Models\Simulator`,
-   `Runtime\*`, `Console\*`, and the port mapping with kick-inside (start and stop call it). The commands `start`, `stop`,
-   `restart`, `status`, `console`, `command`, `enable`, `disable` are ported, `startSim`, `stopSim`, `restartSim`, `status`
-   and most of `os-helpers` disappear. Tests: unit tests with fake processes, and the scenario sections that start and stop
-   Robust and simulators.
-3. **Reading the config.** One reader in `OpenSim\Config` (the tree of `OpenSim_Config`, the editor of the kit's `Ini`,
-   `IniReader`), `crudget` gone. The configuration of a simulator decided (see above).
-4. **Writing the config.** `OpenSim\Provisioning`: what `NewGrid`, `NewSim`, `SimConfig`, `RobustConfig`, `GridShared`,
-   `Presets`, `Features`... decide and write. The wizard keeps only its screens, in `OpenSimKit\Setup`.
-5. **The other commands.** `ports`, `next`, `import`, `web`, `save`/`load`, `backup`, `profile`, `oar`, `rest`: each
-   `libexec/*.php` becomes a command over the engine.
-6. **The rest of `OpenSim\Installer`** moves to `OpenSimKit\` (Ui, System, Packages, Elevated...). The namespace
-   `OpenSim\Installer` is gone.
-7. **Legacy names** of the engine in `legacy/`, the helpers on the new names.
-8. **Bash removed**: `os-helpers`, `newgrid`, `newsim`, `newregion`, `load-helpers`, the fallback of `bin/opensim`.
+1. **Skeleton.** Done. The engine has `src/` and the `OpenSim\` namespace; the kit has `OpenSimKit\Console\Application`
+   (symfony/console) behind `bin/opensim`.
+2. **Lifecycle.** Done, scenario `tests/Packaging/lifecycle-scenario.sh` green. `OpenSim::start/stop/restart/status`,
+   `Models\Grid|Robust|Simulator|Instance|Core`, `Runtime\*`, `Console\*` (REST and screen), the port mapping with
+   kick-inside called by start and stop. The commands `start`, `stop`, `restart`, `status`, `console`, `command`, `enable`,
+   `disable` are commands of the application; the test doubles are `OpenSim\Testing\*` for the front-ends' tests.
+3. **Reading the config.** Partly. `OpenSim\Config\{Layout, IniEditor, IniReader, TextFileService, GridFileService}` are
+   the engine's; `crudget` is gone from the commands (it stays in `libexec/os-helpers`, for `install/*.sh` and `banuser`).
+   Still to do: the configuration of a simulator (a generated master and the simulator's own OpenSim.ini, see above), and
+   one reader for `OpenSim_Config`, `IniReader` and `InstancePorts`.
+4. **Writing the config.** Mostly. `OpenSim\Provisioning\*` holds what decides and writes: `SimConfig`, `RobustConfig`,
+   `GridShared`, `Presets`, `Features`, `MoneyServerConfig`, `DatabaseService`, `GridAccounts`, `AccountWriter`, the
+   importers, `GridRegistry`, `Places`, `LocationFinder`... Still to do: `NewGrid` and `NewSim` (OpenSimKit\Setup) hold the
+   screens and the apply together, the apply goes to `OpenSim\Provisioning`.
+5. **The other commands.** Done: `ports`, `next`, `web`, `profile`, `oar`, `save`, `load`, `backup`, `rest`,
+   `install-dotnet`, `setup`, `import` are commands. `setup`, `rest`, `import` and `install-dotnet` hand over to the program
+   they come from (`DelegateCommand`), `libexec/import*.php` become classes next.
+6. **The rest of `OpenSim\Installer`** moved: `OpenSimKit\Setup` (the wizard, its plan, its config), `OpenSimKit\Ui`,
+   `OpenSimKit\System`. The namespace `OpenSim\Installer` is gone.
+7. **Legacy names** of the engine in `legacy/`, the helpers on the new names. To do.
+8. **Bash removed.** Done for the commands: `libexec/opensim-legacy`, `newgrid`, `newsim`, `newregion` are gone. Left:
+   `libexec/os-helpers`, `load-helpers`, `venv-setup` (used by `install/*.sh` and `banuser`), until `banuser` is a command and
+   `install/install.sh` is replaced by the package.
 
 ## Decisions (2026-10-11)
 
@@ -237,3 +245,4 @@ yet to the old script.
 - Writing the config in the engine (`OpenSim\Provisioning`), so that the administration and w4os can make a simulator too.
 - The entry point of the front-ends: `OpenSim\OpenSim`, the global `OpenSim` of today becoming its legacy alias.
 - The configuration of a simulator: a generated master and the simulator's own OpenSim.ini (see above).
+- (2026-10-12) A grid name alone is its services (its Robust); its simulators join with `--sims`.
