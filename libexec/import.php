@@ -17,12 +17,11 @@
  * Nothing is written without --apply: what would be made is told.
  */
 
-
-use OpenSim\Installer\Config;
-use OpenSim\Installer\Setup\SetupFile;
-use OpenSim\Installer\Setup\SetupRunner;
-use OpenSim\Installer\Ui\PromptsUi;
-use OpenSim\Installer\Ui\QuietUi;
+use OpenSimKit\Setup\InstallConfig;
+use OpenSimKit\Setup\SetupFile;
+use OpenSimKit\Setup\SetupRunner;
+use OpenSimKit\Ui\PromptsUi;
+use OpenSimKit\Ui\QuietUi;
 
 require dirname(__DIR__) . '/bootstrap.php';
 

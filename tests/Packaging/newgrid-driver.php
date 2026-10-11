@@ -1,7 +1,6 @@
 <?php
 
-
-use OpenSim\Installer\Grid\NewGrid;
+use OpenSimKit\Setup\NewGrid;
 
 // Runs the grid wizard of the installed kit with scripted answers, for
 // tests/Packaging/package-scenario.sh.

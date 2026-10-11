@@ -1,8 +1,8 @@
 #!/usr/bin/env php
 <?php
 
-use OpenSim\Installer\Config;
-use OpenSim\Installer\Ui\QuietUi;
+use OpenSimKit\Setup\InstallConfig;
+use OpenSimKit\Ui\QuietUi;
 use OpenSim\Models\GridInfo;
 use OpenSim\Provisioning\AccountImporter;
 use OpenSim\Provisioning\AccountList;
@@ -77,7 +77,7 @@ if ($options['format'] !== '' && !in_array($options['format'], ['csv', 'json', '
     fail('the format is csv, json or yaml', 2);
 }
 
-$profile = (new Config())->profile();
+$profile = (new InstallConfig())->profile();
 $etc = $profile['EtcRoot'] ?? '';
 $grids = array_map('basename', glob("$etc/grids/*", GLOB_ONLYDIR) ?: []);
 if ($options['grid'] === '' && count($grids) === 1) {

@@ -1,13 +1,11 @@
 <?php
 
-/** An interface that answers what is asked of it, and keeps the questions. */
-
-
-
-use OpenSim\Installer\Setup\QuickSetup;
-use OpenSim\Installer\Ui\AsksForms;
-use OpenSim\Installer\Ui\PresetUi;
+use OpenSimKit\Setup\QuickSetup;
+use OpenSimKit\Ui\AsksForms;
+use OpenSimKit\Ui\PresetUi;
 use OpenSim\Provisioning\UiInterface;
+
+/** An interface that answers what is asked of it, and keeps the questions. */
 
 final class AskingUi implements UiInterface
 {

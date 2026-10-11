@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSimKit\Console\Commands;
 
-use OpenSim\Installer\Ui\QuietUi;
+use OpenSimKit\Ui\QuietUi;
 use OpenSim\Models\GridInfo;
 use OpenSim\Network\Ports;
 use OpenSim\Provisioning\DatabaseService;

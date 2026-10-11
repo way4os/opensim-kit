@@ -1,6 +1,6 @@
 <?php
 
-use OpenSim\Installer\Config;
+use OpenSimKit\Setup\InstallConfig;
 
 function profileConf(): string
 {
@@ -12,7 +12,7 @@ function profileConf(): string
 
 test('registers an install with its base directories', function () {
     $file = profileConf();
-    $config = new Config($file);
+    $config = new InstallConfig($file);
     $config->addProfile('osgrid', '/opt/osgrid/bin');
 
     expect($config->profiles())
@@ -28,7 +28,7 @@ test('registers an install with its base directories', function () {
 });
 
 test('keeps the default profile unless asked', function () {
-    $config = new Config(profileConf());
+    $config = new InstallConfig(profileConf());
     $config->addProfile('one', '/a');
     $config->addProfile('two', '/b', '/b/etc', '/b/data');
 
@@ -39,7 +39,7 @@ test('keeps the default profile unless asked', function () {
 });
 
 test('removes a profile but not the default one', function () {
-    $config = new Config(profileConf());
+    $config = new InstallConfig(profileConf());
     $config->addProfile('one', '/a');
     $config->addProfile('two', '/b');
 
@@ -52,7 +52,7 @@ test('removes a profile but not the default one', function () {
 });
 
 test('refuses a bad name', function () {
-    expect(fn() => (new Config(profileConf()))->addProfile('Defaults', '/a'))->toThrow(InvalidArgumentException::class);
+    expect(fn() => (new InstallConfig(profileConf()))->addProfile('Defaults', '/a'))->toThrow(InvalidArgumentException::class);
 });
 
 test('runs from the command line', function () {

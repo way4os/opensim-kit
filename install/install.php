@@ -1,5 +1,13 @@
 <?php
 
+use OpenSimKit\Setup\Actions;
+use OpenSimKit\Setup\Hub;
+use OpenSimKit\Setup\NewGrid;
+use OpenSimKit\Setup\NewSim;
+use OpenSimKit\Ui\PromptsUi;
+use OpenSim\Provisioning\GridPlan;
+use OpenSim\Provisioning\SimPlan;
+
 /**
  * OpenSim Debian — setup hub (PHP wizard).
  *
@@ -8,17 +16,6 @@
  * (Hub, Installer, Grid\NewGrid) driven through an InstallerUi, so a web
  * frontend can reuse them later.
  */
-
-
-
-
-use OpenSim\Installer\Actions;
-use OpenSim\Installer\Grid\NewGrid;
-use OpenSim\Installer\Grid\NewSim;
-use OpenSim\Installer\Hub;
-use OpenSim\Installer\Ui\PromptsUi;
-use OpenSim\Provisioning\GridPlan;
-use OpenSim\Provisioning\SimPlan;
 
 require dirname(__DIR__) . '/bootstrap.php';
 

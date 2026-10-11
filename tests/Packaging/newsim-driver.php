@@ -1,7 +1,6 @@
 <?php
 
-
-use OpenSim\Installer\Grid\NewSim;
+use OpenSimKit\Setup\NewSim;
 
 // Runs the simulator wizard of the installed kit with scripted answers, for
 // tests/Packaging/package-scenario.sh.

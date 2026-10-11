@@ -1,13 +1,13 @@
 #!/usr/bin/env php
 <?php
 
+use OpenSimKit\Setup\Actions;
+use OpenSimKit\Setup\InstallConfig;
+use OpenSimKit\Setup\NewGrid;
+use OpenSimKit\Setup\NewSim;
+use OpenSimKit\System\Elevated;
+use OpenSimKit\Ui\QuietUi;
 use OpenSim\Config\IniReader;
-use OpenSim\Installer\Actions;
-use OpenSim\Installer\Config;
-use OpenSim\Installer\Elevated;
-use OpenSim\Installer\Grid\NewGrid;
-use OpenSim\Installer\Grid\NewSim;
-use OpenSim\Installer\Ui\QuietUi;
 use OpenSim\Models\GridInfo;
 use OpenSim\Provisioning\Import\RobustImporter;
 use OpenSim\Provisioning\Import\SimImporter;
@@ -132,7 +132,7 @@ if (count($words) !== 1 || !is_readable($words[0])) {
 }
 $path = (string) realpath($words[0]);
 
-$profile = (new Config())->profile();
+$profile = (new InstallConfig())->profile();
 if (($profile['EtcRoot'] ?? '') === '') {
     fail('no installed framework found: install an OpenSim core first', 2);
 }

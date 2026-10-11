@@ -1,6 +1,5 @@
 <?php
 
-
 use OpenSim\Provisioning\UiInterface;
 
 // A frontend of the setup that answers from a table, for the scripted tests
@@ -8,7 +7,7 @@ use OpenSim\Provisioning\UiInterface;
 
 final class ScriptedUi implements UiInterface
 {
-    use \OpenSim\Installer\Ui\AsksForms;
+    use \OpenSimKit\Ui\AsksForms;
 
     /** @param array<string,string|bool> $answers label substring => answer */
     public function __construct(private array $answers) {}

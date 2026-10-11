@@ -1,14 +1,13 @@
 <?php
 
+use OpenSim\Provisioning\Presets;
+use OpenSim\Provisioning\SimConfig;
+use OpenSim\Provisioning\SimPlan;
+
 /**
  * The presets of the grids a simulator can join: folders with the structure of the folder of a grid, any file of it optional,
  * read where they are.
  */
-
-
-use OpenSim\Provisioning\Presets;
-use OpenSim\Provisioning\SimConfig;
-use OpenSim\Provisioning\SimPlan;
 
 /** A folder of presets in a temporary tree. @param array<string,string> $files path => content */
 function presets_root(array $files): string
@@ -164,7 +163,7 @@ describe('The simulator that joins a grid by a preset', function () {
         require_once dirname(__DIR__) . '/Packaging/ScriptedUi.php';
         $etc = sys_get_temp_dir() . '/etc-' . bin2hex(random_bytes(4));
         mkdir($etc);
-        $wizard = new OpenSim\Installer\Grid\NewSim(new ScriptedUi(['Grid to join' => 'osgrid']));
+        $wizard = new \OpenSimKit\Setup\NewSim(new ScriptedUi(['Grid to join' => 'osgrid']));
         $remote = new ReflectionMethod($wizard, 'remoteGrid');
         $remote->setAccessible(true);
 

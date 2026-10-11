@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSimKit\Console\Commands;
 
-use OpenSim\Installer\Config;
+use OpenSimKit\Setup\InstallConfig;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -32,7 +32,7 @@ final class ProfileCommand extends ScriptCommand
     protected function main(array $args, OutputInterface $out, OutputInterface $err): int
     {
         $action = array_shift($args) ?? '';
-        $config = new Config(getenv('OPENSIM_CONF') ?: null);
+        $config = new InstallConfig(getenv('OPENSIM_CONF') ?: null);
         $fail = static function (string $message, int $code = 1) use ($err): int {
             self::say($err, "profile: $message\n");
 

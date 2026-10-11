@@ -1,8 +1,8 @@
 <?php
 
-use OpenSim\Installer\Setup\SetupFile;
-use OpenSim\Installer\Ui\PresetUi;
-use OpenSim\Installer\Ui\QuietUi;
+use OpenSimKit\Setup\SetupFile;
+use OpenSimKit\Ui\PresetUi;
+use OpenSimKit\Ui\QuietUi;
 use OpenSim\Provisioning\AccountList;
 use OpenSim\Provisioning\GridPlan;
 use OpenSim\Provisioning\SimPlan;

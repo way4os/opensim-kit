@@ -5,7 +5,7 @@
  * are real ones in a temporary tree.
  */
 
-use OpenSim\Installer\Hub;
+use OpenSimKit\Setup\Hub;
 use OpenSim\Provisioning\UiInterface;
 
 /**
@@ -13,7 +13,7 @@ use OpenSim\Provisioning\UiInterface;
  */
 final class RecordingUi implements UiInterface
 {
-    use \OpenSim\Installer\Ui\AsksForms;
+    use \OpenSimKit\Ui\AsksForms;
 
     /** @var array<int,array{label:string,keys:list<string>,default:?string}> */
     public array $screens = [];

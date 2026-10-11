@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSimKit\Console\Commands;
 
-use OpenSim\Installer\Config;
+use OpenSimKit\Setup\InstallConfig;
 use OpenSim\Network\PortMapping\PortMappingService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -38,7 +38,7 @@ final class PortMappingCommand extends Command
             return Command::INVALID;
         }
 
-        $profile = (new Config())->profile();
+        $profile = (new InstallConfig())->profile();
         $var = ($profile['VarRoot'] ?? '') !== '' ? $profile['VarRoot'] : ($profile['DataRoot'] ?? sys_get_temp_dir());
         $error = $output instanceof \Symfony\Component\Console\Output\ConsoleOutputInterface ? $output->getErrorOutput() : $output;
 

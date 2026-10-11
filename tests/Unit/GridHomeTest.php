@@ -4,7 +4,7 @@
  * region when it is made, which does not exist yet for that account, so the setup writes it.
  */
 
-use OpenSim\Installer\Ui\QuietUi;
+use OpenSimKit\Ui\QuietUi;
 use OpenSim\Models\GridInfo;
 use OpenSim\Provisioning\DatabaseService;
 use OpenSim\Provisioning\GridAccounts;
