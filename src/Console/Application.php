@@ -4,7 +4,17 @@ declare(strict_types=1);
 
 namespace OpenSimKit\Console;
 
-use OpenSimKit\Console\Commands\PortMappingCommand;
+use OpenSim\Config\Layout;
+use OpenSim\OpenSim;
+use OpenSim\Runtime\Environment;
+use OpenSim\Runtime\ReporterInterface;
+use OpenSimKit\Console\Commands\CommandCommand;
+use OpenSimKit\Console\Commands\ConsoleCommand;
+use OpenSimKit\Console\Commands\RestartCommand;
+use OpenSimKit\Console\Commands\StartCommand;
+use OpenSimKit\Console\Commands\StatusCommand;
+use OpenSimKit\Console\Commands\StopCommand;
+use OpenSimKit\System\SystemUser;
 use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArgvInput;
@@ -18,17 +28,26 @@ use Symfony\Component\Console\Input\ArgvInput;
  */
 final class Application extends ConsoleApplication
 {
+    /** The commands that work on the instances: they run as the system user of the install, whoever types them. */
+    private const SYSTEM_USER_COMMANDS = ['start', 'stop', 'restart', 'status', 'command', 'console', 'screen'];
+
     /** @var array<string, true> names and aliases of the commands of the application, which are not the ones symfony adds (help, list) */
     private array $ported = [];
+
+    private ?Layout $layout;
 
     public function __construct(
         private readonly string $root,
         private readonly ?LegacyScript $legacy = null,
+        ?Layout $layout = null,
+        private readonly ?SystemUser $systemUser = null,
+        private readonly ?\Closure $environment = null,
     ) {
         parent::__construct('opensim', self::version($root));
+        $this->layout = $layout;
         $this->setAutoExit(false);
         $this->setCatchExceptions(true);
-        foreach (self::commands() as $command) {
+        foreach (self::commands($this->environment ?? fn(ReporterInterface $reporter): Environment => OpenSim::environment($reporter, $this->layout())) as $command) {
             $this->addCommand($command);
             foreach ([$command->getName(), ...$command->getAliases()] as $name) {
                 $this->ported[(string) $name] = true;
@@ -36,10 +55,28 @@ final class Application extends ConsoleApplication
         }
     }
 
-    /** @return list<Command> the commands ported to the application */
-    public static function commands(): array
+    /**
+     * @param ?\Closure(ReporterInterface):Environment $environment makes the environment of the engine, for a reporter
+     * @return list<Command> the commands ported to the application
+     */
+    public static function commands(?\Closure $environment = null): array
     {
-        return [new PortMappingCommand()];
+        $environment ??= static fn(ReporterInterface $reporter): Environment => OpenSim::environment($reporter);
+
+        return [
+            new StartCommand($environment),
+            new StopCommand($environment),
+            new RestartCommand($environment),
+            new StatusCommand($environment),
+            new CommandCommand($environment),
+            new ConsoleCommand($environment),
+        ];
+    }
+
+    /** How the install is laid out: its `opensim.conf`, else the folders next to the kit. */
+    public function layout(): Layout
+    {
+        return $this->layout ??= Layout::load(null, ['EtcRoot' => $this->root . '/etc', 'CoreRoot' => $this->root . '/core']);
     }
 
     /**
@@ -51,7 +88,30 @@ final class Application extends ConsoleApplication
     public function dispatch(array $argv): int
     {
         $name = self::commandName($argv);
-        if ($name !== null && isset($this->ported[$name])) {
+        // The help of the whole program, or of one command (`opensim help start` is `opensim start --help`)
+        if ($name === null || $name === 'help' || $name === 'list') {
+            $rest = $name === null ? [] : array_values(array_filter(array_slice($argv, 1), static fn(string $a): bool => $a !== '' && $a[0] !== '-' && $a !== $name));
+            if ($name !== null && $rest !== []) {
+                return $this->dispatch([$argv[0], $rest[0], '--help']);
+            }
+            if (in_array('-V', $argv, true) || in_array('--version', $argv, true)) {
+                echo 'opensim ' . $this->getVersion() . "\n";
+
+                return 0;
+            }
+            echo Help::text();
+
+            return 0;
+        }
+        if (isset($this->ported[$name])) {
+            if (in_array($name, self::SYSTEM_USER_COMMANDS, true)) {
+                // Screen sessions are per user: the commands work as the user that runs the instances
+                $status = ($this->systemUser ?? new SystemUser())->run($this->layout()->systemUser(), [PHP_BINARY, $this->root . '/bin/opensim', ...array_slice($argv, 1)]);
+                if ($status !== null) {
+                    return $status;
+                }
+            }
+
             return $this->run(new ArgvInput($argv));
         }
 

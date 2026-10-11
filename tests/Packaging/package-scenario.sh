@@ -366,10 +366,10 @@ check "the console attaches, and leaves the instance running" "grep -aq 'detache
 
 # screen takes a name for the start of one: stopping a grid that does not run
 # must not stop the simulator whose name begins the same
-opensim stop now testgrid >/dev/null 2>&1
-opensim stop now testgrid >/dev/null 2>&1
+opensim stop now robust:testgrid >/dev/null 2>&1
+opensim stop now robust:testgrid >/dev/null 2>&1
 check "stopping a grid that is not running leaves its simulator alone" "[ -n '$(sim_pid)' ] && [ '$(sim_pid)' = '$sim' ]"
-opensim start testgrid >/dev/null 2>&1
+opensim start robust:testgrid >/dev/null 2>&1
 pid=$(robust_pid)
 
 ts upgrade
@@ -390,7 +390,7 @@ check "modules in their own folders" "[ -f /usr/share/opensim-modules/0.9.3.0/op
 check "log config of the wizard" "[ -f /var/log/opensim/testgrid_robust.log ]"
 grid_core() {
     runuser -u opensim -- crudini --inplace --set /etc/opensim/grids/testgrid/testgrid.conf Grid CoreDirectory "$1"
-    opensim restart now testgrid >/tmp/robust-restart.out 2>&1
+    opensim restart now robust:testgrid >/tmp/robust-restart.out 2>&1
 }
 
 # The grid on the development build
@@ -538,7 +538,7 @@ check "installing the package adds the file a grid lacks, without the setup: Mon
 check "service enabled again" "systemctl -q is-enabled opensim"
 
 ts "remove the tools, grid started by hand"
-opensim start testgrid >/dev/null 2>&1
+opensim start robust:testgrid >/dev/null 2>&1
 check "Robust running" "[ -n '$(robust_pid)' ]"
 before=$(quits)
 apt_q remove opensim-tools

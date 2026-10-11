@@ -115,7 +115,7 @@ final class GridAccounts
 
         if (!Console::send($instance, $lines)) {
             $this->ui->note(sprintf(_("Starting the grid '%s' to create the account."), $grid->nick));
-            [$code] = System::runShown(System::arg($opensim) . ' start ' . System::arg($grid->nick));
+            [$code] = System::runShown(System::arg($opensim) . ' start ' . System::arg("robust:{$grid->nick}"));
             if ($code !== 0 || !Console::send($instance, $lines)) {
                 $this->ui->error(
                     sprintf(_("Could not reach the console of the grid '%s' to create the account."), $grid->nick),

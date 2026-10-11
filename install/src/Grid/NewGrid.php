@@ -273,7 +273,7 @@ final class NewGrid
         $opensim = dirname(__DIR__, 3) . '/bin/opensim';
         $nick = $plan->gridNick;
 
-        [$code, $said] = System::runShown(System::arg($opensim) . ' restart ' . System::arg($nick));
+        [$code, $said] = System::runShown(System::arg($opensim) . ' restart ' . System::arg("robust:$nick"));
         // The launcher waits for the ready signal in the console. After its
         // delay it says the instance is still starting, and succeeds: a
         // healthy Robust is ready within a minute, so that is a failure too.
