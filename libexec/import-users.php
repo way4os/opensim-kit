@@ -1,6 +1,13 @@
 #!/usr/bin/env php
 <?php
 
+use OpenSim\Installer\Config;
+use OpenSim\Installer\Ui\QuietUi;
+use OpenSim\Models\GridInfo;
+use OpenSim\Provisioning\AccountImporter;
+use OpenSim\Provisioning\AccountList;
+use OpenSim\Provisioning\DatabaseService;
+
 /**
  * The accounts of a list, made in the database of a grid. Run by `opensim import` (libexec/import.php), which is
  * the command: this is its worker for a list of accounts.
@@ -16,16 +23,6 @@
  * made is told. An account whose name exists is skipped; one without a password gets one, written in the result
  * file (mode 600) and never on the screen.
  */
-
-
-
-
-use OpenSim\Installer\Config;
-use OpenSim\Installer\Grid\AccountImporter;
-use OpenSim\Installer\Grid\AccountList;
-use OpenSim\Installer\Grid\Database;
-use OpenSim\Installer\Ui\QuietUi;
-use OpenSim\Models\GridInfo;
 
 require dirname(__DIR__) . '/bootstrap.php';
 
@@ -104,7 +101,7 @@ if ($list['accounts'] === []) {
     fail('nothing to make' . ($list['errors'] === [] ? '' : ': every line has a problem'), 2);
 }
 
-$done = AccountImporter::forDatabase(new Database(new QuietUi()))->run(
+$done = AccountImporter::forDatabase(new DatabaseService(new QuietUi()))->run(
     $grid,
     $list['accounts'],
     $flags['apply'],

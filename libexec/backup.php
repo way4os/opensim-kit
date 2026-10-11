@@ -1,6 +1,10 @@
 #!/usr/bin/env php
 <?php
 
+use OpenSim\Archives\BackupService;
+use OpenSim\Archives\Rotation;
+use OpenSim\Installer\Config;
+
 /**
  * opensim backup: what it takes to install the grids again as they are (see Backup), as the user of the instances.
  *
@@ -14,10 +18,6 @@
  */
 
 require dirname(__DIR__) . '/bootstrap.php';
-
-use OpenSim\Installer\Archive\Backup;
-use OpenSim\Installer\Archive\Rotation;
-use OpenSim\Installer\Config;
 
 $usage = "usage: opensim backup [GRID [SIM]] [--logs] [--archives] [--output DIR] [--keep N]\n";
 $refs = [];
@@ -60,7 +60,7 @@ if (($profile['EtcRoot'] ?? '') === '') {
     exit(1);
 }
 try {
-    $files = (new Backup($profile, Backup::mysqldump(...), static function (string $message): void {
+    $files = (new BackupService($profile, BackupService::mysqldump(...), static function (string $message): void {
         fwrite(STDERR, $message . "\n");
     }))->run($refs, $options);
 } catch (InvalidArgumentException $e) {

@@ -4,13 +4,10 @@
  * region when it is made, which does not exist yet for that account, so the setup writes it.
  */
 
-
-
-
-use OpenSim\Installer\Grid\Database;
-use OpenSim\Installer\Grid\GridAccounts;
 use OpenSim\Installer\Ui\QuietUi;
 use OpenSim\Models\GridInfo;
+use OpenSim\Provisioning\DatabaseService;
+use OpenSim\Provisioning\GridAccounts;
 
 describe('The home of an account', function () {
     test('is a row of GridUser', function () {
@@ -23,7 +20,7 @@ describe('The home of an account', function () {
     });
 
     test('is not written for a wrong name', function () {
-        $accounts = new GridAccounts(new Database(new QuietUi()), new QuietUi());
+        $accounts = new GridAccounts(new DatabaseService(new QuietUi()), new QuietUi());
         $grid = new GridInfo();
 
         expect($accounts->setHome($grid, "Bad'; DROP TABLE x", '607c44e9-3d01-45eb-a07e-937dc72dbadb'))->toBeFalse();

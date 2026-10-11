@@ -1,10 +1,10 @@
 <?php
 
+use OpenSim\Archives\Rotation;
+
 /**
  * `--keep N`: the N newest files of the series of a new archive or backup, the older ones removed.
  */
-
-use OpenSim\Installer\Archive\Rotation;
 
 /** A folder with these files. */
 function rotation_folder(array $names): string

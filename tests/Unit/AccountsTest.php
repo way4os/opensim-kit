@@ -3,13 +3,10 @@
  * The accounts made from a list, directly in the database of a grid.
  */
 
-
-
-
-use OpenSim\Installer\Grid\AccountImporter;
-use OpenSim\Installer\Grid\AccountList;
-use OpenSim\Installer\Grid\AccountWriter;
 use OpenSim\Models\GridInfo;
+use OpenSim\Provisioning\AccountImporter;
+use OpenSim\Provisioning\AccountList;
+use OpenSim\Provisioning\AccountWriter;
 use OpenSim\Provisioning\GridPlan;
 
 /** A writer with ids, a time and a salt that follow one another, so the statements can be compared. */

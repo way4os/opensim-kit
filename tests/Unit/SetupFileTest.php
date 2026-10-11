@@ -1,12 +1,9 @@
 <?php
 
-
-
-
-use OpenSim\Installer\Grid\AccountList;
 use OpenSim\Installer\Setup\SetupFile;
 use OpenSim\Installer\Ui\PresetUi;
 use OpenSim\Installer\Ui\QuietUi;
+use OpenSim\Provisioning\AccountList;
 use OpenSim\Provisioning\GridPlan;
 use OpenSim\Provisioning\SimPlan;
 
@@ -148,7 +145,7 @@ test('keeps what the setup did, to make it again', function () {
         ->and($data['owner'])
         ->not->toHaveKey('password')
         ->and($data['owner']['password_hash'])
-        ->toBe(OpenSim\Installer\Grid\AccountWriter::passwordHash('hunter22', $data['owner']['password_salt']))
+        ->toBe(\OpenSim\Provisioning\AccountWriter::passwordHash('hunter22', $data['owner']['password_salt']))
         ->and(array_column($data['simulators'][0]['regions'], 'name'))
         ->toBe(['Welcome', 'Second'])
         ->and(count($data['simulators']))

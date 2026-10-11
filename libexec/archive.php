@@ -10,10 +10,10 @@
  *   opensim load oar [GRID [SIM|REGION]] [options] [FILE]
  */
 
-require dirname(__DIR__) . '/bootstrap.php';
-
-use OpenSim\Installer\Archive\ArchiveRunner;
+use OpenSim\Archives\ArchiveRunner;
 use OpenSim\Installer\Config;
+
+require dirname(__DIR__) . '/bootstrap.php';
 
 $args = array_slice($argv, 1);
 $verb = array_shift($args);

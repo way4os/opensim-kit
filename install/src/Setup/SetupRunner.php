@@ -3,14 +3,14 @@
 namespace OpenSim\Installer\Setup;
 
 use OpenSim\Installer\Config;
-use OpenSim\Installer\Grid\AccountImporter;
-use OpenSim\Installer\Grid\AccountList;
-use OpenSim\Installer\Grid\Database;
 use OpenSim\Installer\Grid\NewGrid;
 use OpenSim\Installer\Grid\NewSim;
 use OpenSim\Installer\Ui\EditConfig;
 use OpenSim\Installer\Ui\PresetUi;
 use OpenSim\Models\GridInfo;
+use OpenSim\Provisioning\AccountImporter;
+use OpenSim\Provisioning\AccountList;
+use OpenSim\Provisioning\DatabaseService;
 use OpenSim\Provisioning\SetupFailedException;
 use OpenSim\Provisioning\SimConfig;
 use OpenSim\Provisioning\UiInterface;
@@ -177,7 +177,7 @@ final class SetupRunner
             return;
         }
 
-        $done = AccountImporter::forDatabase(new Database($this->ui))->run($grid, $list['accounts'], true, true);
+        $done = AccountImporter::forDatabase(new DatabaseService($this->ui))->run($grid, $list['accounts'], true, true);
         if ($done['error'] !== null) {
             $this->ui->error($done['error']);
 

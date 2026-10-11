@@ -1,9 +1,9 @@
 <?php
 
-use OpenSim\Installer\Archive\ArchiveRunner;
-use OpenSim\Installer\Archive\Archives;
-use OpenSim\Installer\Archive\Backup;
-use OpenSim\Installer\Archive\Instances;
+use OpenSim\Archives\ArchiveRunner;
+use OpenSim\Archives\Archives;
+use OpenSim\Archives\BackupService;
+use OpenSim\Archives\Instances;
 
 /**
  * An install with one grid, alpha, whose simulators sim1 (a region, Welcome) and sim2 (two regions) are enabled.
@@ -421,7 +421,7 @@ describe('opensim backup', function () {
     test('holds config, data and databases', function () {
         $profile = archive_install();
         $dumped = [];
-        $backup = new Backup(
+        $backup = new BackupService(
             $profile,
             function (array $db, string $file) use (&$dumped): void {
                 $dumped[] = $db['name'];
@@ -465,7 +465,7 @@ describe('opensim backup', function () {
     test('takes the archives of the users and the logs when asked', function () {
         $profile = archive_install();
         file_put_contents("{$profile['LogsRoot']}/alpha_sim1.log", 'log');
-        $backup = new Backup(
+        $backup = new BackupService(
             $profile,
             fn(array $db, string $file) => file_put_contents($file, 'x'),
             static function (string $m): void {},
@@ -485,7 +485,7 @@ describe('opensim backup', function () {
     test('is the one of a simulator, without the other ones', function () {
         $profile = archive_install();
         $dumped = [];
-        $backup = new Backup(
+        $backup = new BackupService(
             $profile,
             function (array $db, string $file) use (&$dumped): void {
                 $dumped[] = $db['name'];
@@ -513,7 +513,7 @@ describe('opensim backup', function () {
 
     test('keeps every backup unless asked', function () {
         $profile = archive_install();
-        $make = static fn(string $stamp): array => (new Backup(
+        $make = static fn(string $stamp): array => (new BackupService(
             $profile,
             static function (array $db, string $file): void {
                 file_put_contents($file, 'dump');
@@ -531,7 +531,7 @@ describe('opensim backup', function () {
 
     test('removes the older ones with --keep, series by series', function () {
         $profile = archive_install();
-        $make = static fn(string $stamp, array $options = []): array => (new Backup(
+        $make = static fn(string $stamp, array $options = []): array => (new BackupService(
             $profile,
             static function (array $db, string $file): void {
                 file_put_contents($file, 'dump');
@@ -554,7 +554,7 @@ describe('opensim backup', function () {
 
     test('leaves nothing behind when a dump fails', function () {
         $profile = archive_install();
-        $backup = new Backup(
+        $backup = new BackupService(
             $profile,
             function (array $db, string $file): void {
                 throw new RuntimeException('dump failed');

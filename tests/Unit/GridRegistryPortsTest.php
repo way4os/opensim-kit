@@ -1,11 +1,11 @@
 <?php
 
+use OpenSim\Provisioning\GridRegistry;
+
 /**
  * The ports of the regions a grid knows, whatever machine serves them: the UDP port of a region, and the port of its HTTP
  * listener, which is in its URI.
  */
-
-use OpenSim\Installer\Grid\GridRegistry;
 
 describe('The ports of the registered regions', function () {
     test('are the port of each region and the one of its address, once', function () {

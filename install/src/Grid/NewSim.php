@@ -3,17 +3,20 @@
 namespace OpenSim\Installer\Grid;
 
 use OpenSim\Config\GridFileService;
+use OpenSim\Console\InstanceConsoleService;
 use OpenSim\Installer\Config;
-use OpenSim\Installer\Console;
 use OpenSim\Installer\Elevated;
-use OpenSim\Installer\Ports;
 use OpenSim\Installer\Setup\SetupFile;
 use OpenSim\Models\GridInfo;
 use OpenSim\Models\GridState;
 use OpenSim\Models\RegionState;
 use OpenSim\Models\SimState;
+use OpenSim\Network\Ports;
+use OpenSim\Provisioning\DatabaseService;
+use OpenSim\Provisioning\GridAccounts;
 use OpenSim\Provisioning\GridConf;
 use OpenSim\Provisioning\GridPlan;
+use OpenSim\Provisioning\GridRegistry;
 use OpenSim\Provisioning\GridShared;
 use OpenSim\Provisioning\LocationFinder;
 use OpenSim\Provisioning\PendingRestarts;
@@ -69,7 +72,7 @@ final class NewSim
             return null;
         }
 
-        $plan = $this->gather($grid, $profile, new Database($this->ui), $simName);
+        $plan = $this->gather($grid, $profile, new DatabaseService($this->ui), $simName);
         if ($plan === null) {
             return null;
         }
@@ -83,7 +86,7 @@ final class NewSim
      */
     public function prepare(GridInfo $grid, array $profile, ?string $simName = null): ?SimPlan
     {
-        return $this->gather($grid, $profile, new Database($this->ui), $simName);
+        return $this->gather($grid, $profile, new DatabaseService($this->ui), $simName);
     }
 
     /** What the plan will do, as the setup shows it. */
@@ -102,13 +105,13 @@ final class NewSim
     public function complete(SimPlan $plan, GridInfo $grid, array $profile, bool $accepted): ?array
     {
         $etcRoot = $profile['EtcRoot'] ?? '';
-        $database = new Database($this->ui);
+        $database = new DatabaseService($this->ui);
 
         // Nothing is written before the database of the simulator works
         $check = $plan->databasePlan();
         $attempts = 0;
-        while (($result = $database->ensure($check)) !== Database::OK) {
-            if ($result === Database::ABORT) {
+        while (($result = $database->ensure($check)) !== DatabaseService::OK) {
+            if ($result === DatabaseService::ABORT) {
                 $this->ui->error(_('Stopped, nothing was changed: OpenSim cannot run without its database.'));
 
                 throw new SetupFailedException('database');
@@ -128,7 +131,7 @@ final class NewSim
         }
         // A simulator already linked may run, with users in it: restarting it warns them, and takes two minutes
         $wasEnabled = SimState::isEnabled($etcRoot, $plan->slug);
-        $running = $wasEnabled && Console::running(SimState::link($etcRoot, $plan->slug));
+        $running = $wasEnabled && InstanceConsoleService::running(SimState::link($etcRoot, $plan->slug));
         $go = static fn(array $v): bool => ($v['apply'] ?? 'yes') === 'yes';
         // A simulator without a region waits at its first start for the answers of a region to create, on a console nobody
         // reads: it is not started before it has one
@@ -213,7 +216,7 @@ final class NewSim
         if ($grid === null) {
             return null;
         }
-        $database = new Database($this->ui);
+        $database = new DatabaseService($this->ui);
         $pool = [];
         foreach (SimState::names($grid->dir) as $slug) {
             $pool[$slug] = $this->simTitle($grid, $slug);
@@ -316,7 +319,7 @@ final class NewSim
             return;
         }
 
-        $this->askRegion($plan, $grid, new Database($this->ui));
+        $this->askRegion($plan, $grid, new DatabaseService($this->ui));
         if (is_file($plan->regionIni())) {
             $this->ui->error(sprintf(_('A region is already described in %s.'), $plan->regionIni()));
 
@@ -449,7 +452,7 @@ final class NewSim
         }
         $plan->regionLocation = $this->settleLocation(
             $grid,
-            (new GridRegistry(new Database($this->ui)))->locations($grid),
+            (new GridRegistry(new DatabaseService($this->ui)))->locations($grid),
             $v['location'],
             $current['Location'] ?? null,
         );
@@ -492,7 +495,7 @@ final class NewSim
 
         // First, while nothing is written: the account the estate needs
         if ($plan->createOwner) {
-            $accounts = new GridAccounts(new Database($this->ui), $this->ui);
+            $accounts = new GridAccounts(new DatabaseService($this->ui), $this->ui);
             if (!$accounts->create($grid, $plan->estateOwner, $plan->ownerPassword, $plan->ownerEmail)) {
                 throw new SetupFailedException('account');
             }
@@ -591,7 +594,7 @@ final class NewSim
             return;
         }
 
-        if (!Console::running(SimState::link($profile['EtcRoot'], $plan->slug))) {
+        if (!InstanceConsoleService::running(SimState::link($profile['EtcRoot'], $plan->slug))) {
             $this->startSim($plan, $grid, $profile);
 
             return;
@@ -603,7 +606,7 @@ final class NewSim
         }
         // The questions of a region with no estate are answered with their default (the estate it has)
         $file = basename($plan->regionIni());
-        if (!Console::send($plan->slug, "create region \"{$plan->regionName}\" $file\n\n\n")) {
+        if (!InstanceConsoleService::send($plan->slug, "create region \"{$plan->regionName}\" $file\n\n\n")) {
             $this->failed(
                 $plan,
                 sprintf(
@@ -669,7 +672,7 @@ final class NewSim
             return;
         }
         $shift = (int) ($plan->regionSize / 2) - 128;
-        $sent = Console::send(
+        $sent = InstanceConsoleService::send(
             $plan->slug,
             "change region \"{$plan->regionName}\"\n" .
                 "load oar --merge --default-user \"{$plan->estateOwner}\" --displacement \"<$shift,$shift,0>\" $archive\n",
@@ -689,7 +692,7 @@ final class NewSim
         $db->dbName = (string) ($conf['dbName'] ?? $plan->dbName);
         $db->dbUser = (string) ($conf['dbUser'] ?? $plan->dbUser);
         $db->dbPass = (string) ($conf['dbPass'] ?? $plan->dbPass);
-        $database = new Database($this->ui);
+        $database = new DatabaseService($this->ui);
         $uuid = $plan->regionUuid;
         for ($try = 0; $try < 30; $try++) {
             $names = $database->select($db, "SELECT Name FROM land WHERE RegionUUID = '$uuid'") ?? [];
@@ -738,7 +741,7 @@ final class NewSim
         if ($owner === '') {
             return;
         }
-        $done = (new GridAccounts(new Database($this->ui), $this->ui))->setHome($grid, $owner, $plan->regionUuid);
+        $done = (new GridAccounts(new DatabaseService($this->ui), $this->ui))->setHome($grid, $owner, $plan->regionUuid);
         if ($done !== true) {
             $this->ui->warn(
                 sprintf(
@@ -868,7 +871,7 @@ final class NewSim
         if (!preg_match('/^[A-Za-z0-9][A-Za-z0-9 ._-]*$/', $plan->regionName)) {
             return true; // cannot be looked for
         }
-        $database = new Database($this->ui);
+        $database = new DatabaseService($this->ui);
         for ($i = 0; $i < 60; $i++) {
             $rows = $database->select(
                 $grid->databasePlan(),
@@ -1114,7 +1117,7 @@ final class NewSim
     private function gather(
         GridInfo $grid,
         array $profile,
-        Database $database,
+        DatabaseService $database,
         ?string $simName,
         ?array $region = null,
     ): ?SimPlan {
@@ -1390,7 +1393,7 @@ final class NewSim
         ];
 
         // An account keeps its password for the whole session: the one of the grid's account is proposed
-        $password = Database::recall($defaults['dbHost'], $defaults['dbUser']) ?? $defaults['dbPass'];
+        $password = DatabaseService::recall($defaults['dbHost'], $defaults['dbUser']) ?? $defaults['dbPass'];
         $v = $this->ui->form(
             [
                 ['key' => 'host', 'label' => _('Database host'), 'default' => $defaults['dbHost']],
@@ -1401,7 +1404,7 @@ final class NewSim
             _('Database'),
         );
         [$plan->dbHost, $plan->dbName, $plan->dbUser, $plan->dbPass] = [$v['host'], $v['name'], $v['user'], $v['pass']];
-        Database::remember($plan->dbHost, $plan->dbUser, $plan->dbPass);
+        DatabaseService::remember($plan->dbHost, $plan->dbUser, $plan->dbPass);
     }
 
     /**
@@ -1411,7 +1414,7 @@ final class NewSim
      * @param array<string,string|int> $current
      * @return bool false when abandoned
      */
-    private function askEstate(SimPlan $plan, GridInfo $grid, Database $database, array $current): bool
+    private function askEstate(SimPlan $plan, GridInfo $grid, DatabaseService $database, array $current): bool
     {
         $required = static fn(string $v): ?string => trim($v) === '' ? 'This field is required.' : null;
         $name = static fn(string $v): ?string => GridAccounts::validName(trim($v))
@@ -1541,7 +1544,7 @@ final class NewSim
      * The first region of a simulator, or the next ones, on one screen: its name, its roles, its place and its port. When
      * it is optional (the first region of a simulator) the screen starts with the question whether to create it.
      */
-    private function askRegion(SimPlan $plan, GridInfo $grid, Database $database, bool $optional = false): void
+    private function askRegion(SimPlan $plan, GridInfo $grid, DatabaseService $database, bool $optional = false): void
     {
         $values = $this->regionValues($plan, $grid, $database, $optional);
         if ($optional && $values['create'] === 'no') {
@@ -1562,7 +1565,7 @@ final class NewSim
     private function regionValues(
         SimPlan $plan,
         GridInfo $grid,
-        Database $database,
+        DatabaseService $database,
         bool $optional = false,
         array $pool = [],
         string $defaultName = '',
@@ -1675,7 +1678,7 @@ final class NewSim
      *
      * @param array<string,string> $v what regionValues() gave
      */
-    private function takeRegion(SimPlan $plan, GridInfo $grid, Database $database, array $v): void
+    private function takeRegion(SimPlan $plan, GridInfo $grid, DatabaseService $database, array $v): void
     {
         $known = (new GridRegistry($database))->locations($grid);
         $plan->createRegion = true;
@@ -1757,7 +1760,7 @@ final class NewSim
     }
 
     /** The port of a region: the next one of the block of its simulator, else the next free one. */
-    private function nextRegionPort(SimPlan $plan, GridInfo $grid, Database $database): int
+    private function nextRegionPort(SimPlan $plan, GridInfo $grid, DatabaseService $database): int
     {
         $taken = array_merge((new GridRegistry($database))->ports($grid) ?? [], [$plan->httpPort]);
 

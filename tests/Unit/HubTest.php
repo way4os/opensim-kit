@@ -5,9 +5,6 @@
  * are real ones in a temporary tree.
  */
 
-
-
-
 use OpenSim\Installer\Hub;
 use OpenSim\Provisioning\UiInterface;
 
@@ -284,7 +281,7 @@ describe('GridRegistry region names', function () {
     test('are all the regions, without the case', function () {
         [, $etc] = hub_tree();
 
-        expect(array_keys(\OpenSim\Installer\Grid\GridRegistry::fileNames("$etc/grids/alpha")))->toBe([
+        expect(array_keys(\OpenSim\Provisioning\GridRegistry::fileNames("$etc/grids/alpha")))->toBe([
             'far',
             'sim1',
             'sim1north',

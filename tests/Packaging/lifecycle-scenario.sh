@@ -69,6 +69,9 @@ check "start lc: Robust comes up, ready, exit code 0" "[ $code = 0 ] && [ -n \"\
 pid=$(robust_pid)
 opensim status >/tmp/status1.out 2>&1
 shown status1.out
+echo "   --- as opensim, directly"; runuser -u opensim -- /usr/share/opensim-tools/bin/opensim status 2>&1 | sed 's/^/   | /'
+echo "   --- probe"; runuser -u opensim -- php /test/lifecycle/status-probe.php 2>&1 | sed 's/^/   | /'
+echo "   --- without stdin"; opensim status </dev/null 2>&1 | sed 's/^/   | /'
 check "status tells Robust runs, as the system user, the simulator does not" "grep -qE '^lc +robust +$pid +opensim' /tmp/status1.out && tail -1 /tmp/status1.out | grep -q '1 up, 1 down'"
 opensim start lc >/tmp/start-lc2.out 2>&1
 check "start lc again leaves it as it is" "[ \"\$(robust_pid)\" = '$pid' ] && [ \$(pgrep -fc '^dotnet .*Robust.dll') = 1 ]"

@@ -2,9 +2,9 @@
 
 namespace OpenSim\Installer\Setup;
 
-use OpenSim\Installer\Grid\AccountList;
-use OpenSim\Installer\Grid\AccountWriter;
-use OpenSim\Installer\Grid\GridAccounts;
+use OpenSim\Provisioning\AccountList;
+use OpenSim\Provisioning\AccountWriter;
+use OpenSim\Provisioning\GridAccounts;
 use OpenSim\Provisioning\GridPlan;
 use OpenSim\Provisioning\SimPlan;
 use Symfony\Component\Yaml\Yaml;

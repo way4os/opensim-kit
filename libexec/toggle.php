@@ -1,6 +1,15 @@
 #!/usr/bin/env php
 <?php
 
+use OpenSim\Archives\Instances;
+use OpenSim\Installer\Actions;
+use OpenSim\Installer\Config;
+use OpenSim\Installer\Ui\QuietUi;
+use OpenSim\Models\GridInfo;
+use OpenSim\Models\GridState;
+use OpenSim\Models\SimState;
+use OpenSim\Provisioning\Features;
+
 /**
  * opensim enable|disable: enable or disable a grid or a simulator by the name of its instance, the
  * same action as the menus of the setup (see Actions). An enabled instance is started with the others
@@ -15,18 +24,6 @@
  *   opensim enable|disable <grid> economy [beta|gloebit] [<url prefix>]
  *   opensim enable|disable <grid> profiles
  */
-
-
-
-
-use OpenSim\Installer\Actions;
-use OpenSim\Installer\Archive\Instances;
-use OpenSim\Installer\Config;
-use OpenSim\Installer\Ui\QuietUi;
-use OpenSim\Models\GridInfo;
-use OpenSim\Models\GridState;
-use OpenSim\Models\SimState;
-use OpenSim\Provisioning\Features;
 
 require dirname(__DIR__) . '/bootstrap.php';
 

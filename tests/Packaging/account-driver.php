@@ -1,12 +1,9 @@
 <?php
 
-
-
-
 use OpenSim\Installer\Config;
-use OpenSim\Installer\Grid\Database;
-use OpenSim\Installer\Grid\GridAccounts;
 use OpenSim\Models\GridInfo;
+use OpenSim\Provisioning\DatabaseService;
+use OpenSim\Provisioning\GridAccounts;
 
 // Makes an account in the grid TEST_GRID (default testgrid), through the console of its Robust, as the setup does,
 // for tests/Packaging/package-scenario.sh. TEST_ACCOUNT (default "Later User"), its password TEST_ACCOUNT_PASSWORD.
@@ -21,7 +18,7 @@ if ($grid === null) {
     exit(1);
 }
 
-$created = (new GridAccounts(new Database($ui), $ui))->create(
+$created = (new GridAccounts(new DatabaseService($ui), $ui))->create(
     $grid,
     getenv('TEST_ACCOUNT') ?: 'Later User',
     getenv('TEST_ACCOUNT_PASSWORD') ?: 'laterpw1',

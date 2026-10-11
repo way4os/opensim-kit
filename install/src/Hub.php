@@ -2,6 +2,7 @@
 
 namespace OpenSim\Installer;
 
+use OpenSim\Console\InstanceConsoleService;
 use OpenSim\Installer\Grid\NewGrid;
 use OpenSim\Installer\Grid\NewSim;
 use OpenSim\Installer\Setup\QuickSetup;
@@ -113,7 +114,7 @@ final class Hub
         $running = false;
         foreach ($pending as $entry) {
             $lines[] = "  {$entry['instance']}: {$entry['reason']}";
-            $running = $running || Console::running("$etcRoot/opensim.d/{$entry['instance']}.ini");
+            $running = $running || InstanceConsoleService::running("$etcRoot/opensim.d/{$entry['instance']}.ini");
         }
         $this->ui->note(_('To take these changes into account, restart:') . "\n" . implode("\n", $lines));
         if (!$this->ui->confirm(_('Restart them now?'), true)) {

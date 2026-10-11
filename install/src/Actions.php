@@ -2,10 +2,11 @@
 
 namespace OpenSim\Installer;
 
-use OpenSim\Installer\Import\RobustImporter;
+use OpenSim\Console\InstanceConsoleService;
 use OpenSim\Models\GridState;
 use OpenSim\Models\RegionState;
 use OpenSim\Models\SimState;
+use OpenSim\Provisioning\Import\RobustImporter;
 use OpenSim\Provisioning\PendingRestarts;
 use OpenSim\Provisioning\UiInterface;
 use OpenSim\Runtime\ShellService;
@@ -128,7 +129,7 @@ final class Actions
 
                 continue;
             }
-            $running = Console::running("$etcRoot/opensim.d/$instance.ini");
+            $running = InstanceConsoleService::running("$etcRoot/opensim.d/$instance.ini");
             if ($running) {
                 $ok = ShellService::run(ShellService::arg($opensim) . " stop $now" . ShellService::arg($instance)) === 0 && $ok;
             }

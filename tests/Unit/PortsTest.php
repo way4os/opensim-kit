@@ -1,13 +1,13 @@
 <?php
 
+use OpenSim\Network\Ports;
+
 /**
  * The ports an instance gets: the simulators of a grid are looked for from the
  * thousand above it, in its hundred, where the users are used to find them; a
  * simulator has its HTTP port first in its block, its console on x4 and its
  * regions on the others.
  */
-
-use OpenSim\Installer\Ports;
 
 describe('Ports of the simulators', function () {
     test('start from 9000 for the usual grid', function () {

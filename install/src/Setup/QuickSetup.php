@@ -2,8 +2,8 @@
 
 namespace OpenSim\Installer\Setup;
 
-use OpenSim\Installer\Grid\GridAccounts;
 use OpenSim\Installer\Grid\NewGrid;
+use OpenSim\Provisioning\GridAccounts;
 use OpenSim\Provisioning\UiInterface;
 
 /**

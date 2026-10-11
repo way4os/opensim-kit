@@ -7,10 +7,11 @@ use OpenSim\Config\IniEditor;
 use OpenSim\Config\TextFileService;
 use OpenSim\Installer\Config;
 use OpenSim\Installer\Elevated;
-use OpenSim\Installer\Ports;
 use OpenSim\Installer\Setup\SetupFile;
 use OpenSim\Models\GridInfo;
 use OpenSim\Models\GridState;
+use OpenSim\Network\Ports;
+use OpenSim\Provisioning\DatabaseService;
 use OpenSim\Provisioning\GridConf;
 use OpenSim\Provisioning\GridPlan;
 use OpenSim\Provisioning\GridShared;
@@ -94,10 +95,10 @@ final class NewGrid
         // Nothing is written before the database is known to work. A problem of
         // access leaves the error on screen and asks the settings again; a creation
         // that failed ends the setup.
-        $database = new Database($this->ui);
+        $database = new DatabaseService($this->ui);
         $attempts = 0;
-        while (($result = $database->ensure($plan)) !== Database::OK) {
-            if ($result === Database::ABORT) {
+        while (($result = $database->ensure($plan)) !== DatabaseService::OK) {
+            if ($result === DatabaseService::ABORT) {
                 $this->ui->error(_('Stopped, nothing was changed: OpenSim cannot run without its database.'));
 
                 throw new SetupFailedException('database');
@@ -644,7 +645,7 @@ final class NewGrid
 
         // An account keeps its password for the whole session, entered or
         // generated once: an attempt started again proposes the same one
-        $password = Database::recall($defaults['dbHost'], $defaults['dbUser']) ?? $defaults['dbPass'];
+        $password = DatabaseService::recall($defaults['dbHost'], $defaults['dbUser']) ?? $defaults['dbPass'];
         $v = $this->ui->form(
             [
                 [
@@ -670,7 +671,7 @@ final class NewGrid
             _('Database'),
         );
         [$plan->dbHost, $plan->dbName, $plan->dbUser, $plan->dbPass] = [$v['host'], $v['name'], $v['user'], $v['pass']];
-        Database::remember($plan->dbHost, $plan->dbUser, $plan->dbPass);
+        DatabaseService::remember($plan->dbHost, $plan->dbUser, $plan->dbPass);
     }
 
     /** Existing Robust config for a grid (HG preferred), or null. */

@@ -15,15 +15,12 @@
  * -e can be given several times.
  */
 
-
-
-
 use OpenSim\Installer\Config;
-use OpenSim\Installer\Grid\Database;
-use OpenSim\Installer\Grid\GridRegistry;
-use OpenSim\Installer\Ports;
 use OpenSim\Installer\Ui\QuietUi;
 use OpenSim\Models\GridInfo;
+use OpenSim\Network\Ports;
+use OpenSim\Provisioning\DatabaseService;
+use OpenSim\Provisioning\GridRegistry;
 use OpenSim\Provisioning\LocationFinder;
 use OpenSim\Provisioning\Places;
 
@@ -87,7 +84,7 @@ if ($what === 'port') {
     }
     // What is taken is what the config files of this machine say, what listens here, and the ports of the regions the grids of
     // this machine know, the ones of other machines too
-    $known = (new GridRegistry(new Database(new QuietUi())))->knownPorts((new Config())->profile());
+    $known = (new GridRegistry(new DatabaseService(new QuietUi())))->knownPorts((new Config())->profile());
     echo implode("\n", Ports::nextFree($min, $count, array_merge(array_map('intval', $exclude), $known))), "\n";
     exit(0);
 }
@@ -105,7 +102,7 @@ if ($grid === null) {
     exit(1);
 }
 
-$known = (new GridRegistry(new Database(new QuietUi())))->locations($grid);
+$known = (new GridRegistry(new DatabaseService(new QuietUi())))->locations($grid);
 foreach ($exclude as $place) {
     if (($taken = LocationFinder::parse($place)) === null) {
         usage("'$place' is not a place, use x,y");

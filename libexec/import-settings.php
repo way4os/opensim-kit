@@ -1,6 +1,18 @@
 #!/usr/bin/env php
 <?php
 
+use OpenSim\Config\IniReader;
+use OpenSim\Installer\Actions;
+use OpenSim\Installer\Config;
+use OpenSim\Installer\Elevated;
+use OpenSim\Installer\Grid\NewGrid;
+use OpenSim\Installer\Grid\NewSim;
+use OpenSim\Installer\Ui\QuietUi;
+use OpenSim\Models\GridInfo;
+use OpenSim\Provisioning\Import\RobustImporter;
+use OpenSim\Provisioning\Import\SimImporter;
+use OpenSim\Provisioning\SimConfig;
+
 /**
  * The settings of a grid or of a simulator that was not made by the kit, ported without changing its files. Run by
  * `opensim import` (libexec/import.php), which is the command: this is its worker for an ini file.
@@ -19,21 +31,6 @@
  *
  * Nothing is enabled or started: compare, then `opensim enable <instance>`.
  */
-
-
-
-
-use OpenSim\Config\IniReader;
-use OpenSim\Installer\Actions;
-use OpenSim\Installer\Config;
-use OpenSim\Installer\Elevated;
-use OpenSim\Installer\Grid\NewGrid;
-use OpenSim\Installer\Grid\NewSim;
-use OpenSim\Installer\Import\RobustImporter;
-use OpenSim\Installer\Import\SimImporter;
-use OpenSim\Installer\Ui\QuietUi;
-use OpenSim\Models\GridInfo;
-use OpenSim\Provisioning\SimConfig;
 
 require dirname(__DIR__) . '/bootstrap.php';
 
