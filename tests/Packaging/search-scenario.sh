@@ -122,6 +122,18 @@ mysql testgrid_sim1 -e "UPDATE land SET LandFlags = LandFlags | 4096 WHERE Name 
 opensim stop now testgrid_sim1 >/dev/null 2>&1
 opensim start testgrid_sim1 >/dev/null 2>&1
 wait_check 180 "it registers when it starts: its regions and its parcel shown in search are known" "[ \"\$(sql \"SELECT COUNT(*) FROM parcels WHERE parcelname='Sim1'\")\" = 1 ]"
+if [ "$(sql "SELECT COUNT(*) FROM parcels WHERE parcelname='Sim1'")" != 1 ]; then
+    echo "   --- the log of the simulator"
+    grep -iE "snapshot|DATA_SRV|register|exception|error" /var/log/opensim/testgrid_sim1.log | tail -25 | cut -c1-220 | sed 's/^/   | /'
+    echo "   --- the processes"
+    ps -axo pid,user,args | grep -E "dotnet|SCREEN" | grep -v grep | cut -c1-200 | sed 's/^/   ps /'
+    echo "   --- the environment of the simulator"
+    tr '\0' '\n' < "/proc/$(sim_pid)/environ" 2>/dev/null | sort | cut -c1-120 | sed 's/^/   env /'
+    echo "   --- DataSnapshot"
+    grep -n -A8 "^\[DataSnapshot\]" "$sim_ini" | cut -c1-200 | sed 's/^/   | /'
+    echo "   --- the region file"
+    cat /etc/opensim/grids/testgrid/sims/testgrid_sim1/regions/*.ini | head -20 | sed 's/^/   | /'
+fi
 sim=$(sim_pid) # restarted: what the scenario compares it with later is this one
 # (it registers while it starts, its second region is not loaded yet: it is read again 90 s later, by the job that reads the hosts
 # that are due, which parser.php is)
