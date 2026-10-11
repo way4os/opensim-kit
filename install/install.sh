@@ -388,7 +388,7 @@ fi
 #
 if yesno -y "Create Robust config?"; then
 	# user=$(getent passwd $USER | cut -d : -f 5 | cut -d , -f 1 | cut -d " " -f 1 | grep -i [a-z] || echo "$USER" | sed -r -e 's/(\W)/\L\1/g' -e 's/(^|[ _-])(\w)/\U\2/g')
-	$BASEDIR/libexec/newgrid || end $?
+	$BASEDIR/bin/opensim setup || end $?
 	# "${user}s Grid"
 fi
 

@@ -2,8 +2,7 @@
 <?php
 
 /**
- * opensim: the command line of the kit. The commands the application knows (src/Console) are done here, the others by the
- * script they come from (libexec/opensim-legacy), until the last one is ported.
+ * opensim: the command line of the kit (src/Console).
  */
 
 declare(strict_types=1);

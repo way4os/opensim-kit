@@ -2,11 +2,11 @@
 
 /**
  * `opensim enable|disable <grid> search|economy|profiles`: the settings of a feature in the files of the simulators of the grid
- * (and in Robust's for what it tells), from libexec/toggle.php, run as a user whose setup is a temporary tree.
+ * (and in Robust's for what it tells), from bin/opensim (the enable and disable commands), run as a user whose setup is a temporary tree.
  */
 
 /**
- * Run libexec/toggle.php as a user whose setup is a temporary tree.
+ * Run bin/opensim (the enable and disable commands) as a user whose setup is a temporary tree.
  *
  * @param list<string> $arguments What follows `opensim`.
  * @return array{0:int,1:string,2:string} Exit status, output, errors.
@@ -15,7 +15,7 @@ function features_run(array $arguments, string $home): array
 {
     $root = dirname(__DIR__, 2);
     $process = proc_open(
-        [PHP_BINARY, "$root/libexec/toggle.php", ...$arguments],
+        [PHP_BINARY, "$root/bin/opensim", ...$arguments],
         [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
         $pipes,
         $root,

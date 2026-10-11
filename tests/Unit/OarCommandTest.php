@@ -2,7 +2,7 @@
 
 function oarCommand(string $args): array
 {
-    exec('php ' . escapeshellarg(dirname(__DIR__, 2) . '/libexec/oar.php') . " $args 2>&1", $out, $code);
+    exec('php ' . escapeshellarg(dirname(__DIR__, 2) . '/bin/opensim') . " oar $args 2>&1", $out, $code);
 
     return [implode("\n", $out), $code];
 }

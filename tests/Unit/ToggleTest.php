@@ -2,11 +2,11 @@
 
 /**
  * `opensim enable` and `opensim disable`: a grid or a simulator by the name of its instance, from
- * libexec/toggle.php.
+ * bin/opensim (the enable and disable commands).
  */
 
 /**
- * Run libexec/toggle.php as a user whose setup is a temporary tree.
+ * Run bin/opensim (the enable and disable commands) as a user whose setup is a temporary tree.
  *
  * @param list<string> $arguments What follows `opensim`.
  * @param string $home The home of that user.
@@ -16,7 +16,7 @@ function toggle_run(array $arguments, string $home): array
 {
     $root = dirname(__DIR__, 2);
     $process = proc_open(
-        [PHP_BINARY, "$root/libexec/toggle.php", ...$arguments],
+        [PHP_BINARY, "$root/bin/opensim", ...$arguments],
         [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
         $pipes,
         $root,

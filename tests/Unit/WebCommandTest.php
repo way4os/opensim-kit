@@ -1,6 +1,6 @@
 <?php
 /**
- * `opensim web`: the web side of a grid, from libexec/web.php.
+ * `opensim web`: the web side of a grid, from bin/opensim web.
  */
 
 
@@ -8,7 +8,7 @@ use OpenSim\Provisioning\GridPlan;
 use OpenSim\Provisioning\RobustConfig;
 
 /**
- * Run libexec/web.php as a user whose setup is a temporary tree.
+ * Run bin/opensim web as a user whose setup is a temporary tree.
  *
  * @param list<string> $arguments What follows `opensim web`.
  * @param string $home The home of that user.
@@ -18,7 +18,7 @@ function web_run(array $arguments, string $home): array
 {
     $root = dirname(__DIR__, 2);
     $process = proc_open(
-        [PHP_BINARY, "$root/libexec/web.php", ...$arguments],
+        [PHP_BINARY, "$root/bin/opensim", 'web', ...$arguments],
         [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
         $pipes,
         $root,

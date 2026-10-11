@@ -58,7 +58,7 @@ test('refuses a bad name', function () {
 test('runs from the command line', function () {
     $file = profileConf();
     $env = 'OPENSIM_CONF=' . escapeshellarg($file);
-    $php = 'php ' . escapeshellarg(dirname(__DIR__, 2) . '/libexec/profile.php');
+    $php = 'php ' . escapeshellarg(dirname(__DIR__, 2) . '/bin/opensim') . ' profile';
     $core = test_tmp();
     shell_exec("$env $php add hand --core " . escapeshellarg($core));
 

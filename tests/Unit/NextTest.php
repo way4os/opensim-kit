@@ -2,11 +2,11 @@
 
 /**
  * `opensim next port` and `opensim next location`: the next free port and place
- * by the rules of the setup, from libexec/next.php.
+ * by the rules of the setup, from bin/opensim next.
  */
 
 /**
- * Run libexec/next.php as a user whose setup is a temporary tree.
+ * Run bin/opensim next as a user whose setup is a temporary tree.
  *
  * @param list<string> $arguments What follows `opensim next`.
  * @param string $home The home of that user.
@@ -16,7 +16,7 @@ function next_run(array $arguments, string $home): array
 {
     $root = dirname(__DIR__, 2);
     $process = proc_open(
-        [PHP_BINARY, "$root/libexec/next.php", ...$arguments],
+        [PHP_BINARY, "$root/bin/opensim", 'next', ...$arguments],
         [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
         $pipes,
         $root,

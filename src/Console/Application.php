@@ -10,7 +10,21 @@ use OpenSim\Runtime\Environment;
 use OpenSim\Runtime\ReporterInterface;
 use OpenSimKit\Console\Commands\CommandCommand;
 use OpenSimKit\Console\Commands\ConsoleCommand;
+use OpenSimKit\Console\Commands\DisableCommand;
+use OpenSimKit\Console\Commands\EnableCommand;
 use OpenSimKit\Console\Commands\RestartCommand;
+use OpenSimKit\Console\Commands\BackupCommand;
+use OpenSimKit\Console\Commands\ImportCommand;
+use OpenSimKit\Console\Commands\InstallDotnetCommand;
+use OpenSimKit\Console\Commands\LoadCommand;
+use OpenSimKit\Console\Commands\NextCommand;
+use OpenSimKit\Console\Commands\OarCommand;
+use OpenSimKit\Console\Commands\PortsCommand;
+use OpenSimKit\Console\Commands\ProfileCommand;
+use OpenSimKit\Console\Commands\RestCommand;
+use OpenSimKit\Console\Commands\SaveCommand;
+use OpenSimKit\Console\Commands\SetupCommand;
+use OpenSimKit\Console\Commands\WebCommand;
 use OpenSimKit\Console\Commands\StartCommand;
 use OpenSimKit\Console\Commands\StatusCommand;
 use OpenSimKit\Console\Commands\StopCommand;
@@ -22,14 +36,11 @@ use Symfony\Component\Console\Input\ArgvInput;
 /**
  * The command line of the kit: `opensim <command> ...`. A command gets its arguments, calls the engine (`OpenSim\`), prints
  * the result: no logic of its own, so that the administration and the plugins do the same through the same classes.
- *
- * The commands that are not ported yet are done by the legacy script, which is handed the command line as it was typed
- * (see LegacyScript): the application only takes what it knows.
  */
 final class Application extends ConsoleApplication
 {
     /** The commands that work on the instances: they run as the system user of the install, whoever types them. */
-    private const SYSTEM_USER_COMMANDS = ['start', 'stop', 'restart', 'status', 'command', 'console', 'screen'];
+    private const SYSTEM_USER_COMMANDS = ['start', 'stop', 'restart', 'status', 'command', 'console', 'screen', 'enable', 'disable', 'save', 'load', 'backup'];
 
     /** @var array<string, true> names and aliases of the commands of the application, which are not the ones symfony adds (help, list) */
     private array $ported = [];
@@ -38,7 +49,6 @@ final class Application extends ConsoleApplication
 
     public function __construct(
         private readonly string $root,
-        private readonly ?LegacyScript $legacy = null,
         ?Layout $layout = null,
         private readonly ?SystemUser $systemUser = null,
         private readonly ?\Closure $environment = null,
@@ -70,6 +80,20 @@ final class Application extends ConsoleApplication
             new StatusCommand($environment),
             new CommandCommand($environment),
             new ConsoleCommand($environment),
+            new EnableCommand($environment),
+            new DisableCommand($environment),
+            new BackupCommand($environment),
+            new ImportCommand($environment),
+            new InstallDotnetCommand($environment),
+            new LoadCommand($environment),
+            new NextCommand($environment),
+            new OarCommand($environment),
+            new PortsCommand($environment),
+            new ProfileCommand($environment),
+            new RestCommand($environment),
+            new SaveCommand($environment),
+            new SetupCommand($environment),
+            new WebCommand($environment),
         ];
     }
 
@@ -80,8 +104,7 @@ final class Application extends ConsoleApplication
     }
 
     /**
-     * Run the command line: the application when the command is one of its own, else the legacy script, which also
-     * answers `help` and `list` until it has nothing left to do.
+     * Run the command line: the help of the program, or the command it names.
      *
      * @param list<string> $argv the command line, the name of the program first
      */
@@ -115,7 +138,9 @@ final class Application extends ConsoleApplication
             return $this->run(new ArgvInput($argv));
         }
 
-        return ($this->legacy ?? new LegacyScript($this->root . '/libexec/opensim-legacy'))->run(array_slice($argv, 1));
+        fwrite(STDERR, "opensim: unknown command: $name (see 'opensim help')\n");
+
+        return 1;
     }
 
     /**

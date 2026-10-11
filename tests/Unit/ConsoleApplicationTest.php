@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * The command line of the kit: the commands it knows are its own, the others go to the legacy script as they were typed.
+ * The command line of the kit: the commands are its own, the help is its own, what it does not know is refused.
  */
 
 use OpenSim\Config\Layout;
@@ -11,23 +11,18 @@ use OpenSim\OpenSim;
 use OpenSim\Testing\Machine;
 use OpenSimKit\Console\Application;
 use OpenSimKit\Console\Commands\StatusCommand;
-use OpenSimKit\Console\LegacyScript;
 use OpenSimKit\System\SystemUser;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 
-/** An application whose legacy script records the commands it is handed. */
-function console_application(array &$handed): Application
+/** An application for a kit in a temporary folder, its install the defaults. */
+function console_application(): Application
 {
     $root = test_tmp() . '/console-' . bin2hex(random_bytes(4));
     mkdir($root);
     file_put_contents("$root/.version", "3.0.0-beta.9\n");
 
-    return new Application($root, new LegacyScript("$root/libexec/opensim-legacy", static function (array $command) use (&$handed): int {
-        $handed[] = array_slice($command, 2);
-
-        return 7;
-    }));
+    return new Application($root, new Layout(['EtcRoot' => "$root/etc"]));
 }
 
 describe('The command line', function () {
@@ -41,32 +36,24 @@ describe('The command line', function () {
         [['opensim', '--', 'start'], null],
     ]);
 
-    test('hands what it does not know to the legacy script, as it was typed, with its status', function () {
-        $handed = [];
-        $app = console_application($handed);
+    test('refuses what it does not know, with its status', function () {
+        $app = console_application();
 
-        expect($app->dispatch(['opensim', '-v', 'setup', '--quick', 'vonda_welcome']))
-            ->toBe(7)
-            ->and($app->dispatch(['opensim', 'backup', '--help']))
-            ->toBe(7)
-            ->and($handed)
-            ->toBe([['-v', 'setup', '--quick', 'vonda_welcome'], ['backup', '--help']]);
+        expect($app->dispatch(['opensim', 'nosuchcommand']))->toBe(1);
     });
 
     test('has the version of the kit', function () {
-        $handed = [];
-
-        expect(console_application($handed)->getVersion())->toBe('3.0.0-beta.9');
+        expect(console_application()->getVersion())->toBe('3.0.0-beta.9');
     });
 
     test('tells its commands when it is asked for help, or for nothing', function (array $argv) {
-        $handed = [];
-        $app = console_application($handed);
+        $app = console_application();
         ob_start();
         $status = $app->dispatch($argv);
         $text = (string) ob_get_clean();
 
-        expect($status)->toBe(0)->and($text)->toContain('usage: opensim')->toContain('start [--sims] [target...]')->and($handed)->toBe([]);
+        expect($status)->toBe(0)->and($text)->toContain('usage: opensim')->toContain('start [--sims] [target...]')
+;
     })->with([
         [['opensim']],
         [['opensim', '-h']],
@@ -75,27 +62,18 @@ describe('The command line', function () {
         [['opensim', 'list']],
     ]);
 
-    test('gives the help of a command that is its own as symfony does', function () {
-        $handed = [];
+    test('gives the help of a command as symfony does', function () {
+        ob_start();
+        $status = console_application()->dispatch(['opensim', 'help', 'start']);
+        ob_end_clean();
 
-        $status = console_application($handed)->dispatch(['opensim', 'help', 'start']);
-
-        expect($status)->toBe(0)->and($handed)->toBe([]);
-    });
-
-    test('asks the legacy script the help of a command that is not ported', function () {
-        $handed = [];
-
-        console_application($handed)->dispatch(['opensim', 'help', 'backup']);
-
-        expect($handed)->toBe([['backup', '--help']]);
+        expect($status)->toBe(0);
     });
 });
 
 describe('The commands of the application', function () {
     test('are known by the application, and answer --help', function () {
-        $handed = [];
-        $app = console_application($handed);
+        $app = console_application();
 
         foreach (Application::commands() as $command) {
             expect($app->has($command->getName()))->toBeTrue();
@@ -105,16 +83,14 @@ describe('The commands of the application', function () {
             expect($status)->toBe(0);
             expect($output->fetch())->toContain($command->getName());
         }
-        expect($handed)->toBe([]);
     });
 
-    test('do not go to the legacy script', function () {
-        $handed = [];
-        $app = console_application($handed);
+    test('are all the ones of the help', function () {
+        $names = array_map(static fn($c): string => $c->getName(), Application::commands());
 
-        $status = $app->dispatch(['opensim', 'start', '--help']);
-
-        expect($status)->toBe(0)->and($handed)->toBe([]);
+        foreach (['start', 'stop', 'restart', 'status', 'enable', 'disable', 'console', 'command', 'ports', 'next', 'web', 'import', 'profile', 'oar', 'save', 'load', 'backup', 'rest', 'setup', 'install-dotnet'] as $command) {
+            expect($names)->toContain($command);
+        }
     });
 });
 
@@ -127,7 +103,6 @@ describe('The system user', function () {
 
         return new Application(
             $dir,
-            null,
             new Layout(['SystemUser' => 'opensim', 'EtcRoot' => $dir . '/etc']),
             new SystemUser(static function (array $command) use (&$ran): int {
                 $ran = $command;
@@ -197,7 +172,6 @@ describe('The commands start, stop and restart', function () {
     {
         return new Application(
             test_tmp(),
-            null,
             $machine->environment->layout,
             new SystemUser(static fn(array $c): int => 99, 'opensim', false),
             static fn($reporter) => $machine->environment->reporting($reporter),
