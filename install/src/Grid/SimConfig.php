@@ -3,8 +3,8 @@
 
 namespace OpenSim\Installer\Grid;
 
-use OpenSim\Installer\Ini;
-use OpenSim\Installer\TextFile;
+use OpenSim\Config\IniEditor;
+use OpenSim\Config\TextFileService;
 
 /**
  * Writes the config of a simulator and of its regions.
@@ -125,7 +125,7 @@ final class SimConfig
         $text = implode("\n", $lines);
         if ($plan->presetSettings !== '') {
             // The grid is joined by a preset: what it says for the simulators wins over what is above
-            $ini = new Ini($text);
+            $ini = new IniEditor($text);
             $ini->overlay($plan->presetSettings);
             $text = $ini->toString();
         }
@@ -188,8 +188,8 @@ final class SimConfig
         if (is_file($path)) {
             @copy($path, "$path~");
             // What the operator set stays (their other settings, their sections), what the setup manages is what it was asked
-            $ini = new Ini($text);
-            $ini->overlay(TextFile::read($path));
+            $ini = new IniEditor($text);
+            $ini->overlay(TextFileService::read($path));
             $ini->overlay($text);
             $text = $ini->toString();
         }

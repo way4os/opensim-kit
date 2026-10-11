@@ -9,12 +9,12 @@ use OpenSim\Installer\Ports;
 use OpenSim\Installer\Setup\SetupFile;
 use OpenSim\Installer\SetupFailed;
 use OpenSim\Installer\System;
-use OpenSim\Installer\TextFile;
+use OpenSim\Config\TextFileService;
 use OpenSim\Installer\Ui\InstallerUi;
 use OpenSim\Installer\Web\HelpersConfig;
 use OpenSim\Installer\Web\Services;
 use OpenSim\Installer\Web\Snippets;
-use OpenSim\Installer\Ini;
+use OpenSim\Config\IniEditor;
 
 /**
  * Configure (or reconfigure) one grid on top of an installed framework.

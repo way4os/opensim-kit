@@ -30,6 +30,18 @@ _opensim_instances()
   done | tr '[:upper:]' '[:lower:]' | sort -u
 }
 
+# What start, stop and restart work on: the enabled instances, and the Robust of each enabled grid alone (robust:<grid>)
+_opensim_targets()
+{
+  local etc file
+  _opensim_instances
+  for etc in $(_opensim_etc); do
+    for file in "$etc"/robust.d/*.ini; do
+      [ -e "$file" ] && echo "robust:$(basename "$file" .ini | tr '[:upper:]' '[:lower:]')"
+    done
+  done
+}
+
 # The grids the setup made, by nick
 _opensim_grids()
 {
@@ -53,10 +65,10 @@ _opensim()
     *)
       case ${COMP_WORDS[1]} in
         start)
-          COMPREPLY=( $(compgen -W "$(_opensim_instances)" -- "$cur") )
+          COMPREPLY=( $(compgen -W "$(_opensim_targets)" -- "$cur") )
           ;;
         stop|restart)
-          COMPREPLY=( $(compgen -W "$([ "$COMP_CWORD" = 2 ] && echo now) $(_opensim_instances)" -- "$cur") )
+          COMPREPLY=( $(compgen -W "$([ "$COMP_CWORD" = 2 ] && echo now) $(_opensim_targets)" -- "$cur") )
           ;;
         enable|disable)
           # opensim enable <grid> search|economy|profiles, economy takes beta or gloebit

@@ -37,7 +37,7 @@ test('enables OSSL in a grid', function () {
     (new OpenSim\Installer\Grid\GridShared())->prepare($grid, $bin, false);
 
     $default = file_get_contents("$grid/config-include/osslDefaultEnable.ini");
-    $enable = OpenSim\Installer\Ini::load("$grid/config-include/osslEnable.ini");
+    $enable = OpenSim\Config\IniEditor::load("$grid/config-include/osslEnable.ini");
     expect($default)
         ->toContain("\"$grid/config-include/osslEnable.ini\"")
         ->and($enable->get('OSSL', 'AllowOSFunctions'))

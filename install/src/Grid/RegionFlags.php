@@ -3,7 +3,7 @@
 
 namespace OpenSim\Installer\Grid;
 
-use OpenSim\Installer\Ini;
+use OpenSim\Config\IniEditor;
 
 /**
  * The roles of a region in the grid, given by Robust to a region when it
@@ -55,7 +55,7 @@ final class RegionFlags
      */
     public static function give(string $robustIni, string $region, array $roles): void
     {
-        $ini = Ini::load($robustIni);
+        $ini = IniEditor::load($robustIni);
         $key = RegionName::configKey($region);
         $flags = array_filter(array_map('trim', explode(',', (string) $ini->get('GridService', $key))));
         $flags = array_values(array_unique([...$flags, ...$roles, 'Persistent']));

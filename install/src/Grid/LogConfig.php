@@ -2,7 +2,7 @@
 
 namespace OpenSim\Installer\Grid;
 
-use OpenSim\Installer\TextFile;
+use OpenSim\Config\TextFileService;
 
 /**
  * Generates the per-grid log4net config (Robust.exe.config) from the core's
@@ -19,7 +19,7 @@ final class LogConfig
             return null;
         }
 
-        $xml = TextFile::read($model);
+        $xml = TextFileService::read($model);
         $logBase = $plan->logsDirectory . '/' . $plan->gridSlug . '_robust';
 
         // Point the file appenders at this grid's log files.

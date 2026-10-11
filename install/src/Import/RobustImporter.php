@@ -6,7 +6,7 @@ namespace OpenSim\Installer\Import;
 use OpenSim\Installer\Grid\GridPlan;
 use OpenSim\Installer\Grid\RobustConfig;
 use OpenSim\Installer\Grid\Slug;
-use OpenSim\Installer\Ini;
+use OpenSim\Config\IniEditor;
 
 /**
  * Ports the configuration of a Robust that was not made by the kit: what the setup asks is detected in its config
@@ -166,7 +166,7 @@ final class RobustImporter
      */
     public static function inject(string $text, array $customizations): string
     {
-        $ini = new Ini($text);
+        $ini = new IniEditor($text);
         foreach ($customizations as $c) {
             $value =
                 preg_match('/^(-?\d+(\.\d+)?|true|false)$/i', $c['value']) === 1

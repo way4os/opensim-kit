@@ -2,8 +2,8 @@
 
 namespace OpenSim\Installer\Grid;
 
-use OpenSim\Installer\Ini;
-use OpenSim\Installer\TextFile;
+use OpenSim\Config\IniEditor;
+use OpenSim\Config\TextFileService;
 
 /**
  * The architecture files a grid shares between its simulators (its
@@ -59,14 +59,14 @@ final class GridShared
             $source = $this->source($binDir, $file);
             $layers = array_values(array_filter($over, static fn(string $root): bool => is_file("$root/$file")));
             if ($source === null && $layers === []) {
-                is_file($dest) && TextFile::clean($dest) && ($written[] = $dest);
+                is_file($dest) && TextFileService::clean($dest) && ($written[] = $dest);
 
                 continue;
             }
             // The defaults of the application are its own: a copy, consulted and never changed
             if ($file === 'OpenSimDefaults.ini' && $source !== null) {
-                $text = TextFile::read($source);
-                if (!is_file($dest) || TextFile::read($dest) !== $text) {
+                $text = TextFileService::read($source);
+                if (!is_file($dest) || TextFileService::read($dest) !== $text) {
                     is_dir(dirname($dest)) || mkdir(dirname($dest), 0o755, true);
                     file_put_contents($dest, $text);
                     $written[] = $dest;
@@ -74,13 +74,13 @@ final class GridShared
 
                 continue;
             }
-            $ini = Ini::layered($source, is_file($dest) ? $dest : null);
+            $ini = IniEditor::layered($source, is_file($dest) ? $dest : null);
             foreach ($layers as $root) {
-                $ini->overlay(TextFile::read("$root/$file"));
+                $ini->overlay(TextFileService::read("$root/$file"));
             }
             $text = $this->patched($ini->toString(), $dir, $file);
             if (is_file($dest)) {
-                if (TextFile::read($dest) === $text) {
+                if (TextFileService::read($dest) === $text) {
                     continue;
                 }
                 @copy($dest, "$dest~");
@@ -103,7 +103,7 @@ final class GridShared
             $text = (string) preg_replace($pattern, $replacement, $text);
         }
         if ($file === 'config-include/osslEnable.ini') {
-            $ini = new Ini($text);
+            $ini = new IniEditor($text);
             $ini->get('OSSL', 'AllowOSFunctions') === 'true' || $ini->set('OSSL', 'AllowOSFunctions', 'true');
             $text = $ini->toString();
         }
@@ -169,7 +169,7 @@ final class GridShared
         ) {
             $dest = "$dir/$file";
             if (is_file($dest)) {
-                if (TextFile::clean($dest)) {
+                if (TextFileService::clean($dest)) {
                     $written[] = $dest;
                 }
             } else {
@@ -178,7 +178,7 @@ final class GridShared
                     continue;
                 }
                 is_dir($dir) || mkdir($dir, 0o755, true);
-                if (TextFile::copy($source, $dest)) {
+                if (TextFileService::copy($source, $dest)) {
                     $written[] = $dest;
                 }
             }
@@ -209,7 +209,7 @@ final class GridShared
         if (!is_file($path)) {
             return null;
         }
-        $ini = Ini::load($path);
+        $ini = IniEditor::load($path);
         $before = $ini->toString();
         if ($ini->get('OSSL', 'AllowOSFunctions') !== 'true') {
             $ini->set('OSSL', 'AllowOSFunctions', 'true');

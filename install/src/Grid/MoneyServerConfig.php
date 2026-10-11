@@ -2,8 +2,8 @@
 
 namespace OpenSim\Installer\Grid;
 
-use OpenSim\Installer\Ini;
-use OpenSim\Installer\TextFile;
+use OpenSim\Config\IniEditor;
+use OpenSim\Config\TextFileService;
 
 /**
  * The MoneyServer.ini of a grid, beside Robust.ini and OpenSim.ini: the MoneyServer reads only its own file, the helpers read
@@ -40,7 +40,7 @@ final class MoneyServerConfig
         if ($original === null || !is_file($original)) {
             return null;
         }
-        $ini = Ini::layered($original, self::path($gridDir));
+        $ini = IniEditor::layered($original, self::path($gridDir));
         $given = $ini->get('MoneyServer', 'MoneyScriptAccessKey');
         if ($given === null || trim($given) === '') {
             $ini->set('MoneyServer', 'MoneyScriptAccessKey', '"' . ($key ?? bin2hex(random_bytes(16))) . '"');
@@ -58,7 +58,7 @@ final class MoneyServerConfig
     {
         $text = self::render($gridDir, $original);
         $path = self::path($gridDir);
-        if ($text === null || (is_file($path) && TextFile::read($path) === $text)) {
+        if ($text === null || (is_file($path) && TextFileService::read($path) === $text)) {
             return null;
         }
         if (is_file($path)) {

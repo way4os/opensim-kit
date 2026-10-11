@@ -3,8 +3,8 @@
 
 namespace OpenSim\Installer\Grid;
 
-use OpenSim\Installer\Ini;
-use OpenSim\Installer\TextFile;
+use OpenSim\Config\IniEditor;
+use OpenSim\Config\TextFileService;
 
 /**
  * The presets of the grids a simulator can join: for each grid, a folder with the structure of the folder of a grid
@@ -14,7 +14,7 @@ use OpenSim\Installer\TextFile;
  * the kit are in /usr/share (share/presets). Joining a grid by a preset makes the folder <etc>/presets/<name> a complete one,
  * as the bin folder of OpenSimulator the administrator knows, and usable without the kit: each ini of the distribution
  * merged with the one of the preset (and what the administrator already set there), the same layers as every file the setup
- * makes (see Ini::layered()), the same every time, so that a new setting of the distribution is always taken. The settings
+ * makes (see IniEditor::layered()), the same every time, so that a new setting of the distribution is always taken. The settings
  * the preset gives to the simulators themselves come from its OpenSim.ini (settings()), and the services of the grid from its
  * config-include, which the simulators include as they do for a grid of this machine.
  */
@@ -74,7 +74,7 @@ final class Presets
     {
         foreach ($files as $file) {
             $path = $this->path($name) . "/$file";
-            if (is_file($path) && ($value = (new Ini(TextFile::read($path)))->get($section, $key)) !== null) {
+            if (is_file($path) && ($value = (new IniEditor(TextFileService::read($path)))->get($section, $key)) !== null) {
                 return $value;
             }
         }
@@ -160,7 +160,7 @@ final class Presets
         }
         $default = is_file("$binDir/OpenSim.ini") ? "$binDir/OpenSim.ini" : (is_file("$binDir/OpenSim.ini.example") ? "$binDir/OpenSim.ini.example" : null);
 
-        return Ini::load($path)->differences(Ini::layered($default, null));
+        return IniEditor::load($path)->differences(IniEditor::layered($default, null));
     }
 
     /** @return list<string> the ini files of a folder, relative paths */

@@ -41,20 +41,16 @@ opensim setup
 
 ## Features
 
-`opensim start`
+`opensim start [target...]`
 
-- Start all instances, first in etc/robust-enabled, then in etc/simulators-enabled
+- Without a target, start every enabled instance: the Robust of each grid (linked in etc/robust.d), then the simulators (linked in etc/opensim.d)
+- A target is a grid (`vonda`: its Robust, then its enabled simulators), a simulator (`vonda_welcome`), or `robust:vonda` for the Robust of a grid alone
 
-`opensim start instance1 [instance2] [...]`
+`opensim stop [now] [target...]`
 
-- Start only specified instances
-  The config will be the first match in etc/robust.d/<name>.ini or etc/opensim.d/<name>.ini
+`opensim restart [now] [target...]`
 
-`opensim stop [now] [instance1] [instance2] [...]`
-
-`opensim restart [now] [instance1] [instance2] [...]`
-
-- Stop/Restart all instances or matching instances
+- Stop/Restart everything enabled or the targets: a grid stops its simulators first, then its Robust, and starts the other way round
 - If first parameter is "now", stops the simulator immediately, otherwise send reminders to leave during 2 minutes then stop
 
 `opensim enable|disable <grid> search|economy|profiles`

@@ -3,7 +3,7 @@
 
 namespace OpenSim\Installer\Grid;
 
-use OpenSim\Installer\Ini;
+use OpenSim\Config\IniEditor;
 use OpenSim\Installer\Web\Services;
 
 /**
@@ -26,8 +26,8 @@ final class RobustConfig
         // The distribution, over it what the grid has set (a setting new in the distribution is there, what the operator chose
         // stays), over it what the setup manages
         $current = is_file($plan->robustIni()) ? $plan->robustIni() : null;
-        $existing = $current === null ? null : Ini::load($current);
-        $ini = Ini::layered($this->example($plan), $current);
+        $existing = $current === null ? null : IniEditor::load($current);
+        $ini = IniEditor::layered($this->example($plan), $current);
 
         $ini->merge([
             'Const' => [
@@ -146,7 +146,7 @@ final class RobustConfig
      * known which one each viewer takes, a value given to one is given to the other when it has none; `search` is the real one,
      * the one the helpers use. Two values that differ are the operator's.
      */
-    private function alignSearch(Ini $ini): void
+    private function alignSearch(IniEditor $ini): void
     {
         $search = $ini->get('GridInfoService', 'search') ?? '';
         $url = $ini->get('LoginService', 'SearchURL') ?? '';

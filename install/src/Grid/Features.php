@@ -3,7 +3,7 @@
 
 namespace OpenSim\Installer\Grid;
 
-use OpenSim\Installer\Ini;
+use OpenSim\Config\IniEditor;
 
 /**
  * What `opensim enable|disable <grid> <feature>` writes: the settings a feature of a grid needs, in the files of its
@@ -126,7 +126,7 @@ final class Features
             return $result;
         }
 
-        $this->eachFile($result, function (Ini $ini, bool $grid) use ($on, $name, $query, $register): void {
+        $this->eachFile($result, function (IniEditor $ini, bool $grid) use ($on, $name, $query, $register): void {
             $service = "DATA_SRV_$name";
             if ($on) {
                 $this->put($ini, $grid, 'Search', 'Module', 'OpenSimSearch');
@@ -148,7 +148,7 @@ final class Features
         // The web search of the grid: the page of the helpers, which the viewers open from the setting of the grid info and of the
         // login service. Given to both when it has neither; a grid that sent its search elsewhere (a prefix) keeps its settings
         if ($prefix === '') {
-            $result['robust'] = $this->robust(function (Ini $ini) use ($on): void {
+            $result['robust'] = $this->robust(function (IniEditor $ini) use ($on): void {
                 $path = $this->pagePath('search');
                 $search = $ini->get('GridInfoService', 'search') ?? '';
                 $url = $ini->get('LoginService', 'SearchURL') ?? '';
@@ -189,7 +189,7 @@ final class Features
     private function economy(bool $on, string $money, string $prefix, array $result): array
     {
         $module = self::MONEY[$money] ?? self::MONEY['beta'];
-        $this->eachFile($result, function (Ini $ini, bool $grid) use ($on, $money, $module): void {
+        $this->eachFile($result, function (IniEditor $ini, bool $grid) use ($on, $money, $module): void {
             if (!$on) {
                 // OpenSimulator has the beta module when it is not told another one
                 $ini->comment('Economy', 'economymodule');
@@ -218,12 +218,12 @@ final class Features
             // The currency is served by the helpers: the viewers are told where
             $economy = $prefix !== '' ? $prefix : $this->economyUrl();
             if ($economy !== '') {
-                $result['robust'] = $this->robust(fn(Ini $ini) => $ini->set('GridInfoService', 'economy', $this->quote($economy)), $result);
+                $result['robust'] = $this->robust(fn(IniEditor $ini) => $ini->set('GridInfoService', 'economy', $this->quote($economy)), $result);
             }
             array_push($result['notes'], ...$this->moduleNotes('gloebit'));
             $missing = [];
             foreach ($this->simulators() as $file) {
-                $ini = Ini::load($file);
+                $ini = IniEditor::load($file);
                 foreach (['GLBKey', 'GLBSecret', 'GLBOwnerName'] as $key) {
                     if ($ini->get('Gloebit', $key) === null) {
                         $missing[$key] = true;
@@ -245,7 +245,7 @@ final class Features
      */
     private function profiles(bool $on, array $result): array
     {
-        $this->eachFile($result, function (Ini $ini, bool $grid) use ($on): void {
+        $this->eachFile($result, function (IniEditor $ini, bool $grid) use ($on): void {
             if ($on) {
                 $this->put($ini, $grid, 'UserProfiles', 'ProfileServiceURL', '"${Const|BaseURL}:${Const|PublicPort}"');
             } else {
@@ -253,7 +253,7 @@ final class Features
             }
         });
         // The service is Robust's: its connector and its switch, and the page of the profiles the viewers open
-        $result['robust'] = $this->robust(function (Ini $ini) use ($on): void {
+        $result['robust'] = $this->robust(function (IniEditor $ini) use ($on): void {
             if ($on) {
                 $ini->uncomment('UserProfilesServiceConnector');
             }
@@ -278,11 +278,11 @@ final class Features
     private function eachFile(array &$result, callable $edit): void
     {
         $general = "{$this->grid->dir}/OpenSim.ini";
-        if (is_file($general) && $this->edit($general, fn(Ini $ini) => $edit($ini, true))) {
+        if (is_file($general) && $this->edit($general, fn(IniEditor $ini) => $edit($ini, true))) {
             $result['grid'] = true;
         }
         foreach ($this->simulators() as $instance => $file) {
-            if ($this->edit($file, fn(Ini $ini) => $edit($ini, false))) {
+            if ($this->edit($file, fn(IniEditor $ini) => $edit($ini, false))) {
                 $result['sims'][] = $instance;
             }
         }
@@ -293,7 +293,7 @@ final class Features
      * (or was, commented out) is changed: it is there for the helpers, which read it first, and it must say what the simulators
      * say.
      */
-    private function put(Ini $ini, bool $grid, string $section, string $key, string $value): void
+    private function put(IniEditor $ini, bool $grid, string $section, string $key, string $value): void
     {
         if ($grid && !$ini->mentions($section, $key)) {
             return;
@@ -321,7 +321,7 @@ final class Features
     /** Run an edit on an ini file and save it when it changed. */
     private function edit(string $path, callable $edit): bool
     {
-        $ini = Ini::load($path);
+        $ini = IniEditor::load($path);
         $before = $ini->toString();
         $edit($ini);
         if ($ini->toString() === $before) {
@@ -335,7 +335,7 @@ final class Features
     /** The address of the economy the grid gives its viewers, else where its helpers are. */
     private function economyUrl(): string
     {
-        $current = $this->grid->robustIni !== '' && is_file($this->grid->robustIni) ? Ini::load($this->grid->robustIni)->get('GridInfoService', 'economy') : null;
+        $current = $this->grid->robustIni !== '' && is_file($this->grid->robustIni) ? IniEditor::load($this->grid->robustIni)->get('GridInfoService', 'economy') : null;
         if ($current !== null && $current !== '') {
             return $current;
         }
