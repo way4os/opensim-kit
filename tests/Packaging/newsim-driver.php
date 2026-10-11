@@ -5,7 +5,7 @@ use OpenSimKit\Setup\NewSim;
 // Runs the simulator wizard of the installed kit with scripted answers, for
 // tests/Packaging/package-scenario.sh.
 
-require '/usr/share/opensim-tools/vendor/autoload.php';
+require '/usr/share/opensim-tools/bootstrap.php';
 require __DIR__ . '/ScriptedUi.php';
 
 // TEST_GRID: the grid, TEST_SIM: the simulator, TEST_REGION: its first region,
