@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- update: `bin/opensim` is the PHP command line of the kit (`src/Console`, symfony/console); the commands it does not do yet are done by `libexec/opensim-legacy`, as typed
+- update: the port mapping is the engine's (`OpenSim\Network\PortMapping`): the library kick-inside by default, `upnpc` as `PortMappingModule = upnpc`; `opensim portmapping` replaces `libexec/portmapping.php`
 ### 3.0.0-beta.6
 
 Freeze current state before refactor

@@ -86,5 +86,5 @@ mkdir /tmp/zip && cd /tmp/zip && unzip -q /dist/opensim-kit-*.zip
 check "the zip has the tools and a complete vendor folder" "[ -f opensim-kit/bin/opensim ] && [ -f opensim-kit/vendor/laravel/prompts/composer.json ] && [ -f opensim-kit/vendor/magicoli/opensim-engine/bootstrap.php ] && [ -f opensim-kit/vendor/magicoli/opensim-helpers/query.php ] && [ ! -L opensim-kit/vendor/magicoli/opensim-engine ]"
 check "the zip has no composer.lock, no tests" "[ ! -e opensim-kit/composer.lock ] && [ ! -e opensim-kit/tests ]"
 check "the archives of the scripts are in the zip" "[ -f opensim-kit/share/ossl-scripts/fix-parcel-name.oar ]"
-check "the console client runs from the zip" "bash opensim-kit/bin/opensim rest --help | grep -q Usage"
+check "the console client runs from the zip" "php opensim-kit/bin/opensim rest --help | grep -q Usage"
 exit $FAILED'

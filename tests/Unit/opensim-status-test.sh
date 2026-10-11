@@ -7,7 +7,7 @@
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 # Only the function under test: the script does more when it is sourced
-eval "$(sed -n '/^statusLine()/,/^}/p' "$ROOT/bin/opensim")"
+eval "$(sed -n '/^statusLine()/,/^}/p' "$ROOT/libexec/opensim-legacy")"
 
 function test_the_instances_down_are_counted_when_there_are_some() {
 	assert_equals "2 up, 1 down - cpu 1.0%" "$(statusLine 2 1 "cpu 1.0%" | cat)"

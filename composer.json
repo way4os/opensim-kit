@@ -28,7 +28,8 @@
         "symfony/yaml": "^7.4",
         "magicoli/opensim-engine": "@dev",
         "magicoli/opensim-rest-php": "@dev",
-        "magicoli/kick-inside": "^0.1.0"
+        "magicoli/kick-inside": "^0.1.0",
+        "symfony/console": "^7.4"
     },
     "require-dev": {
         "dealerdirect/phpcodesniffer-composer-installer": "^1.2",

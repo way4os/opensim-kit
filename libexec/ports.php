@@ -3,7 +3,7 @@
 
 /**
  * opensim ports: the ports the enabled instances listen on, with what each one
- * is for and who has to reach it (see InstancePorts).
+ * is for and who has to reach it (see OpenSim\Network\InstancePorts of the engine).
  *
  *   opensim ports [instance...]               the table
  *   opensim ports --publish [instance...]     the -p options of podman or docker
@@ -15,8 +15,9 @@
 require dirname(__DIR__) . '/bootstrap.php';
 
 use OpenSim\Installer\Config;
+use OpenSim\Installer\Grid\GridFiles;
 use OpenSim\Installer\Grid\GridInfo;
-use OpenSim\Installer\InstancePorts;
+use OpenSim\Network\InstancePorts;
 
 $mode = 'table';
 $address = '127.0.0.1';
@@ -51,7 +52,7 @@ if ($instances === []) {
 
 $rows = [];
 foreach ($instances as [$name, $type, $ini]) {
-    foreach (InstancePorts::of($ini) as $use) {
+    foreach (InstancePorts::of($ini, GridFiles::read(...)) as $use) {
         $rows[] = $use + ['instance' => $name, 'type' => $type];
     }
 }

@@ -8,7 +8,7 @@
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 # Only the function under test: the script does more when it is sourced
-eval "$(sed -n '/^setupNeedsSystemUser()/,/^}/p' "$ROOT/bin/opensim")"
+eval "$(sed -n '/^setupNeedsSystemUser()/,/^}/p' "$ROOT/libexec/opensim-legacy")"
 
 # The script ends with its own helper, the test only says what it would have said
 end() { echo "ended $1: $2"; return "$1"; }
