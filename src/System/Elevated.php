@@ -39,7 +39,7 @@ final class Elevated
     public static function run(UiInterface $ui, string $flag, array $payload, string $user): void
     {
         $process = proc_open(
-            ['sudo', '-H', '-u', $user, PHP_BINARY, dirname(__DIR__) . '/install.php', $flag],
+            ['sudo', '-H', '-u', $user, PHP_BINARY, dirname(__DIR__, 2) . '/install/install.php', $flag],
             [0 => ['pipe', 'r'], 1 => STDOUT, 2 => STDERR],
             $pipes,
         );
