@@ -1,6 +1,7 @@
 #!/usr/bin/env php
 <?php
 
+use OpenSim\Provisioning\SetupFailedException;
 use OpenSimKit\Setup\Actions;
 use OpenSimKit\Setup\InstallConfig;
 use OpenSimKit\Setup\NewGrid;

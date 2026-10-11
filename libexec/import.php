@@ -17,6 +17,7 @@
  * Nothing is written without --apply: what would be made is told.
  */
 
+use OpenSim\Provisioning\SetupFailedException;
 use OpenSimKit\Setup\InstallConfig;
 use OpenSimKit\Setup\SetupRunner;
 use OpenSimKit\Ui\PromptsUi;
