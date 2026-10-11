@@ -1,5 +1,6 @@
 <?php
 
+use OpenSim\Provisioning\SetupFailedException;
 use OpenSimKit\Setup\NewGrid;
 
 // Runs the grid wizard of the installed kit with scripted answers, for

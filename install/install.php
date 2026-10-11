@@ -1,5 +1,6 @@
 <?php
 
+use OpenSim\Provisioning\SetupFailedException;
 use OpenSimKit\Setup\Actions;
 use OpenSimKit\Setup\Hub;
 use OpenSimKit\Setup\NewGrid;
