@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSimKit\Setup\Import;
 
-use OpenSim\Config\IniReader;
+use OpenSim\Config\ConfigReader;
 use OpenSim\Models\GridInfo;
 use OpenSim\Provisioning\Import\RobustImporter;
 use OpenSim\Provisioning\Import\SimImporter;
@@ -83,7 +83,7 @@ final class ImportSettings
         if (($profile['EtcRoot'] ?? '') === '') {
             throw new ImportFailure('no installed framework found: install an OpenSim core first', 2);
         }
-        $raw = IniReader::load($path);
+        $raw = ConfigReader::load($path, [], false, true);
 
         return $what === 'robust'
             ? $this->robust($raw, $path, $profile, $options, $apply)
@@ -118,11 +118,11 @@ final class ImportSettings
 
         $customizations = RobustImporter::customizations(
             $raw,
-            IniReader::parse(RobustImporter::generate($plan)),
-            IniReader::load($exampleFile),
+            ConfigReader::parse(RobustImporter::generate($plan)),
+            ConfigReader::load($exampleFile, [], false, true),
             dirname($path),
             (string) file_get_contents($exampleFile),
-            IniReader::expand($raw),
+            ConfigReader::expand($raw),
         );
         $report = self::report(
             [
@@ -194,17 +194,17 @@ final class ImportSettings
         $plan->externalHost = SimImporter::externalHost($regions);
 
         // What the core has by default: its defaults file, then the example of OpenSim.ini
-        $defaults = IniReader::load("{$plan->binDir()}/OpenSimDefaults.ini");
-        $example = IniReader::load("{$plan->binDir()}/OpenSim.ini.example");
+        $defaults = ConfigReader::load("{$plan->binDir()}/OpenSimDefaults.ini", [], false, true);
+        $example = ConfigReader::load("{$plan->binDir()}/OpenSim.ini.example", [], false, true);
         $exampleText = (string) @file_get_contents("{$plan->binDir()}/OpenSimDefaults.ini") . "\n" . (string) @file_get_contents("{$plan->binDir()}/OpenSim.ini.example");
         $default = array_replace_recursive($defaults, $example);
         $customizations = RobustImporter::customizations(
             $raw,
-            IniReader::parse((new SimConfig())->render($plan)),
+            ConfigReader::parse((new SimConfig())->render($plan)),
             $default,
             dirname($path),
             $exampleText,
-            IniReader::expand($raw),
+            ConfigReader::expand($raw),
         );
         $report = self::report(
             [

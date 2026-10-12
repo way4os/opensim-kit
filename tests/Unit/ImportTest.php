@@ -4,7 +4,7 @@
  * what differs from the defaults of the core is kept.
  */
 
-use OpenSim\Config\IniReader;
+use OpenSim\Config\ConfigReader;
 use OpenSim\Models\GridInfo;
 use OpenSim\Provisioning\GridPlan;
 use OpenSim\Provisioning\Import\RobustImporter;
@@ -54,39 +54,11 @@ function import_tree(): string
     return "$root/bin/Robust.HG.ini";
 }
 
-describe('IniReader', function () {
-    test('reads a file and its folder', function () {
-        $ini = IniReader::load(import_tree());
-
-        expect($ini['Const']['BaseURL'])->toBe('http://${Const|BaseHostname}');
-        expect($ini['Modules']['MyModule'])->toBe('on');
-        expect(IniReader::expand($ini)['Const']['BaseURL'])->toBe('http://old.example.org');
-    });
-
-    test('follows Include-* and stops at a loop', function () {
-        $root = test_tmp() . '/import-inc-' . bin2hex(random_bytes(4));
-        mkdir("$root/bin/config-include", 0o755, true);
-        file_put_contents(
-            "$root/bin/OpenSim.ini",
-            "[Architecture]\n    Include-Architecture = \"config-include/Grid.ini\"\n[Startup]\n    a = 1\n",
-        );
-        file_put_contents(
-            "$root/bin/config-include/Grid.ini",
-            "[Modules]\n    Include-Loop = \"../OpenSim.ini\"\n    b = 2\n",
-        );
-
-        $ini = IniReader::load("$root/bin/OpenSim.ini");
-
-        expect($ini['Modules']['b'])->toBe('2');
-        expect($ini['Startup']['a'])->toBe('1');
-    });
-});
-
 describe('The plan of an imported Robust', function () {
     test('has what the setup asks, read from the original', function () {
         $path = import_tree();
         $plan = RobustImporter::plan(
-            IniReader::load($path),
+            ConfigReader::load($path, [], false, true),
             $path,
             [
                 'EtcRoot' => '/etc/opensim',
@@ -316,7 +288,7 @@ describe('The plan of an imported simulator', function () {
         $grid->dataDirectory = '/var/lib/opensim/oldworld';
         $grid->cacheDirectory = '/var/cache/opensim/oldworld';
 
-        $plan = SimImporter::plan(IniReader::load($path), $path, $grid, [], null, '/core');
+        $plan = SimImporter::plan(ConfigReader::load($path, [], false, true), $path, $grid, [], null, '/core');
 
         expect($plan)->toBeInstanceOf(SimPlan::class);
         expect($plan->simName)->toBe('sim1');
@@ -327,8 +299,8 @@ describe('The plan of an imported simulator', function () {
         expect($plan->estateName)->toBe('Old Estate');
         expect($plan->estateOwner)->toBe('Jane Doe');
         expect($plan->createRegion)->toBeFalse();
-        expect(array_map('basename', SimImporter::regionFiles(IniReader::load($path), $path)))->toBe(['Welcome.ini']);
-        expect(SimImporter::externalHost(SimImporter::regionFiles(IniReader::load($path), $path)))->toBe(
+        expect(array_map('basename', SimImporter::regionFiles(ConfigReader::load($path, [], false, true), $path)))->toBe(['Welcome.ini']);
+        expect(SimImporter::externalHost(SimImporter::regionFiles(ConfigReader::load($path, [], false, true), $path)))->toBe(
             'old.example.org',
         );
     });
@@ -336,7 +308,7 @@ describe('The plan of an imported simulator', function () {
     test('is refused for a standalone sim', function () {
         $path = import_sim_tree('config-include/StandaloneHypergrid.ini');
 
-        $plan = SimImporter::plan(IniReader::load($path), $path, new GridInfo(), [], null, '/core');
+        $plan = SimImporter::plan(ConfigReader::load($path, [], false, true), $path, new GridInfo(), [], null, '/core');
 
         expect($plan)->toBeString();
         expect($plan)->toContain('standalone');
