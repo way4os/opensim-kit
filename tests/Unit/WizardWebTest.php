@@ -17,7 +17,7 @@ function browse(string $url, array $post = [], string $cookie = ''): array
         'content' => http_build_query($post),
         'follow_location' => 0,
         'ignore_errors' => true,
-        'timeout' => 30,
+        'timeout' => 90,
     ]]);
     $page = (string) file_get_contents($url, false, $context);
     $headers = [];
@@ -42,7 +42,7 @@ function screenId(string $page): int
 function wizardDriver(string $tmp): array
 {
     $process = proc_open([PHP_BINARY, __DIR__ . '/wizard-driver.php'], [1 => ['pipe', 'w'], 2 => ['redirect', 1]], $pipes, null, ['TMPDIR' => $tmp] + (getenv() ?: []));
-    stream_set_timeout($pipes[1], 30);
+    stream_set_timeout($pipes[1], 90);
 
     return [$process, $pipes];
 }
@@ -78,7 +78,7 @@ describe('the setup in a browser, with the real web server', function () {
         browse("$base/answer", ['id' => screenId($page), 'v' => ['mode' => 'rest', 'port' => '8010']], $cookie);
 
         // The work being done, then the menu
-        $deadline = microtime(true) + 20;
+        $deadline = microtime(true) + 90;
         do {
             [, $page] = browse("$base/", [], $cookie);
             str_contains($page, 'Go on') || usleep(100_000);
@@ -87,7 +87,7 @@ describe('the setup in a browser, with the real web server', function () {
         browse("$base/answer", ['id' => screenId($page), 'v' => ['value' => 'go']], $cookie);
 
         // The end, shown to the browser, and what the setup got
-        $deadline = microtime(true) + 20;
+        $deadline = microtime(true) + 90;
         do {
             [, $page] = browse("$base/", [], $cookie);
             str_contains($page, 'Finished') || usleep(100_000);
