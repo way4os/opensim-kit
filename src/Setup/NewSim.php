@@ -96,6 +96,8 @@ final class NewSim
     {
         $etcRoot = $profile['EtcRoot'] ?? '';
         $database = new DatabaseService($this->ui);
+        // The account may have had its password entered since this plan was made: that one is the password of the account
+        DatabaseService::applyRemembered($plan);
 
         // Nothing is written before the database of the simulator works
         $check = $plan->databasePlan();

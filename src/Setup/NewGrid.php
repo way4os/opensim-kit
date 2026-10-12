@@ -86,6 +86,7 @@ final class NewGrid
         // access leaves the error on screen and asks the settings again; a creation
         // that failed ends the setup.
         $database = new DatabaseService($this->ui);
+        DatabaseService::applyRemembered($plan);
         $attempts = 0;
         while (($result = $database->ensure($plan)) !== DatabaseService::OK) {
             if ($result === DatabaseService::ABORT) {
