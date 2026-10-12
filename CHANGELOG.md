@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- new: `setup.sh` prepares the machine (packages, .NET runtime) and starts `opensim setup`, from the web (`curl … | sudo bash`) or from a clone
+- update: `opensim install-dotnet` and the postinst scripts are PHP; the tools need neither crudini nor bash-tools; `install/install.sh` and the bash helpers are gone
 - new: `opensim ban [grid] NAME|UUID...` writes the statements that ban users and delete their data (`libexec/banuser` is gone)
 - update: a grid made by the setup has a master for its simulators (`OpenSimGridDefaults.ini`): the search, the offline messages, the economy and the profiles are decided in its OpenSim.ini, `opensim enable|disable` follows
 - update: `bin/opensim` is the PHP command line of the kit (`src/Console`, symfony/console); every command is a class of it, no bash script is left to run a command

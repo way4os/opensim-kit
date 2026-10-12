@@ -6,7 +6,8 @@
     - [ ] the configuration of a simulator: a master generated per grid (`OpenSimGridDefaults.ini`, on top of `OpenSimKitDefaults.ini` of the kit) given with `-inimaster`, the simulator's own ini holding only what differs; the conversion of the grids made the old way is for the import
     - [x] one reader of ini files (`OpenSim\Config\ConfigReader`, `GridConfig`, `ConnectionString`); left in the kit: `InstallConfig` (opensim.conf)
     - [x] `libexec/banuser` is `opensim ban`
-    - [ ] `os-helpers`, `venv-setup`, `load-helpers` and the dependency on crudini go (`install/install.sh` and the postinst scripts need them until they are PHP)
+    - [x] `os-helpers`, `venv-setup`, `load-helpers`, `install/install.sh` and the dependencies on crudini and bash-tools are gone: `setup.sh` prepares the machine, `opensim install-dotnet` and the postinst scripts are PHP
+    - [ ] the setup as steps described as data (fields, validation, conditions, plan) in the engine, shown by the terminal and by a web page (`opensim setup` proposes the terminal or `php -S` on 127.0.0.1 with a one-time token), then the install of the machine and the grid screens on it
     - [ ] the old global names of the engine as aliases (`legacy/`), the helpers and w4os on the new names
 - [x] Separation of concern is not respected in child libraries. Each library must remain strictly independent and never rely on data, classes or concept defined in the apps/projects/libraries consuming it.
 - [x] The port-based location must only be used to set the initial center of the grild. Once it has been set, it is not overridable by the rule.
@@ -27,7 +28,6 @@
 - [x] (Test fail) opensim import the config of a grid → tells the plan and the settings it keeps and writes nothing without apply
 - [x] Architectural misconception: opensim-engine include codes referencing the class `OpenSim_Kit`, which is a nonsense: Engine is the a standalone library, the Kit consumes it, not the other way around
 - [ ] check `opensim stop` on a simulator with an NPC in it: the real users are counted from `show users`, the NPCs (`NPC Root`) are skipped, but only the format was checked on a real core, not an NPC -> does not seem to properly skip the NPCs (the rows of `show users` are now read on a screen console too, the NPCs are left out; still to confirm with a real NPC)
-- [ ] confirm on ubuntu 24.04 (ursull), with the next package and an outdated bash-tools left in composer global, that `opensim setup` no longer ends with `debug: command not found` (the scripts now load the bash-tools of the kit before the one of the `PATH`, see `libexec/load-helpers`)
 - [x] dependencies packages must be added to the release assets in their own repositories (done: build-tools, `dev/release.sh` in each project)
 - [x] opensim status "down" count should not be displayed when none of the instances are down
 - [x] a new region is named after itself without a restart of the simulator (the object of `share/ossl-scripts`, loaded through the console)
@@ -62,7 +62,7 @@
 - [ ] add full import procedure for existing grids/simulators: the config is imported (`opensim import`), the database, the assets and the other data are not
 - [x] add/update bash completion
 - [ ] build ready to use zip packages for simple download, added to the release assets alongside the source code and apt package
-- [ ] add simplified installation script, detecting the platform and installing with the appropriate method (zip package or apt package), with a one-line command like `curl -sSL https://raw.githubusercontent.com/GuduleLapointe/opensim-kit/refs/heads/master/install.sh | bash`
+- [x] simplified installation script: `setup.sh` (`curl … | sudo bash`, or `./setup.sh` in a clone); left: test the clone mode and macOS (Homebrew), which the container scenario does not cover
 - [x] add basic ready to use website (the placeholder site of the `opensim-web` package)
 - [ ] add ready to use default avatars
 - [ ] add default Inventory package
