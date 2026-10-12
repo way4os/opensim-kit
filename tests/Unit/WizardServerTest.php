@@ -63,14 +63,29 @@ describe('who is let in', function () {
         expect($reply[0])->toBe(403);
     });
 
+    test('the answer of a form of the page is accepted as the browser sends it, with the origin of the page or none at all', function () {
+        [$server, $mailbox, $cookie] = wizardServer();
+        $id = $mailbox->publish(['kind' => 'text', 'label' => 'Name', 'value' => '']);
+
+        // Chrome and Firefox send "null" as the origin of a form when the page asks for no referrer; the page does not, but the
+        // browser also says the request comes from the same site
+        $reply = wizardPost($server, $cookie, ['id' => $id, 'v' => ['value' => 'x']], ['origin' => 'null', 'sec-fetch-site' => 'same-origin']);
+
+        expect($reply[0])->toBe(303)
+            ->and($mailbox->answered($id)['values'])->toBe(['value' => 'x'])
+            ->and(wizardGet($server, $cookie)[1]['Referrer-Policy'])->toBe('same-origin');
+    });
+
     test('an answer coming from another site is refused', function () {
         [$server, $mailbox, $cookie] = wizardServer();
         $id = $mailbox->publish(['kind' => 'text', 'label' => 'Name', 'value' => '']);
 
-        $reply = wizardPost($server, $cookie, ['id' => $id, 'v' => ['value' => 'x']], ['origin' => 'http://evil.example']);
+        $reply = wizardPost($server, $cookie, ['id' => $id, 'v' => ['value' => 'x']], ['origin' => 'http://evil.example', 'sec-fetch-site' => 'cross-site']);
+        $nullOrigin = wizardPost($server, $cookie, ['id' => $id, 'v' => ['value' => 'x']], ['origin' => 'null']);
         $own = wizardPost($server, $cookie, ['id' => $id, 'v' => ['value' => 'x']], ['origin' => 'http://127.0.0.1:8123']);
 
         expect($reply[0])->toBe(403)
+            ->and($nullOrigin[0])->toBe(403)
             ->and($own[0])->toBe(303)
             ->and($mailbox->answered($id)['values'])->toBe(['value' => 'x']);
     });

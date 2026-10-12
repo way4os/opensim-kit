@@ -80,8 +80,11 @@ final class WizardServer
      */
     private function answer(array $post, array $headers): array
     {
+        // A page of another site cannot make the browser send the cookie (SameSite), and the browser says where a request comes from:
+        // from this site (Sec-Fetch-Site), or by its origin, which is absent from a request that is not a browser's
         $origin = $headers['origin'] ?? '';
-        if ($origin !== '' && !in_array(strtolower((string) parse_url($origin, PHP_URL_HOST) . ':' . (string) parse_url($origin, PHP_URL_PORT)), $this->hosts, true)) {
+        $fromHere = ($headers['sec-fetch-site'] ?? '') === 'same-origin';
+        if (!$fromHere && $origin !== '' && !in_array(strtolower((string) parse_url($origin, PHP_URL_HOST) . ':' . (string) parse_url($origin, PHP_URL_PORT)), $this->hosts, true)) {
             return self::plain(403, 'Forbidden');
         }
         $id = (int) ($post['id'] ?? 0);
@@ -102,7 +105,7 @@ final class WizardServer
     /** @return array{0:int,1:array<string,string>,2:string} */
     private static function html(int $status, string $page): array
     {
-        return [$status, ['Content-Type' => 'text/html; charset=utf-8', 'Cache-Control' => 'no-store', 'X-Frame-Options' => 'DENY', 'Referrer-Policy' => 'no-referrer'], $page];
+        return [$status, ['Content-Type' => 'text/html; charset=utf-8', 'Cache-Control' => 'no-store', 'X-Frame-Options' => 'DENY', 'Referrer-Policy' => 'same-origin'], $page];
     }
 
     /** @return array{0:int,1:array<string,string>,2:string} */

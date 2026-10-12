@@ -23,7 +23,9 @@ function request(string $url, array $post = []): array
     global $cookie;
     $context = stream_context_create(['http' => [
         'method' => $post === [] ? 'GET' : 'POST',
-        'header' => "Content-Type: application/x-www-form-urlencoded\r\n" . ($cookie !== '' ? "Cookie: opensim_wizard=$cookie\r\n" : ''),
+        // As a browser sends a form: its cookie and where the page comes from
+        'header' => "Content-Type: application/x-www-form-urlencoded\r\n" . ($cookie !== '' ? "Cookie: opensim_wizard=$cookie\r\n" : '') .
+            ($post === [] ? '' : 'Origin: ' . parse_url($url, PHP_URL_SCHEME) . '://' . parse_url($url, PHP_URL_HOST) . ':' . parse_url($url, PHP_URL_PORT) . "\r\nSec-Fetch-Site: same-origin\r\n"),
         'content' => http_build_query($post),
         'follow_location' => 0,
         'ignore_errors' => true,

@@ -11,7 +11,9 @@ function browse(string $url, array $post = [], string $cookie = ''): array
 {
     $context = stream_context_create(['http' => [
         'method' => $post === [] ? 'GET' : 'POST',
-        'header' => "Content-Type: application/x-www-form-urlencoded\r\n" . ($cookie !== '' ? 'Cookie: ' . WizardServer::COOKIE . "=$cookie\r\n" : ''),
+        // As a browser sends a form: its cookie, where the page comes from (the origin is "null" when a page asks for no referrer)
+        'header' => "Content-Type: application/x-www-form-urlencoded\r\n" . ($cookie !== '' ? 'Cookie: ' . WizardServer::COOKIE . "=$cookie\r\n" : '') .
+            ($post === [] ? '' : "Origin: null\r\nSec-Fetch-Site: same-origin\r\n"),
         'content' => http_build_query($post),
         'follow_location' => 0,
         'ignore_errors' => true,
