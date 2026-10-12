@@ -9,6 +9,9 @@
     - [x] `os-helpers`, `venv-setup`, `load-helpers`, `install/install.sh` and the dependencies on crudini and bash-tools are gone: `setup.sh` prepares the machine, `opensim install-dotnet` and the postinst scripts are PHP
     - [ ] the setup as steps described as data (fields, validation, conditions, plan) in the engine, shown by the terminal and by a web page (`opensim setup` proposes the terminal or `php -S` on 127.0.0.1 with a one-time token), then the install of the machine and the grid screens on it
     - [ ] the old global names of the engine as aliases (`legacy/`), the helpers and w4os on the new names
+    - [ ] `install/iar2library` and `install/inv2library` fill the common library that is in the inventory of the avatars: they hold that logic and stay; to adapt as commands of the application (they still load the bash helpers that are gone)
+    - [ ] importing a simulator from its host (the idea of `install/transfer-remote-sim.sh`, which stays as a reference): connect to the host, fetch the config and the data, make the simulator here; an OAR when the simulator can be reached, the database only when it cannot
+    - [ ] `setup.sh` in a clone builds the packages and installs them by default (the mode of the developers, with the scenarios of the tests); running from the clone with composer becomes an option
 - [x] Separation of concern is not respected in child libraries. Each library must remain strictly independent and never rely on data, classes or concept defined in the apps/projects/libraries consuming it.
 - [x] The port-based location must only be used to set the initial center of the grild. Once it has been set, it is not overridable by the rule.
 - [x] Wrong syntax for `opensim load iar|oar` and `opensim save iar|oar`: action and save must stay together, `opensim save iar [instance]`, not `opensim save [instance] iar`
