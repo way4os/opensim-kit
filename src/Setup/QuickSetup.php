@@ -3,6 +3,7 @@
 namespace OpenSimKit\Setup;
 
 use OpenSim\Provisioning\GridAccounts;
+use OpenSim\Provisioning\GridPlanner;
 use OpenSim\Provisioning\UiInterface;
 
 /**
@@ -29,11 +30,11 @@ final class QuickSetup
         );
         $v = $this->ui->form(
             [
-                ['key' => 'name', 'label' => _('Grid name'), 'default' => NewGrid::defaultName()],
+                ['key' => 'name', 'label' => _('Grid name'), 'default' => GridPlanner::defaultName()],
                 [
                     'key' => 'login',
                     'label' => _('Login URI'),
-                    'default' => 'http://' . NewGrid::defaultHost() . ':' . NewGrid::defaultPublicPort(),
+                    'default' => 'http://' . GridPlanner::defaultHost() . ':' . GridPlanner::defaultPublicPort(),
                     'hint' => _('host:port, the address the viewers log in to'),
                     'validate' => static fn(string $v): ?string => self::login($v) !== null
                         ? null

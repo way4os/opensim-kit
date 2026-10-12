@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- update: the questions about a grid are the fields of the model (`Grid::fields()`), shown by the terminal (`FieldForm`); the engine works the plan out (`GridPlanner`)
 - new: `setup.sh` prepares the machine (packages, .NET runtime) and starts `opensim setup`, from the web (`curl … | sudo bash`) or from a clone
 - update: `opensim install-dotnet` and the postinst scripts are PHP; the tools need neither crudini nor bash-tools; `install/install.sh` and the bash helpers are gone
 - new: `opensim ban [grid] NAME|UUID...` writes the statements that ban users and delete their data (`libexec/banuser` is gone)
