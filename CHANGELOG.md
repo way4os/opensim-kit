@@ -2,7 +2,8 @@
 
 ### Unreleased
 
-- new: `opensim setup --web` goes through the setup in a page of the browser (`php -S` on 127.0.0.1, an address that works once)
+- new: `opensim setup --web [--port N]` goes through the setup in a page of the browser (`php -S` on 127.0.0.1, an address that works once)
+- fix: the quick setup enabled and started nothing (the questions after the confirmation of the plan were hidden)
 - update: `setup.json` and the backups are readable by the group of the install (640, folders 750)
 - update: a setup file answers the grid, the simulators and the regions by the names of their fields, the planners work the plans out from them (no more answers by the labels of the questions)
 - update: the questions about a simulator, its estate and its regions are the fields of the models (`Simulator::fields()`, `Region::fields()`); the regions roles are one list to check
