@@ -60,7 +60,14 @@ sudo opensim install-dotnet
 
 `opensim setup` asks where you want to go through it, or you say it: `opensim setup --terminal`, `opensim setup --web`. With `--web` the setup starts a small web server on this machine only (`127.0.0.1`, a free port), gives an address and opens it when there is a browser in front of you. The address works once, from this machine; the server stops when the setup ends (or with Ctrl-C in the terminal). The questions are the same as in the terminal.
 
-On a server you reach over SSH, the address is not reachable from your computer: forward the port the setup tells (`ssh -L 8123:127.0.0.1:8123 your-server`) and open the address there, or stay in the terminal.
+On a server you reach over SSH, the address is not reachable from your computer: choose the port, open the tunnel, and open the address the setup gives in your browser:
+
+```bash
+ssh -L 8123:127.0.0.1:8123 your-server
+sudo opensim setup --web --port 8123    # in that session
+```
+
+Or stay in the terminal.
 
 ### Quick and advanced
 

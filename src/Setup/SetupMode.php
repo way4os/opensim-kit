@@ -29,6 +29,24 @@ final class SetupMode
         };
     }
 
+    /**
+     * The port the web side listens on, when the person chose it (--port 8123 or --port=8123): known beforehand, it lets
+     * them open the tunnel to a remote machine before the setup starts.
+     *
+     * @param list<string> $args the options of the command
+     */
+    public static function port(array $args): ?int
+    {
+        foreach ($args as $i => $arg) {
+            $value = str_starts_with($arg, '--port=') ? substr($arg, 7) : ($arg === '--port' ? ($args[$i + 1] ?? '') : null);
+            if ($value !== null) {
+                return ctype_digit($value) && (int) $value >= 1024 && (int) $value <= 65535 ? (int) $value : null;
+            }
+        }
+
+        return null;
+    }
+
     public static function ask(UiInterface $ui): string
     {
         return $ui->choose(

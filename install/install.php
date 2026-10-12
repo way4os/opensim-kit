@@ -52,7 +52,7 @@ try {
         try {
             $ui = $terminal;
             if ($mode === SetupMode::WEB) {
-                $session = WizardLauncher::start();
+                $session = WizardLauncher::start(SetupMode::port(array_slice($argv, 1)));
                 $opened = WizardLauncher::open($session->url);
                 $terminal->note(SetupMode::instructions($session->url, $session->port, $opened, getenv('SSH_CONNECTION') !== false));
                 $ui = $session->ui;

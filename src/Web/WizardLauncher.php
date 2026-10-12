@@ -12,13 +12,16 @@ use OpenSimKit\Ui\WebUi;
  */
 final class WizardLauncher
 {
-    /** @throws \RuntimeException when the server does not start */
-    public static function start(): WebSession
+    /**
+     * @param ?int $port the port to listen on, a free one when null
+     * @throws \RuntimeException when the server does not start
+     */
+    public static function start(?int $port = null): WebSession
     {
         $mailbox = Mailbox::create();
         $token = bin2hex(random_bytes(16));
         $mailbox->allow($token);
-        $port = self::freePort();
+        $port ??= self::freePort();
 
         $process = proc_open(
             [PHP_BINARY, '-S', "127.0.0.1:$port", '-t', dirname(__DIR__, 2) . '/web', dirname(__DIR__, 2) . '/web/router.php'],

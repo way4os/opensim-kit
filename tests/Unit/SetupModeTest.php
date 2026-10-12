@@ -22,4 +22,12 @@ describe('where the setup is gone through', function () {
             ->toContain('ssh -L 8123:127.0.0.1:8123')
             ->and(SetupMode::instructions('http://127.0.0.1:8123/?t=abc', 8123, true, false))->not->toContain('ssh');
     });
+
+    test('the port is the one asked for, when it is a port a person may listen on', function () {
+        expect(SetupMode::port(['--web', '--port=8123']))->toBe(8123)
+            ->and(SetupMode::port(['--port', '8123', '--web']))->toBe(8123)
+            ->and(SetupMode::port(['--web']))->toBeNull()
+            ->and(SetupMode::port(['--port=80']))->toBeNull()
+            ->and(SetupMode::port(['--port=abc']))->toBeNull();
+    });
 });
