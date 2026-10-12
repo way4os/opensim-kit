@@ -57,60 +57,51 @@ test('requires no email', function () {
         ->toBeFalse();
 });
 
-test('gives the answers of the grid', function () {
-    $answers = SetupFile::gridAnswers(SetupFile::parse(SETUP_YAML));
+test('gives the answers of the grid, by the names of its fields', function () {
+    $values = SetupFile::gridValues(SetupFile::parse(SETUP_YAML));
 
-    expect($answers['Grid name'])
-        ->toBe('Test Grid')
-        ->and($answers['Base hostname'])
-        ->toBe('play.example.org')
-        ->and($answers['Database user'])
-        ->toBe('opensim')
-        ->and($answers['Database password'])
-        ->toBe('secret1')
-        ->and($answers['Apply this configuration'])
-        ->toBeTrue()
-        ->and(isset($answers['Web URL']))
-        ->toBeFalse();
+    expect($values)->toBe([
+        'name' => 'Test Grid',
+        'hostname' => 'play.example.org',
+        'database_user' => 'opensim',
+        'database_password' => 'secret1',
+    ]);
+    expect(array_keys(SetupFile::gridValues(['grid' => ['public_port' => 8012, 'console' => 'rest', 'hypergrid' => false, 'database' => ['host' => 'db']]])))
+        ->toBe(['hypergrid', 'public_port', 'console', 'database_host']);
 });
 
-test('gives the answers of a simulator', function () {
+test('gives the answers of a simulator, its owner and its regions', function () {
     $data = SetupFile::parse(SETUP_YAML);
-    $answers = SetupFile::simAnswers($data, 0);
 
-    expect($answers['Simulator name'])
-        ->toBe('Welcome')
-        ->and($answers['Region name'])
-        ->toBe('Welcome')
-        ->and($answers['Role of this region'])
-        ->toBe(['DefaultRegion', 'DefaultHGRegion'])
-        ->and($answers['Estate owner'])
-        ->toBe(['Jane Doe', '+'])
-        ->and($answers['Password of the new account'])
-        ->toBe('hunter22')
-        // the database of the simulator is the one of the grid
-        ->and($answers['Database user'])
-        ->toBe('opensim')
-        ->and(SetupFile::regionAnswers($data, 0, 1)['Region name'])
-        ->toBe('Second Region');
+    expect(SetupFile::simValues($data, 0))->toBe(['name' => 'Welcome', 'database_user' => 'opensim', 'database_password' => 'secret1'])
+        // the owner of the file owns the estate, to make if the grid does not have it
+        ->and(SetupFile::owner($data, 0))->toBe(['name' => 'Jane Doe', 'password' => 'hunter22', 'email' => ''])
+        ->and(SetupFile::regionValues($data, 0, 0))->toBe(['name' => 'Welcome', 'location' => '1000,1000', 'roles' => ['DefaultRegion', 'DefaultHGRegion']])
+        ->and(SetupFile::regionValues($data, 0, 1))->toBe(['name' => 'Second Region', 'port' => '9003']);
+
+    $data['simulators'][0]['database'] = ['host' => 'sim-db', 'name' => 'own_db'];
+    $data['simulators'][0]['estate'] = ['name' => 'My Estate', 'owner' => 'John Roe'];
+    expect(SetupFile::simValues($data, 0))->toMatchArray(['database_host' => 'sim-db', 'database_name' => 'own_db', 'database_user' => 'opensim', 'estate_name' => 'My Estate'])
+        ->and(SetupFile::owner($data, 0)['name'])->toBe('John Roe');
 });
 
-test('answers the questions of the setup from it', function () {
-    $ui = new PresetUi(new QuietUi(), SetupFile::simAnswers(SetupFile::parse(SETUP_YAML), 0));
+test('answers what the application asks once the grid is made, and the administrator of the database', function () {
+    $data = SetupFile::parse(SETUP_YAML);
+    $data['grid']['database']['admin_user'] = 'dbroot';
+    $data['grid']['database']['admin_password'] = 'rootpw';
+    $data['grid']['start'] = false;
 
-    expect($ui->text('Region name', 'Other'))
-        ->toBe('Welcome')
-        ->and($ui->secret('Password of the new account'))
-        ->toBe('hunter22')
-        ->and($ui->choose('Estate owner', ['Bob Roe' => 'Bob Roe', '+' => 'new']))
-        ->toBe('+')
-        ->and($ui->choose('Estate owner', ['Jane Doe' => 'Jane Doe', '+' => 'new']))
-        ->toBe('Jane Doe')
-        ->and($ui->confirm("Account Jane Doe does not exist yet, create it in the grid 'x'?", false))
-        ->toBeTrue()
-        // what the file does not say is the default
-        ->and($ui->text('Estate name', 'Test Estate'))
-        ->toBe('Test Estate');
+    expect(SetupFile::gridPrompts($data))->toBe(['Administrator user' => 'dbroot', 'Password of ' => 'rootpw', 'Enable grid' => true, 'Apply this configuration' => true, 'Start grid' => false])
+        ->and(SetupFile::simPrompts($data, 0))->toMatchArray(['Administrator user' => 'dbroot', 'Enable simulator' => true, 'Start simulator' => true])
+        ->and(SetupFile::regionPrompts())->toBe(['Add region' => true, 'Load it now' => true]);
+
+    $data['grid']['enable'] = false;
+    expect(SetupFile::gridPrompts($data)['Start grid'])->toBeFalse();
+
+    $ui = new PresetUi(new QuietUi(), SetupFile::simPrompts($data, 0));
+    expect($ui->text('Administrator user', 'root'))->toBe('dbroot')
+        ->and($ui->secret('Password of dbroot'))->toBe('rootpw')
+        ->and($ui->confirm('Enable simulator (link into opensim.d)', false))->toBeTrue();
 });
 
 test('keeps what the setup did, to make it again', function () {

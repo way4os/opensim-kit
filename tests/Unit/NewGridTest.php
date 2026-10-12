@@ -76,12 +76,12 @@ function grid_install(): string
 }
 
 /** Run a setup of the grid as the user of the temporary install. */
-function grid_prepare(string $root, GridUiFake $ui, ?string $modify = null): ?array
+function grid_prepare(string $root, GridUiFake $ui, ?string $modify = null, ?array $values = null): ?array
 {
     $home = getenv('HOME');
     putenv("HOME=$root/home");
     try {
-        return (new NewGrid($ui))->prepare($modify);
+        return (new NewGrid($ui))->prepare($modify, $values);
     } finally {
         putenv('HOME=' . $home);
     }
@@ -176,5 +176,60 @@ describe('The questions about a grid that exists', function () {
         $ui = new GridUiFake(['Grid name' => 'Garden']);
         [$plan] = grid_prepare($root, $ui);
         expect($plan->gridNick)->toBe('garden')->and($plan->baseHostname)->toBe('garden.old.org')->and($plan->publicPort)->toBe(8102);
+    });
+});
+
+describe('A setup file that answers the questions about a grid', function () {
+    test('is not asked anything when its answers are right, and the rest follows what it says', function () {
+        $root = grid_install();
+        $ui = new GridUiFake();
+
+        [$plan] = grid_prepare($root, $ui, null, ['name' => 'Garden World', 'hostname' => 'garden.example.org', 'public_port' => '8012', 'database_user' => 'opensim', 'database_password' => 'secret1']);
+
+        expect($ui->asked)->toBe([])
+            ->and($plan->gridNick)->toBe('garden_world')
+            ->and([$plan->publicPort, $plan->privatePort, $plan->consolePort])->toBe([8012, 8013, 8014])
+            ->and($plan->webUrl)->toBe('https://garden.example.org')
+            ->and([$plan->dbUser, $plan->dbPass, $plan->dbName])->toBe(['opensim', 'secret1', 'garden_world_robust']);
+    });
+
+    test('has the screens shown, its answers proposed, when one of them is refused', function () {
+        $root = grid_install();
+        $ui = new GridUiFake(['Public port' => '8012']);
+
+        [$plan] = grid_prepare($root, $ui, null, ['name' => 'Garden World', 'hostname' => 'garden.example.org', 'public_port' => 'abc']);
+
+        expect($ui->asked)->toContain('Public port')
+            ->and($plan->publicPort)->toBe(8012)
+            ->and($plan->baseHostname)->toBe('garden.example.org')
+            ->and($plan->gridName)->toBe('Garden World');
+    });
+
+    test('is edited with every question asked, its answers being the ones proposed and kept as they are', function () {
+        $root = grid_install();
+        $ui = new GridUiFake();
+        $home = getenv('HOME');
+        putenv("HOME=$root/home");
+        try {
+            [$plan] = (new NewGrid($ui))->prepare(null, ['name' => 'Garden World', 'hostname' => 'garden.example.org', 'public_port' => '8012', 'private_port' => '9999', 'database_password' => 'secret1'], true);
+        } finally {
+            putenv('HOME=' . $home);
+        }
+
+        expect($ui->asked)->toContain('Grid name', 'Base hostname', 'Public port', 'Private port', 'Database password')
+            ->and([$plan->publicPort, $plan->privatePort, $plan->consolePort])->toBe([8012, 9999, 8014])
+            ->and($plan->dbPass)->toBe('secret1')
+            ->and($plan->gridName)->toBe('Garden World');
+    });
+
+    test('changes the grid that exists when it names it', function () {
+        $root = grid_install();
+        mkdir("$root/etc/grids/garden", 0o755, true);
+        file_put_contents("$root/etc/grids/garden/Robust.ini", "[Const]\n    BaseHostname = \"old.example.org\"\n    PublicPort = 8102\n    PrivatePort = 8105\n");
+        $ui = new GridUiFake();
+
+        [$plan] = grid_prepare($root, $ui, null, ['name' => 'Garden', 'database_user' => 'opensim', 'database_password' => 'x']);
+
+        expect($ui->asked)->toBe([])->and($plan->baseHostname)->toBe('old.example.org')->and($plan->privatePort)->toBe(8105);
     });
 });

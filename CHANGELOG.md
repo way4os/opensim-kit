@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- update: a setup file answers the grid, the simulators and the regions by the names of their fields, the planners work the plans out from them (no more answers by the labels of the questions)
 - update: the questions about a simulator, its estate and its regions are the fields of the models (`Simulator::fields()`, `Region::fields()`); the regions roles are one list to check
 - update: the questions about a grid are the fields of the model (`Grid::fields()`), shown by the terminal (`FieldForm`); the engine works the plan out (`GridPlanner`)
 - new: `setup.sh` prepares the machine (packages, .NET runtime) and starts `opensim setup`, from the web (`curl … | sudo bash`) or from a clone

@@ -183,3 +183,81 @@ describe('The questions about a new simulator', function () {
         expect($plan->httpPort)->toBe(9050)->and($plan->estateName)->toBe('Old Estate');
     });
 });
+
+describe('A setup file that answers the questions about a simulator', function () {
+    /** What the file says: the simulator, the owner of its estate, its first region. */
+    function sim_values(array $more = []): array
+    {
+        return $more + [
+            'simulator' => ['name' => 'Garden Sim', 'http_port' => '9020', 'database_user' => 'opensim', 'database_password' => 'secret1'],
+            'owner' => ['name' => 'Ann Poe', 'password' => 'secret2', 'email' => 'ann@example.org'],
+            'region' => ['name' => 'Roses', 'location' => '8100,8100', 'roles' => [RegionFlags::DEFAULT]],
+        ];
+    }
+
+    test('is not asked anything when its answers are right, and the account of the owner is made', function () {
+        [$grid, $profile] = sim_install();
+        $ui = new SimUiFake();
+
+        $plan = (new NewSim($ui))->prepare($grid, $profile, null, sim_values());
+
+        expect($ui->asked)->toBe([])
+            ->and($plan->simName)->toBe('Garden Sim')
+            ->and($plan->httpPort)->toBe(9020)
+            ->and($plan->consolePort)->toBe(9024)
+            ->and([$plan->dbUser, $plan->dbPass])->toBe(['opensim', 'secret1'])
+            ->and($plan->createOwner)->toBeTrue()
+            ->and([$plan->estateOwner, $plan->ownerPassword, $plan->ownerEmail])->toBe(['Ann Poe', 'secret2', 'ann@example.org'])
+            ->and($plan->createRegion)->toBeTrue()
+            ->and($plan->regionName)->toBe('Roses')
+            ->and($plan->regionLocation)->toBe('8100,8100')
+            ->and($plan->regionRoles)->toBe([RegionFlags::DEFAULT]);
+    });
+
+    test('has the owner of the file as the owner when the grid has the account, and no account to make', function () {
+        [$grid, $profile] = sim_install(['planned' => false, 'dbName' => 'nowhere', 'dbHost' => '127.0.0.1:1']);
+        $ui = new SimUiFake();
+
+        $plan = (new NewSim($ui))->prepare($grid, $profile, null, sim_values());
+
+        // The accounts of this grid cannot be read here: the owner has to exist
+        expect($ui->asked)->toBe([])->and($plan->estateOwner)->toBe('Ann Poe')->and($plan->createOwner)->toBeFalse();
+    });
+
+    test('has the screens shown, its answers proposed, when one of them is refused', function () {
+        [$grid, $profile] = sim_install();
+        $ui = new SimUiFake(['Simulator HTTP port' => '9030']);
+        $values = sim_values(['simulator' => ['name' => 'Garden Sim', 'http_port' => 'abc', 'database_user' => 'opensim', 'database_password' => 'secret1']]);
+
+        $plan = (new NewSim($ui))->prepare($grid, $profile, null, $values);
+
+        expect($ui->asked)->toContain('Simulator HTTP port')
+            ->and($plan->httpPort)->toBe(9030)
+            ->and($plan->simName)->toBe('Garden Sim')
+            ->and($plan->estateOwner)->toBe('Ann Poe');
+    });
+
+    test('has the region taken at the free place nearest to the one it asks, without asking', function () {
+        [$grid, $profile] = sim_install();
+        $ui = new SimUiFake();
+        $values = sim_values(['region' => ['name' => 'Roses', 'roles' => []]]);
+
+        $plan = (new NewSim($ui))->prepare($grid, $profile, null, $values);
+
+        expect($ui->asked)->toBe([])->and($plan->regionName)->toBe('Roses')->and($plan->regionRoles)->toBe([])->and($plan->regionLocation)->not->toBe('');
+    });
+
+    test('is edited with every question asked, its answers being the ones proposed', function () {
+        [$grid, $profile] = sim_install();
+        $ui = new SimUiFake();
+
+        $plan = (new NewSim($ui))->prepare($grid, $profile, null, sim_values(), true);
+
+        expect($ui->asked)->toContain('Simulator name', 'Simulator HTTP port', 'Database user', 'Estate name', 'Region name')
+            ->and($plan->simName)->toBe('Garden Sim')
+            ->and($plan->httpPort)->toBe(9020)
+            ->and([$plan->dbUser, $plan->dbPass])->toBe(['opensim', 'secret1'])
+            ->and($plan->estateOwner)->toBe('Ann Poe')
+            ->and($plan->regionName)->toBe('Roses');
+    });
+});

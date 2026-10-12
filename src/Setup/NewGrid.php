@@ -23,8 +23,12 @@ final class NewGrid
 {
     public function __construct(private UiInterface $ui) {}
 
-    /** @return ?string the nick of the grid configured, null when nothing was */
-    public function run(?string $modifyNick = null): ?string
+    /**
+     * @param ?array<string,mixed> $values the answers of a setup file, by the names of the fields (SetupFile::gridValues()): nothing is
+     *        asked unless an answer is refused; with $edit, every question is asked with them as the answers proposed
+     * @return ?string the nick of the grid configured, null when nothing was
+     */
+    public function run(?string $modifyNick = null, ?array $values = null, bool $edit = false): ?string
     {
         $profile = (new InstallConfig())->profile();
         if ($profile === [] || ($profile['EtcRoot'] ?? '') === '') {
@@ -33,7 +37,7 @@ final class NewGrid
             return null;
         }
 
-        $plan = $this->gather($profile, $modifyNick);
+        $plan = $this->gather($profile, $modifyNick, $values, $edit);
         if ($plan === null) {
             return null; // abandoned
         }
@@ -45,9 +49,10 @@ final class NewGrid
      * The questions of the setup, nothing is made: the plan, to show and to accept with the one of the first
      * simulator (the quick setup), then complete().
      *
+     * @param ?array<string,mixed> $values see run()
      * @return ?array{0:GridPlan,1:array<string,mixed>} the plan and the install profile, null when abandoned
      */
-    public function prepare(?string $modifyNick = null): ?array
+    public function prepare(?string $modifyNick = null, ?array $values = null, bool $edit = false): ?array
     {
         $profile = (new InstallConfig())->profile();
         if ($profile === [] || ($profile['EtcRoot'] ?? '') === '') {
@@ -55,7 +60,7 @@ final class NewGrid
 
             return null;
         }
-        $plan = $this->gather($profile, $modifyNick);
+        $plan = $this->gather($profile, $modifyNick, $values, $edit);
 
         return $plan === null ? null : [$plan, $profile];
     }
@@ -177,9 +182,10 @@ final class NewGrid
 
 
 
-    private function gather(array $profile, ?string $modifyNick): ?GridPlan
+    private function gather(array $profile, ?string $modifyNick, ?array $values = null, bool $edit = false): ?GridPlan
     {
         $etcRoot = $profile['EtcRoot'];
+        $given = $values ?? [];
         $planner = GridPlanner::forMachine($profile, $modifyNick);
         if ($planner->cores() === []) {
             $this->ui->error(sprintf(_('No OpenSim core found under %s.'), $profile['CoreRoot'] ?? ''));
@@ -188,10 +194,22 @@ final class NewGrid
         }
         $fields = $planner->fields();
 
+        if ($values !== null && !$edit) {
+            // A setup that answers: the grid it names is changed if it exists, nothing is asked unless an answer is refused
+            $nick = $planner->resolve($given)['nick'];
+            if ($modifyNick === null && $this->findExisting("$etcRoot/grids/$nick") !== null) {
+                $planner = $planner->forNick($nick);
+            }
+            if ($planner->problems($given) === []) {
+                return $this->planned($planner->plan($given), false);
+            }
+            $edit = true;
+        }
+
         // The grid: the screens ask the fields of Grid::fields(), the planner works out the rest
-        $answers = FieldForm::ask($this->ui, $fields->group('grid'), $planner->resolve(), _('Grid'));
+        $answers = FieldForm::ask($this->ui, $fields->group('grid'), $planner->resolve($given), _('Grid'), [], $given === [] ? null : $planner->resolve());
         if ($modifyNick === null) {
-            $nick = $planner->resolve($answers)['nick'];
+            $nick = $planner->resolve($answers + $given)['nick'];
             $existing = $this->findExisting("$etcRoot/grids/$nick");
             if ($existing !== null) {
                 $action = $this->ui->choose(
@@ -210,8 +228,21 @@ final class NewGrid
         }
 
         // The network, the web side and the console, on one screen
-        $answers += FieldForm::ask($this->ui, $fields->group('network'), $planner->resolve($answers), _('Network'), $answers);
-        $plan = $planner->plan($answers);
+        $answers += FieldForm::ask(
+            $this->ui,
+            $fields->group('network'),
+            $planner->resolve($answers + $given),
+            _('Network'),
+            $answers,
+            $given === [] ? null : $planner->resolve($answers),
+        );
+
+        return $this->planned($planner->plan($answers + $given), true);
+    }
+
+    /** The plan, once the database is asked (or not): reuse a found password, otherwise one was made (never changeme). */
+    private function planned(GridPlan $plan, bool $ask): GridPlan
+    {
         if ($plan->helpers) {
             // The URL of the web site is given, the path after it is the choice of the operator
             $this->ui->note(
@@ -221,9 +252,11 @@ final class NewGrid
                 ),
             );
         }
-
-        // Database: reuse a found password, otherwise one was made (never changeme)
-        $this->askDatabase($plan);
+        if ($ask) {
+            $this->askDatabase($plan);
+        } else {
+            DatabaseService::remember($plan->dbHost, $plan->dbUser, $plan->dbPass);
+        }
 
         return $plan;
     }

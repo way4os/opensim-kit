@@ -5,8 +5,10 @@ namespace OpenSimKit\Ui;
 use OpenSim\Provisioning\UiInterface;
 
 /**
- * Answers the questions of the setup from a table, so the same flows run without anyone typing: the quick
- * setup (a form for what matters, the defaults for the rest) and the setup from a file.
+ * Answers the questions the application asks while it makes what a setup describes (the plan to accept, the instance to enable and to
+ * start, the administrator of the database server...) from a table, so the same flows run without anyone typing: the quick setup and
+ * the setup from a file. The fields of the grid, the simulator and the regions are not questions of this table: a file gives them by
+ * the names of the fields (see SetupFile and the planners).
  *
  * A question is answered, in this order, by the table (the key is the beginning of the question, as written
  * in English, or any part of it), else by the interface behind when its label is one of those to ask (the

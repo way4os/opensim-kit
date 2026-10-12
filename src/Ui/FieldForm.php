@@ -20,9 +20,11 @@ final class FieldForm
     /**
      * @param array<string,mixed> $proposed name => the value proposed
      * @param array<string,mixed> $before the answers of the screens before, which the conditions may need
+     * @param ?array<string,mixed> $derived what the planner works out for the fields that follow others, when what is proposed is not
+     *        that (the values of a setup file, which are the person's to confirm): a value left as proposed is then kept
      * @return array<string,mixed> name => answer
      */
-    public static function ask(UiInterface $ui, FieldSet $fields, array $proposed, string $title, array $before = []): array
+    public static function ask(UiInterface $ui, FieldSet $fields, array $proposed, string $title, array $before = [], ?array $derived = null): array
     {
         $questions = [];
         foreach ($fields->all() as $field) {
@@ -64,7 +66,8 @@ final class FieldForm
                 continue;
             }
             $follows = ($fields->get($name)['follows'] ?? []) !== [];
-            if ($follows && $values[$name] === $question['default']) {
+            $worked = $derived === null ? $question['default'] : self::shown($derived[$name] ?? $question['default'], $fields->get($name)['type'] ?? 'string');
+            if ($follows && $values[$name] === $worked) {
                 continue;
             }
             $answers[$name] = $typed[$name];

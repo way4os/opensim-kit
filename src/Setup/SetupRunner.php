@@ -35,16 +35,16 @@ final class SetupRunner
      */
     public function runQuick(array $data): ?array
     {
-        $gridUi = new PresetUi($this->ui, SetupFile::gridAnswers($data), self::ASK);
-        $prepared = (new NewGrid($gridUi))->prepare();
+        $gridUi = new PresetUi($this->ui, SetupFile::gridPrompts($data), self::ASK);
+        $prepared = (new NewGrid($gridUi))->prepare(null, SetupFile::gridValues($data));
         if ($prepared === null) {
             return null;
         }
         [$gridPlan, $profile] = $prepared;
 
         // The first simulator is planned for the grid as it will be: its ports, its database, its first region
-        $simUi = new PresetUi($this->ui, SetupFile::simAnswers($data, 0), self::ASK);
-        $simPlan = (new NewSim($simUi))->prepare(GridInfo::fromPlan($gridPlan), $profile);
+        $simUi = new PresetUi($this->ui, SetupFile::simPrompts($data, 0), self::ASK);
+        $simPlan = (new NewSim($simUi))->prepare(GridInfo::fromPlan($gridPlan), $profile, null, self::simValues($data, 0));
         if ($simPlan === null) {
             return null;
         }
@@ -82,13 +82,12 @@ final class SetupRunner
         $nick = (string) ($data['grid']['nick'] ?? '');
 
         if (trim((string) ($data['grid']['name'] ?? '')) !== '') {
-            $answers = SetupFile::gridAnswers($data);
             if ($nick !== '' && is_dir("$etcRoot/grids/$nick")) {
                 $this->ui->error(sprintf(_("The grid '%s' exists already: this setup makes new ones."), $nick));
 
                 throw new SetupFailedException('grid exists');
             }
-            $nick = (new NewGrid(new PresetUi($this->ui, $answers, $ask, $prefill)))->run(null);
+            $nick = (new NewGrid(new PresetUi($this->ui, SetupFile::gridPrompts($data), $ask, $prefill)))->run(null, SetupFile::gridValues($data), $prefill);
             if ($nick === null) {
                 return null;
             }
@@ -126,22 +125,24 @@ final class SetupRunner
 
         $last = null;
         foreach ($data['simulators'] ?? [] as $i => $sim) {
-            $made = (new NewSim(
-                new PresetUi(
-                    $this->ui,
-                    SetupFile::simAnswers($data, $i) + ['Grid of the simulator' => $nick],
-                    $ask,
-                    $prefill,
-                ),
-            ))->run($nick);
+            $made = (new NewSim(new PresetUi($this->ui, SetupFile::simPrompts($data, $i), $ask, $prefill)))->run(
+                $nick,
+                null,
+                false,
+                self::simValues($data, $i),
+                $prefill,
+            );
             if ($made === null) {
                 return null;
             }
             $last = $made;
             foreach (array_slice($sim['regions'] ?? [], 1, null, true) as $j => $_) {
-                (new NewSim(
-                    new PresetUi($this->ui, SetupFile::regionAnswers($data, $i, $j), $ask, $prefill),
-                ))->addRegion($made[0], $this->simName($made));
+                (new NewSim(new PresetUi($this->ui, SetupFile::regionPrompts(), $ask, $prefill)))->addRegion(
+                    $made[0],
+                    $this->simName($made),
+                    SetupFile::regionValues($data, $i, $j),
+                    $prefill,
+                );
             }
         }
 
@@ -150,6 +151,21 @@ final class SetupRunner
         }
 
         return [$nick, $last[1] ?? ''];
+    }
+
+    /**
+     * What a setup file says of a simulator, its estate and its first region, by the names of the fields.
+     *
+     * @param array<string,mixed> $data
+     * @return array{simulator:array<string,mixed>,owner:array<string,string>,region:array<string,mixed>}
+     */
+    private static function simValues(array $data, int $i): array
+    {
+        return [
+            'simulator' => SetupFile::simValues($data, $i),
+            'owner' => SetupFile::owner($data, $i),
+            'region' => SetupFile::regionValues($data, $i, 0),
+        ];
     }
 
     /** @param array{0:string,1:string} $made nick and instance of a simulator */
