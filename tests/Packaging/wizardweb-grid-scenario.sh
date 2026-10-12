@@ -26,7 +26,7 @@ wait_check 40 "the setup gives the address of its page" "grep -q 'http://127.0.0
 url=$(grep -o 'http://127.0.0.1:[0-9]*/?t=[0-9a-f]*' /tmp/wizard.out | head -1)
 php /test/web-browser-driver.php "$url" /test/quick-setup-fixture.php >/tmp/browser.out 2>&1
 echo "exit code: $?" >>/tmp/browser.out
-dump /tmp/browser.out 25 | cut -c1-200
+fold -s -w 200 /tmp/browser.out | sed 's/^/   | /' | head -60
 check "the browser went through the setup to its last page" "grep -q '^done: ' /tmp/browser.out && grep -q 'exit code: 0' /tmp/browser.out"
 pages=$(sed -n 's/^pages: //p' /tmp/browser.out)
 check "a grid and its first region need a handful of pages ($pages), not a page per question" "[ \"${pages:-99}\" -le 10 ]"

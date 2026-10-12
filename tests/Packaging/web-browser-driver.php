@@ -85,7 +85,12 @@ for ($turn = 0; $turn < 120; $turn++) {
     $status === 200 || fail("the page answers $status", $page);
     if (str_contains($page, 'You can close this page')) {
         fwrite(STDOUT, 'done: ' . text((string) preg_replace('#^.*?<section><h2>(.*?)</h2>.*$#s', '$1', $page)) . "\npages: $pages\n");
-        // Everything the setup said, for the scenario to look in
+        // What went wrong, then everything the setup said, for the scenario to look in
+        $page = (string) preg_replace('#<(style|script)\b.*?</\1>#s', '', $page);
+        preg_match_all('#<pre class="(error|warning)">(.*?)</pre>#s', $page, $problems, PREG_SET_ORDER);
+        foreach ($problems as $problem) {
+            fwrite(STDOUT, "$problem[1]: " . text($problem[2]) . "\n");
+        }
         fwrite(STDOUT, 'said: ' . text($page) . "\n");
         exit(0);
     }
