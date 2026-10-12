@@ -53,6 +53,8 @@ final class FieldForm
             }
             if (isset($field['condition'])) {
                 $question['when'] = static fn(array $values): bool => $fields->visible($name, $before + self::typed($values, $fields));
+                // The same as data, for the interfaces that follow the answers themselves (a page of a browser)
+                $question['condition'] = self::shownCondition($field['condition'], $fields);
             }
             $questions[] = $question;
         }
@@ -74,6 +76,23 @@ final class FieldForm
         }
 
         return $answers;
+    }
+
+    /**
+     * The condition of a field as the values of the interface are: yes or no for a boolean.
+     *
+     * @param array<string,mixed> $condition
+     * @return array<string,list<string>>
+     */
+    private static function shownCondition(array $condition, FieldSet $fields): array
+    {
+        $shown = [];
+        foreach ($condition as $other => $wanted) {
+            $type = $fields->get($other)['type'] ?? 'string';
+            $shown[$other] = array_map(static fn(mixed $value): string => self::shown($value, $type), array_values((array) $wanted));
+        }
+
+        return $shown;
     }
 
     /** What the interface shows of a value: yes or no for a boolean. */

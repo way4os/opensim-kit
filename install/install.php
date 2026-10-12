@@ -6,6 +6,10 @@ use OpenSimKit\Setup\Hub;
 use OpenSimKit\Setup\NewGrid;
 use OpenSimKit\Setup\NewSim;
 use OpenSimKit\Setup\RuntimeCheck;
+use OpenSimKit\Setup\SetupMode;
+use OpenSimKit\Ui\Back;
+use OpenSimKit\Ui\Quit;
+use OpenSimKit\Web\WizardLauncher;
 use OpenSimKit\Ui\PromptsUi;
 use OpenSim\Provisioning\GridPlan;
 use OpenSim\Provisioning\SimPlan;
@@ -38,8 +42,30 @@ try {
         $data = json_decode((string) stream_get_contents(STDIN), true, 512, JSON_THROW_ON_ERROR);
         exit((new Actions(new PromptsUi()))->perform($data['op'], $data['args'], $data['profile']) ? 0 : 1);
     } else {
-        $ui = new PromptsUi();
-        (new Hub($ui, new RuntimeCheck($ui)))->run();
+        // In the terminal, or in a page of the browser: the flow is the same, only the interface changes
+        $terminal = new PromptsUi();
+        $mode = SetupMode::resolve(array_slice($argv, 1), stream_isatty(STDIN) ? static fn(): string => SetupMode::ask($terminal) : null);
+        $session = null;
+        $ending = _('The setup stopped.');
+        $status = 0;
+        try {
+            $ui = $terminal;
+            if ($mode === SetupMode::WEB) {
+                $session = WizardLauncher::start();
+                $opened = WizardLauncher::open($session->url);
+                $terminal->note(SetupMode::instructions($session->url, $session->port, $opened, getenv('SSH_CONNECTION') !== false));
+                $ui = $session->ui;
+            }
+            (new Hub($ui, new RuntimeCheck($ui)))->run();
+            $ending = _('The setup is finished.');
+        } catch (Back | Quit) {
+            $ending = _('You left the setup.');
+        } catch (SetupFailedException) {
+            $status = 1;
+        } finally {
+            $session?->stop($ending);
+        }
+        exit($status);
     }
 } catch (SetupFailedException) {
     exit(1);

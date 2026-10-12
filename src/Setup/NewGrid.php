@@ -122,6 +122,7 @@ final class NewGrid
                     'type' => 'confirm',
                     'default' => 'yes',
                     'when' => static fn(array $v): bool => ($v['apply'] ?? 'yes') === 'yes',
+                    'condition' => ['apply' => ['yes']],
                 ],
                 [
                     'key' => 'start',
@@ -129,6 +130,7 @@ final class NewGrid
                     'type' => 'confirm',
                     'default' => 'yes',
                     'when' => static fn(array $v): bool => ($v['apply'] ?? 'yes') === 'yes' && $v['enable'] === 'yes',
+                    'condition' => ['apply' => ['yes'], 'enable' => ['yes']],
                 ],
             ],
             _('Apply'),

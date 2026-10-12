@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenSimKit\System;
 
 use OpenSim\Provisioning\UiInterface;
+use OpenSimKit\Ui\CapturesOutput;
 
 /**
  * Starts and restarts instances for the setup through the command line of the kit (`opensim start|restart <target>`), which
@@ -27,7 +28,7 @@ final class CommandRunner
         }
         $said = '';
         while (($chunk = fread($pipes[1], 8192)) !== false && $chunk !== '') {
-            echo $chunk;
+            $ui instanceof CapturesOutput ? $ui->stream($chunk) : print $chunk;
             $said .= $chunk;
         }
         fclose($pipes[1]);

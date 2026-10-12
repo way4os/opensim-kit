@@ -233,3 +233,33 @@ describe('A setup file that answers the questions about a grid', function () {
         expect($ui->asked)->toBe([])->and($plan->baseHostname)->toBe('old.example.org')->and($plan->privatePort)->toBe(8105);
     });
 });
+
+describe('The same questions in a browser', function () {
+    afterEach(function () {
+        foreach (glob(sys_get_temp_dir() . '/opensim-wizard-*') ?: [] as $dir) {
+            (new \OpenSimKit\Web\Mailbox($dir))->remove();
+        }
+    });
+
+    test('give the plan the terminal gives, from the same fields', function () {
+        require_once __DIR__ . '/web-browser-lib.php';
+        $answers = ['Grid name' => 'Garden World', 'Base hostname' => 'garden.example.org', 'Public port' => '8012'];
+        $root = grid_install();
+        [$expected] = grid_prepare($root, new GridUiFake($answers));
+
+        [$ui] = webAccepting($answers, $screens);
+        $home = getenv('HOME');
+        putenv("HOME=$root/home");
+        try {
+            [$plan] = (new NewGrid($ui))->prepare();
+        } finally {
+            putenv('HOME=' . $home);
+        }
+
+        $differ = array_keys(array_diff_assoc($plan->toArray(), $expected->toArray()));
+        // The passwords are made at random each time
+        expect(array_diff($differ, ['dbPass', 'consoleUser', 'consolePass']))->toBe([])
+            ->and(array_column($screens, 'title'))->toContain('Grid', 'Network', 'Database')
+            ->and($plan->gridNick)->toBe('garden_world');
+    });
+});
