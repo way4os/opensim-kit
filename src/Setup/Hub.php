@@ -32,10 +32,13 @@ use OpenSim\Provisioning\UiInterface;
  */
 final class Hub
 {
-    public function __construct(private UiInterface $ui) {}
+    public function __construct(private UiInterface $ui, private ?RuntimeCheck $runtime = null) {}
 
     public function run(): void
     {
+        // A core that cannot run on this machine is said at once, not when the first grid fails to start
+        $this->runtime?->ensure();
+
         while (true) {
             $config = new InstallConfig();
             $cores = $config->profiles();

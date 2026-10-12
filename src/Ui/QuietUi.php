@@ -6,16 +6,22 @@ use OpenSim\Provisioning\UiInterface;
 
 /**
  * No interface, for the commands that use what the setup uses without asking
- * anything: warnings and errors go to the error output, the rest is dropped and
- * every question gets its default.
+ * anything: warnings and errors go to the error output, the rest is dropped (or
+ * said on the standard output, when asked to be verbose) and every question gets
+ * its default.
  */
 final class QuietUi implements UiInterface
 {
     use AsksForms;
 
+    public function __construct(private readonly bool $verbose = false) {}
+
     public function intro(string $title): void {}
 
-    public function note(string $message): void {}
+    public function note(string $message): void
+    {
+        $this->verbose && fwrite(STDOUT, "$message\n");
+    }
 
     public function entity(string $name): string
     {

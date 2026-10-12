@@ -4,6 +4,7 @@ namespace OpenSimKit\Setup;
 
 use OpenSimKit\System\Packages;
 use OpenSim\Provisioning\UiInterface;
+use OpenSim\Runtime\DotnetInstaller;
 use OpenSim\Runtime\ShellService;
 
 /**
@@ -104,36 +105,7 @@ final class RuntimeGate
 
     private function installDotnet(int $major): void
     {
-        // Install into the active dotnet root so the existing 'dotnet' finds it.
-        [$code, $path] = ShellService::capture('command -v dotnet');
-        $dir =
-            $code === 0 && trim($path) !== ''
-                ? dirname(realpath(trim($path)) ?: trim($path))
-                : (getenv('HOME') ?: '') . '/.dotnet';
-        $sudo = is_writable($dir) ? '' : 'sudo ';
-
-        $script = sys_get_temp_dir() . '/dotnet-install.sh';
-        if (
-            ShellService::run(
-                'curl -fsSL https://builds.dotnet.microsoft.com/dotnet/scripts/v1/dotnet-install.sh -o ' .
-                    ShellService::arg($script),
-            ) !== 0
-        ) {
-            $this->ui->error(_('Could not fetch dotnet-install.sh.'));
-            exit(1);
-        }
-
-        $this->ui->note(sprintf(_('Installing .NET %s into %s'), $major, $dir));
-        $code = ShellService::run(
-            $sudo .
-                'bash ' .
-                ShellService::arg($script) .
-                ' --runtime dotnet --channel ' .
-                ShellService::arg("$major.0") .
-                ' --install-dir ' .
-                ShellService::arg($dir),
-        );
-        if ($code !== 0) {
+        if (!(new DotnetInstaller($this->ui))->install($major)) {
             $this->ui->error(sprintf(_('.NET %s installation failed.'), $major));
             exit(1);
         }

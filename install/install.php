@@ -5,6 +5,7 @@ use OpenSimKit\Setup\Actions;
 use OpenSimKit\Setup\Hub;
 use OpenSimKit\Setup\NewGrid;
 use OpenSimKit\Setup\NewSim;
+use OpenSimKit\Setup\RuntimeCheck;
 use OpenSimKit\Ui\PromptsUi;
 use OpenSim\Provisioning\GridPlan;
 use OpenSim\Provisioning\SimPlan;
@@ -37,7 +38,8 @@ try {
         $data = json_decode((string) stream_get_contents(STDIN), true, 512, JSON_THROW_ON_ERROR);
         exit((new Actions(new PromptsUi()))->perform($data['op'], $data['args'], $data['profile']) ? 0 : 1);
     } else {
-        (new Hub(new PromptsUi()))->run();
+        $ui = new PromptsUi();
+        (new Hub($ui, new RuntimeCheck($ui)))->run();
     }
 } catch (SetupFailedException) {
     exit(1);
