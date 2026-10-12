@@ -3,6 +3,7 @@
 namespace OpenSimKit\Setup;
 
 use OpenSimKit\System\Elevated;
+use OpenSim\Config\ConfigReader;
 use OpenSim\Models\Core;
 use OpenSim\Models\GridInfo;
 use OpenSim\Network\Ports;
@@ -308,7 +309,7 @@ final class NewGrid
         $defaultPrivate = (int) ($current['privatePort'] ?? $privateFor($defaultPublic));
         $defaultConsole = (int) ($current['consolePort'] ?? $consoleFor($defaultPublic, $defaultPrivate));
         $defaultWeb = $current['webUrl'] ?? "https://$defaultHost";
-        $saved = @parse_ini_file("$gridDir/$nick.conf", true, INI_SCANNER_RAW)['Grid']['Center'] ?? '';
+        $saved = ConfigReader::file("$gridDir/$nick.conf")['Grid']['Center'] ?? '';
         $defaultCenter =
             trim((string) $saved, " \t\"") !== '' ? trim((string) $saved, " \t\"") : "$defaultPublic,$defaultPublic";
         $v = $this->ui->form(

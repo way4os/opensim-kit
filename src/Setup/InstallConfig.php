@@ -2,6 +2,8 @@
 
 namespace OpenSimKit\Setup;
 
+use OpenSim\Config\ConfigReader;
+
 /**
  * Reader for the single opensim.conf (phase 2 only needs the default profile;
  * phase 3 will add writing).
@@ -45,7 +47,7 @@ final class InstallConfig
             return [];
         }
 
-        $ini = parse_ini_file($path, true, INI_SCANNER_RAW) ?: [];
+        $ini = ConfigReader::file($path);
 
         return array_values(array_filter(array_keys($ini), static fn(string $s): bool => $s !== 'Defaults'));
     }
@@ -58,7 +60,7 @@ final class InstallConfig
             return;
         }
 
-        $data = parse_ini_file($path, true, INI_SCANNER_RAW) ?: [];
+        $data = ConfigReader::file($path);
         $mirror = $data[$name] ?? ($data['Defaults'] ?? []);
         unset($mirror['DefaultProfile']);
         // Settings of [Defaults] that profiles don't hold (e.g. SystemUser) are kept
@@ -74,7 +76,7 @@ final class InstallConfig
             return null;
         }
 
-        $ini = @parse_ini_file($path, true, INI_SCANNER_RAW);
+        $ini = ConfigReader::file($path);
 
         return $ini['Defaults']['DefaultProfile'] ?? null;
     }
@@ -92,7 +94,7 @@ final class InstallConfig
             return [];
         }
 
-        $ini = parse_ini_file($path, true, INI_SCANNER_RAW) ?: [];
+        $ini = ConfigReader::file($path);
         $defaults = $ini['Defaults'] ?? [];
         $name ??= $defaults['DefaultProfile'] ?? null;
         unset($defaults['DefaultProfile']);
@@ -109,7 +111,7 @@ final class InstallConfig
     public function write(InstallPlan $plan): string
     {
         $path = rtrim($plan->etcRoot, '/') . '/opensim.conf';
-        $data = is_file($path) ? (parse_ini_file($path, true, INI_SCANNER_RAW) ?: []) : [];
+        $data = is_file($path) ? ConfigReader::file($path) : [];
 
         $profile = $this->profileValues($plan);
         $current = $data['Defaults']['DefaultProfile'] ?? null;
@@ -158,7 +160,7 @@ final class InstallConfig
         ];
 
         $path = $this->path() ?? ($this->file ?? '/etc/opensim/opensim.conf');
-        $all = is_file($path) ? (parse_ini_file($path, true, INI_SCANNER_RAW) ?: []) : [];
+        $all = is_file($path) ? ConfigReader::file($path) : [];
         $all[$name] = $profile;
         $current = $all['Defaults']['DefaultProfile'] ?? null;
         if ($makeDefault || $current === null) {
@@ -173,7 +175,7 @@ final class InstallConfig
     public function removeProfile(string $name): bool
     {
         $path = $this->path();
-        $all = $path === null ? [] : (parse_ini_file($path, true, INI_SCANNER_RAW) ?: []);
+        $all = $path === null ? [] : ConfigReader::file($path);
         if (!isset($all[$name]) || $name === 'Defaults') {
             return false;
         }
