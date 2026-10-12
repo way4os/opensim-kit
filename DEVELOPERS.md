@@ -77,7 +77,7 @@ Publishing skips the packages whose version is already in the repository, so the
 
 `packaging/build` runs first and prepares only the packages asked for:
 
-- `opensim-tools`: `build/opensim-tools` from the committed tree (`packaging/tools`), with the PHP dependencies (`composer install --no-dev`, bash-tools included), without what `.distignore` lists, and without the projects of `packaging/siblings`, which come from their packages. The `bash-tools` package it depends on is at least the version composer bundles (`BASH_TOOLS_VERSION`, read from `composer.json`). Uncommitted changes are not packaged.
+- `opensim-tools`: `build/opensim-tools` from the committed tree (`packaging/tools`), with the PHP dependencies (`composer install --no-dev`), without what `.distignore` lists, and without the projects of `packaging/siblings`, which come from their packages. Uncommitted changes are not packaged.
 - `opensim-core`, `opensim`: the release of `packaging/opensim-core.versions`, the last one or `OPENSIM_VERSION`, e.g. `OPENSIM_VERSION=0.9.3.0 vendor/bin/apt-package opensim-core`. Its tarball is downloaded into `cache/downloads/` and checked against its SHA256.
 
 - `opensim-web`: `share/web` as it is.
@@ -88,7 +88,7 @@ A new OpenSimulator release is added at the end of `packaging/opensim-core.versi
 
 The maintainer scripts of `opensim-tools` create the `opensim` account and the folders of the system layout, write the default `/etc/opensim/opensim.conf` when missing, and handle the `opensim` service like `dh_installsystemd`: enabled on first install, stopped with the instances on removal, never restarted by upgrades.
 
-The scripts use the helpers of [bash-tools](https://github.com/magicoli/bash-tools): the `bash-tools` package, a dependency of `opensim-tools`, or composer's copy in a git checkout (`composer install`). It is a development dependency of composer, so the packages don't bundle it. During development, composer links the local `../bash-tools` checkout when there is one (path repository, `dev-dev`): switch to a released version before a release (and back to `dev-dev` with the path repository after it).
+The tools themselves are PHP: no bash script runs a command, and the packages do not need [bash-tools](https://github.com/magicoli/bash-tools). The scripts of `dev/`, `packaging/` and `tests/Packaging` use its helpers, from composer's copy in a git checkout (`composer install`, a development dependency). During development, composer links the local `../bash-tools` checkout when there is one (path repository, `dev-dev`): switch to a released version before a release (and back to `dev-dev` with the path repository after it).
 
 The PHP dependencies are locked for PHP 8.1 (`config.platform.php` in `composer.json`), the oldest PHP of the supported systems (Ubuntu 22.04).
 

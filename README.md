@@ -14,7 +14,9 @@ https://www.speculoos.world/opensim-debian-installation-framework/
 
 ## Installation
 
-**From packages (recommended)**
+Three ways, the same wizard at the end: `opensim setup` asks about your grid.
+
+**From the packages** (Debian, Ubuntu)
 
 ```bash
 ## Add the Magiiic APT repository (once)
@@ -22,19 +24,29 @@ curl -fsSL https://apt.magiiic.com/magiiic-packaging.asc | sudo gpg --dearmor -o
 echo "deb [signed-by=/usr/share/keyrings/magiiic-packaging.gpg] https://apt.magiiic.com stable main" | sudo tee /etc/apt/sources.list.d/magiiic.list
 sudo apt update
 
-## Install the packages
+## Install the packages, then the .NET runtime if the system has no package for it
 sudo apt install opensim-kit
+sudo opensim install-dotnet -y
 opensim setup
 ```
 
-See [INSTALLATION.md](INSTALLATION.md) for more details and advanced installation options.
-
-**From source (advanced)**
+**With one command** (Debian, Ubuntu): the script adds the repository, installs the packages and the .NET runtime, then starts the setup.
 
 ```bash
-./install/install.sh
-opensim setup
+curl -fsSL https://raw.githubusercontent.com/GuduleLapointe/opensim-kit/refs/heads/master/setup.sh | sudo bash
 ```
+
+**From a clone** (any system with PHP 8.2 or newer; on macOS with Homebrew): the tools run from the clone, their PHP libraries come from composer.
+
+```bash
+git clone https://github.com/GuduleLapointe/opensim-kit.git
+cd opensim-kit
+./setup.sh
+```
+
+`./setup.sh --help` lists its options (`-y` does not ask, `--no-setup` only prepares the machine).
+
+See [INSTALLATION.md](INSTALLATION.md) for more details and advanced installation options.
 
 - create basic directory structure, download OpenSim and other needed libraries
 - read Robust default configuration, ask a few questions and build a working configuration in etc/robust-d

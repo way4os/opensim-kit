@@ -10,7 +10,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 # The shell scripts of the repository, one per line: "interpreter path"
 scripts() {
 	local file line
-	for file in "$ROOT"/bin/* "$ROOT"/libexec/* "$ROOT"/install/* "$ROOT"/share/cron.hourly/* \
+	for file in "$ROOT"/setup.sh "$ROOT"/bin/* "$ROOT"/libexec/* "$ROOT"/install/* "$ROOT"/share/cron.hourly/* \
 		"$ROOT"/packaging/* "$ROOT"/packaging/container/* "$ROOT"/tests/Packaging/*; do
 		[ -f "$file" ] && [ ! -L "$file" ] || continue
 		line=$(head -n 1 "$file")

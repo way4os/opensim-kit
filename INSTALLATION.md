@@ -198,7 +198,7 @@ On Debian and Ubuntu: `sudo apt install php-cli php-curl php-intl php-mbstring p
 ```shell
 git clone --recursive https://github.com/GuduleLapointe/opensim-kit.git
 cd opensim-kit
-composer install   # PHP libraries and bash-tools
+composer install   # PHP libraries
 export PATH=$PATH:$PWD/bin
 opensim setup
 ```

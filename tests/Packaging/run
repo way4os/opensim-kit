@@ -65,5 +65,7 @@ done
 for file in "$TEST_DIR"/*; do
     ln -s "$PWD/$file" "$stage/test/"
 done
+# The script of the installation, which setup-scenario.sh runs
+ln -s "$PWD/setup.sh" "$stage/test/"
 COPYFILE_DISABLE=1 tar -chf - -C "$stage" dist test | podman exec -i "$name" tar -xf - --no-same-owner --warning=no-unknown-keyword -C /
 podman exec ${STOP_AFTER:+-e STOP_AFTER="$STOP_AFTER"} "$name" bash "/test/${SCENARIO:-package-scenario.sh}"
