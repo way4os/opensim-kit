@@ -73,6 +73,22 @@ final class Mailbox
         is_file("{$this->dir}/answer.json") && unlink("{$this->dir}/answer.json");
     }
 
+    /**
+     * The setup took the answer to a screen: it is forgotten, but the screen stays answered (the setup works on it, and the
+     * next screen may be long to come) and takes no other answer.
+     */
+    public function consume(int $id): void
+    {
+        $this->clearAnswer();
+        $this->write('consumed.json', ['id' => $id]);
+    }
+
+    /** Whether the answer to this screen was given and taken by the setup. */
+    public function consumed(int $id): bool
+    {
+        return ($this->read('consumed.json')['id'] ?? 0) === $id;
+    }
+
     /** Something said to the person: it shows above the next screen. */
     public function say(string $level, string $message): void
     {

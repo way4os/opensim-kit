@@ -7,11 +7,7 @@ use OpenSimKit\Web\Mailbox;
 
 require_once __DIR__ . '/web-browser-lib.php';
 
-afterEach(function () {
-    foreach (glob(sys_get_temp_dir() . '/opensim-wizard-*') ?: [] as $dir) {
-        (new Mailbox($dir))->remove();
-    }
-});
+afterEach(fn() => webCleanUp());
 
 describe('single questions', function () {
     test('choose gives the key chosen and asks again for one that is not there', function () {
@@ -53,7 +49,7 @@ describe('single questions', function () {
     });
 
     test('nobody answering is an error, not a wait for ever', function () {
-        $ui = new WebUi(Mailbox::create(), null, 0, 0.05);
+        $ui = new WebUi(webMailbox(), null, 0, 0.05);
 
         expect(fn() => $ui->text('Alone'))->toThrow(RuntimeException::class);
     });

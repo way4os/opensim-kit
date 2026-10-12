@@ -236,9 +236,8 @@ describe('A setup file that answers the questions about a grid', function () {
 
 describe('The same questions in a browser', function () {
     afterEach(function () {
-        foreach (glob(sys_get_temp_dir() . '/opensim-wizard-*') ?: [] as $dir) {
-            (new \OpenSimKit\Web\Mailbox($dir))->remove();
-        }
+        require_once __DIR__ . '/web-browser-lib.php';
+        webCleanUp();
     });
 
     test('give the plan the terminal gives, from the same fields', function () {

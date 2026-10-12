@@ -66,7 +66,7 @@ final class WizardServer
         $screen = $this->mailbox->screen();
         $id = (int) ($screen['id'] ?? 0);
         // Answered, and the setup is on it: the page of the work being done, which looks again
-        $working = $screen !== null && $this->mailbox->answered($id) !== null;
+        $working = $screen !== null && ($this->mailbox->answered($id) !== null || $this->mailbox->consumed($id));
         $page = Page::render($screen, $this->mailbox->log(), $working, $this->mailbox->progressLine());
         ($screen['kind'] ?? '') === 'done' && $this->mailbox->seen($id);
 
@@ -87,7 +87,7 @@ final class WizardServer
         $id = (int) ($post['id'] ?? 0);
         $action = in_array($post['action'] ?? 'next', ['back', 'quit'], true) ? (string) $post['action'] : 'next';
         // An answer to a screen that is not the current one (a second click, an old page) is of no use
-        if ($id === $this->mailbox->current() && $this->mailbox->answered($id) === null) {
+        if ($id === $this->mailbox->current() && $this->mailbox->answered($id) === null && !$this->mailbox->consumed($id)) {
             $this->mailbox->answer($id, ['action' => $action, 'values' => is_array($post['v'] ?? null) ? $post['v'] : []]);
             // The next screen is most often there in a moment: wait for it, the page shows the work being done if it is long
             $deadline = microtime(true) + $this->waitSeconds;

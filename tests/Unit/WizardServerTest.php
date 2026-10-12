@@ -4,12 +4,14 @@ use OpenSimKit\Ui\WebUi;
 use OpenSimKit\Web\Mailbox;
 use OpenSimKit\Web\WizardServer;
 
+require_once __DIR__ . '/web-browser-lib.php';
+
 const WIZARD_HOST = '127.0.0.1:8123';
 
 /** @return array{0:WizardServer,1:Mailbox,2:string} the server, the mailbox, the cookie of a browser let in */
 function wizardServer(): array
 {
-    $mailbox = Mailbox::create();
+    $mailbox = webMailbox();
     $mailbox->allow('good-token');
     $server = new WizardServer($mailbox, [WIZARD_HOST, 'localhost:8123'], 0, 0);
     $reply = $server->handle('GET', '/', ['t' => 'good-token'], [], [], ['host' => WIZARD_HOST]);
@@ -28,15 +30,11 @@ function wizardPost(WizardServer $server, string $cookie, array $post, array $he
     return $server->handle('POST', '/answer', [], $post, [WizardServer::COOKIE => $cookie], $headers + ['host' => WIZARD_HOST]);
 }
 
-afterEach(function () {
-    foreach (glob(sys_get_temp_dir() . '/opensim-wizard-*') ?: [] as $dir) {
-        (new Mailbox($dir))->remove();
-    }
-});
+afterEach(fn() => webCleanUp());
 
 describe('who is let in', function () {
     test('the address works once, it gives the browser a secret that is kept in a cookie', function () {
-        $mailbox = Mailbox::create();
+        $mailbox = webMailbox();
         $mailbox->allow('good-token');
         $server = new WizardServer($mailbox, [WIZARD_HOST], 0, 0);
 
@@ -102,6 +100,20 @@ describe('the screens', function () {
         wizardPost($server, $cookie, ['id' => $id, 'v' => ['value' => 'x']]);
 
         expect(wizardGet($server, $cookie)[2])->toContain('spinner')->not->toContain('name="v[value]"');
+    });
+
+    test('a screen the setup took the answer of is still answered while the setup works, and takes no other answer', function () {
+        [$server, $mailbox, $cookie] = wizardServer();
+        $id = $mailbox->publish(['kind' => 'text', 'label' => 'Name', 'value' => '']);
+        wizardPost($server, $cookie, ['id' => $id, 'v' => ['value' => 'x']]);
+
+        $mailbox->consume($id); // the setup read the answer and goes on, for as long as it takes
+        $page = wizardGet($server, $cookie)[2];
+        wizardPost($server, $cookie, ['id' => $id, 'v' => ['value' => 'again']]);
+
+        expect($page)->toContain('spinner')->not->toContain('name="v[value]"')
+            ->and($mailbox->answered($id))->toBeNull()
+            ->and(file_exists("{$mailbox->dir}/answer.json"))->toBeFalse();
     });
 
     test('a choice is a list of buttons, the default one marked', function () {

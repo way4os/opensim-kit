@@ -7,6 +7,23 @@
 use OpenSimKit\Ui\WebUi;
 use OpenSimKit\Web\Mailbox;
 
+/** The mailboxes the tests made, to remove them and nothing else (another run of the tests may be using the temporary folder too). */
+function webMailbox(): Mailbox
+{
+    $mailbox = Mailbox::create();
+    $GLOBALS['webMailboxes'][] = $mailbox;
+
+    return $mailbox;
+}
+
+function webCleanUp(): void
+{
+    foreach ($GLOBALS['webMailboxes'] ?? [] as $mailbox) {
+        $mailbox->remove();
+    }
+    $GLOBALS['webMailboxes'] = [];
+}
+
 /**
  * The idle of a WebUi that answers each screen once, with what $answer makes of it (null: the screen is not answered).
  * The screens are kept in $screens.
@@ -35,7 +52,7 @@ function webBrowser(Mailbox $mailbox, \Closure $answer, ?array &$screens): \Clos
  */
 function webSetup(array $answers, ?array &$screens = null): array
 {
-    $mailbox = Mailbox::create();
+    $mailbox = webMailbox();
     $browser = webBrowser(
         $mailbox,
         static function (array $screen) use (&$answers): array {
@@ -57,7 +74,7 @@ function webSetup(array $answers, ?array &$screens = null): array
  */
 function webAccepting(array $answers = [], ?array &$screens = null): array
 {
-    $mailbox = Mailbox::create();
+    $mailbox = webMailbox();
     $browser = webBrowser(
         $mailbox,
         static function (array $screen) use ($answers): array {

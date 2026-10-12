@@ -36,10 +36,18 @@ function screenId(string $page): int
     return preg_match('/name="id" value="(\d+)"/', $page, $m) ? (int) $m[1] : 0;
 }
 
+/** The setup side: the temporary folder is its own, so the exchanges of another run of the tests are not mistaken for its own. */
+function wizardDriver(string $tmp): array
+{
+    $process = proc_open([PHP_BINARY, __DIR__ . '/wizard-driver.php'], [1 => ['pipe', 'w'], 2 => ['redirect', 1]], $pipes, null, ['TMPDIR' => $tmp] + (getenv() ?: []));
+    stream_set_timeout($pipes[1], 30);
+
+    return [$process, $pipes];
+}
+
 describe('the setup in a browser, with the real web server', function () {
     test('the questions go through the pages, the answers come back, the server stops at the end', function () {
-        $process = proc_open([PHP_BINARY, __DIR__ . '/wizard-driver.php'], [1 => ['pipe', 'w'], 2 => ['redirect', 1]], $pipes);
-        stream_set_timeout($pipes[1], 30);
+        [$process, $pipes] = wizardDriver(sys_get_temp_dir());
         $address = trim((string) fgets($pipes[1]));
         expect($address)->toStartWith('http://127.0.0.1:');
         $base = substr($address, 0, (int) strpos($address, '/?t='));
@@ -95,9 +103,9 @@ describe('the setup in a browser, with the real web server', function () {
     });
 
     test('Quit in the browser ends the setup, and the folder of the exchanges is removed', function () {
-        $before = glob(sys_get_temp_dir() . '/opensim-wizard-*') ?: [];
-        $process = proc_open([PHP_BINARY, __DIR__ . '/wizard-driver.php'], [1 => ['pipe', 'w'], 2 => ['redirect', 1]], $pipes);
-        stream_set_timeout($pipes[1], 30);
+        $tmp = sys_get_temp_dir() . '/wizard-test-' . bin2hex(random_bytes(4));
+        mkdir($tmp);
+        [$process, $pipes] = wizardDriver($tmp);
         $address = trim((string) fgets($pipes[1]));
         $base = substr($address, 0, (int) strpos($address, '/?t='));
         [, , $headers] = browse($address);
@@ -109,6 +117,7 @@ describe('the setup in a browser, with the real web server', function () {
         proc_close($process);
 
         expect($said)->toHaveKey('left')
-            ->and(array_diff(glob(sys_get_temp_dir() . '/opensim-wizard-*') ?: [], $before))->toBe([]);
+            ->and(glob("$tmp/opensim-wizard-*"))->toBe([]);
+        rmdir($tmp);
     });
 });

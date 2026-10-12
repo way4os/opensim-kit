@@ -303,7 +303,7 @@ final class WebUi implements UiInterface, CapturesOutput
             $this->idle !== null && ($this->idle)();
             $this->pollMicros > 0 && usleep($this->pollMicros);
         }
-        $this->mailbox->clearAnswer();
+        $this->mailbox->consume($id);
 
         return match ($answer['action'] ?? 'next') {
             'quit' => throw new Quit(),
