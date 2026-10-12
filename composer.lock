@@ -252,7 +252,7 @@
             "dist": {
                 "type": "path",
                 "url": "../opensim-engine",
-                "reference": "8c810dea4b06b231ae40b392d1453c7b764fbf49"
+                "reference": "d804e9e7e585ab2130a99fa16b2c6511cd062db6"
             },
             "require": {
                 "ext-curl": "*",
@@ -268,8 +268,10 @@
                 "laminas/laminas-escaper": "^2.12@stable",
                 "magicoli/kick-inside": "^0.1.0",
                 "magicoli/opensim-rest-php": "@dev",
+                "nubs/random-name-generator": "^2.2",
                 "php": ">=8.2",
-                "phpxmlrpc/phpxmlrpc": "^4.11"
+                "phpxmlrpc/phpxmlrpc": "^4.11",
+                "symfony/yaml": "^7.4"
             },
             "require-dev": {
                 "dealerdirect/phpcodesniffer-composer-installer": "^1.2",
@@ -289,12 +291,11 @@
                     "OpenSim\\": "src/"
                 },
                 "classmap": [
-                    "class-oar.php",
-                    "class-health.php",
-                    "class-config.php"
+                    "class-health.php"
                 ],
                 "files": [
-                    "includes/functions-escaping.php"
+                    "includes/functions-escaping.php",
+                    "legacy/autoload.php"
                 ]
             },
             "scripts": {

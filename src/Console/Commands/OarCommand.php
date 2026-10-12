@@ -7,7 +7,7 @@ namespace OpenSimKit\Console\Commands;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * opensim oar: OpenSimulator archives (see OpenSim_Oar of the engine).
+ * opensim oar: OpenSimulator archives (see OpenSim\Archives\Oar of the engine).
  *
  *   opensim oar pack DIR [FILE]     make an OAR from a folder laid out as its content (FILE: DIR without -src, .oar)
  *   opensim oar info FILE           what the archive holds
@@ -41,27 +41,27 @@ final class OarCommand extends ScriptCommand
                 case 'pack':
                     $dir = rtrim($source, '/');
                     $target ??= preg_replace('/-src$/', '', $dir) . '.oar';
-                    \OpenSim_Oar::pack($dir, $target);
+                    \OpenSim\Archives\Oar::pack($dir, $target);
                     self::say($out, "$target\n");
 
                     break;
 
                 case 'info':
-                    foreach (\OpenSim_Oar::info($source) as $key => $value) {
+                    foreach (\OpenSim\Archives\Oar::info($source) as $key => $value) {
                         self::say($out, sprintf("%-16s %s\n", $key, is_array($value) ? implode('x', $value) : var_export($value, true)));
                     }
 
                     break;
 
                 case 'check':
-                    $problems = \OpenSim_Oar::check($source);
+                    $problems = \OpenSim\Archives\Oar::check($source);
                     self::say($out, $problems === [] ? "ok\n" : implode("\n", $problems) . "\n");
 
                     return $problems === [] ? 0 : 1;
 
                 case 'unpack':
                     $target ??= preg_replace('/\.oar$/', '', $source) . '-src';
-                    \OpenSim_Oar::unpack($source, $target);
+                    \OpenSim\Archives\Oar::unpack($source, $target);
                     self::say($out, "$target\n");
 
                     break;
