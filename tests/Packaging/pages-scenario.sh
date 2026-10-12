@@ -294,11 +294,15 @@ check "web search: the home page has the form" "get -A '$firefox' $site/ | grep 
 check "profile: the page of an avatar of the grid, its name and since when it is a member" "[ \"\$(status $site/profile/Test.Owner)\" = 200 ] && get -A '$firefox' $site/profile/Test.Owner | grep -q 'Test Owner' && get -A '$firefox' $site/profile/Test.Owner | grep -q 'Member since'"
 check "profile: without a published profile, nothing more than that" "get -A '$firefox' $site/profile/Test.Owner | grep -q 'not published'"
 if [ -n "$(sql "SHOW TABLES LIKE 'userprofile'")" ]; then
+    # A profile is published when the first flag of the account says so (UserFlags, which the simulator shows and keeps), not the
+    # column of the profile
+    owner_flags=$(sql "SELECT UserFlags FROM UserAccounts WHERE PrincipalID = '$owner'")
+    sql "UPDATE UserAccounts SET UserFlags = UserFlags | 1 WHERE PrincipalID = '$owner'"
     sql "DELETE FROM userprofile WHERE useruuid = '$owner'; INSERT INTO userprofile (useruuid, profilePartner, profileAllowPublish, profileMaturePublish, profileURL, profileWantToMask, profileWantToText, profileSkillsMask, profileSkillsText, profileLanguages, profileImage, profileAboutText, profileFirstImage, profileFirstText) VALUES ('$owner', '$null', UNHEX('01'), UNHEX('00'), 'https://owner.example.org/', 0, 'Make friends', 0, 'Scripting', 'English', '$null', 'About <b>me</b>', '$null', 'By the sea')"
     check "profile: what the avatar published is there, as text, and its web page is a link" "get -A '$firefox' $site/profile/Test.Owner | grep -q 'About &lt;b&gt;me&lt;/b&gt;' && get -A '$firefox' $site/profile/Test.Owner | grep -q 'href=\"https://owner.example.org/\"' && get -A '$firefox' $site/profile/Test.Owner | grep -q 'By the sea'"
-    sql "UPDATE userprofile SET profileAllowPublish = UNHEX('00') WHERE useruuid = '$owner'"
+    sql "UPDATE UserAccounts SET UserFlags = UserFlags & ~1 WHERE PrincipalID = '$owner'"
     check "profile: what is not published is not shown" "! get -A '$firefox' $site/profile/Test.Owner | grep -q 'About' && get -A '$firefox' $site/profile/Test.Owner | grep -q 'not published'"
-    sql "DELETE FROM userprofile WHERE useruuid = '$owner'"
+    sql "DELETE FROM userprofile WHERE useruuid = '$owner'; UPDATE UserAccounts SET UserFlags = $owner_flags WHERE PrincipalID = '$owner'"
 fi
 check "profile: an avatar that is not there is a page that says so, with a 404, and the account of the services has no profile" "[ \"\$(status $site/profile/Nobody.Here)\" = 404 ] && get -A '$firefox' $site/profile/Nobody.Here | grep -q 'no such avatar' && [ \"\$(status $site/profile/GRID.SERVICES)\" = 404 ]"
 for table in parcels parcelsales regionsregister events classifieds; do sql "DELETE FROM $table; INSERT INTO $table SELECT * FROM ${table}_bak2; DROP TABLE ${table}_bak2"; done
