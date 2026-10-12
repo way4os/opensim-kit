@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 use OpenSim\Provisioning\UiInterface;
 use OpenSimKit\Setup\NewGrid;
+use OpenSimKit\Setup\NewSim;
 
 /** A user who accepts what is proposed, and answers the questions whose label contains the start of a key. */
 final class GridUiFake implements UiInterface
@@ -260,5 +261,27 @@ describe('The same questions in a browser', function () {
         expect(array_diff($differ, ['dbPass', 'consoleUser', 'consolePass']))->toBe([])
             ->and(array_column($screens, 'title'))->toContain('Grid', 'Network', 'Database')
             ->and($plan->gridNick)->toBe('garden_world');
+    });
+});
+
+describe('What is done once the grid and the simulator are written', function () {
+    test('a plan accepted already is enabled and started, whatever shows the questions', function () {
+        require_once __DIR__ . '/web-browser-lib.php';
+        [$web] = webAccepting();
+        $terminal = new GridUiFake();
+
+        foreach ([$terminal, $web] as $ui) {
+            expect($ui->form(NewGrid::applyQuestions('garden', true), 'Apply'))->toBe(['apply' => '', 'enable' => 'yes', 'start' => 'yes'])
+                ->and($ui->form(NewSim::applyQuestions('Welcome', true, true, false), 'Apply'))
+                ->toBe(['apply' => '', 'enable' => 'yes', 'start' => 'yes', 'warn' => '']);
+        }
+    });
+
+    test('a plan that is not accepted yet is asked first, and a simulator without a region is not started', function () {
+        $ui = new GridUiFake(['Apply this configuration' => false]);
+        $form = (new GridUiFake())->form(NewSim::applyQuestions('Welcome', false, false, false), 'Apply');
+
+        expect($ui->form(NewGrid::applyQuestions('garden', false), 'Apply'))->toBe(['apply' => 'no', 'enable' => '', 'start' => ''])
+            ->and($form)->toBe(['apply' => 'yes', 'enable' => 'yes', 'start' => '', 'warn' => '']);
     });
 });

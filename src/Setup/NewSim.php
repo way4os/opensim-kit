@@ -122,7 +122,6 @@ final class NewSim
         // A simulator already linked may run, with users in it: restarting it warns them, and takes two minutes
         $wasEnabled = SimState::isEnabled($etcRoot, $plan->slug);
         $running = $wasEnabled && InstanceConsoleService::running(SimState::link($etcRoot, $plan->slug));
-        $go = static fn(array $v): bool => ($v['apply'] ?? 'yes') === 'yes';
         // A simulator without a region waits at its first start for the answers of a region to create, on a console nobody
         // reads: it is not started before it has one
         $hasRegion = $plan->createRegion || (glob("{$plan->regionsDir()}/*.ini") ?: []) !== [];
@@ -131,39 +130,7 @@ final class NewSim
         }
         // What to do once written is asked here, while the user is at the keyboard (writing may be done by another
         // process), with the confirmation of the plan
-        $v = $this->ui->form(
-            [
-                [
-                    'key' => 'apply',
-                    'label' => sprintf(_("Apply this configuration to simulator '%s'?"), $plan->simName),
-                    'type' => 'confirm',
-                    'default' => 'yes',
-                    'when' => static fn(array $v): bool => !$accepted,
-                ],
-                [
-                    'key' => 'enable',
-                    'label' => _('Enable simulator (link into opensim.d)'),
-                    'type' => 'confirm',
-                    'default' => 'yes',
-                    'when' => $go,
-                ],
-                [
-                    'key' => 'start',
-                    'label' => _('Start simulator now'),
-                    'type' => 'confirm',
-                    'default' => 'yes',
-                    'when' => static fn(array $v): bool => $go($v) && $v['enable'] === 'yes' && $hasRegion,
-                ],
-                [
-                    'key' => 'warn',
-                    'label' => _('The simulator is running: warn its users and wait two minutes before restarting it?'),
-                    'type' => 'confirm',
-                    'default' => 'no',
-                    'when' => static fn(array $v): bool => $go($v) && ($v['start'] ?? 'no') === 'yes' && $running,
-                ],
-            ],
-            _('Apply'),
-        );
+        $v = $this->ui->form(self::applyQuestions($plan->simName, $accepted, $hasRegion, $running), _('Apply'));
         if (($v['apply'] ?? 'yes') === 'no') {
             $this->ui->note(_('Aborted — nothing changed.'));
 
@@ -176,6 +143,51 @@ final class NewSim
         $this->write($plan, $profile);
 
         return [$grid->nick, $plan->slug];
+    }
+
+    /**
+     * What to do once the simulator is written: confirm it (unless the plan was accepted already), enable it, start it, and
+     * warn the users when it is running. A question that is not asked counts as a yes for the ones that depend on it.
+     *
+     * @return list<array<string,mixed>>
+     */
+    public static function applyQuestions(string $name, bool $accepted, bool $hasRegion, bool $running): array
+    {
+        $go = static fn(array $v): bool => ($v['apply'] ?? '') !== 'no';
+
+        return [
+            [
+                'key' => 'apply',
+                'label' => sprintf(_("Apply this configuration to simulator '%s'?"), $name),
+                'type' => 'confirm',
+                'default' => 'yes',
+                'when' => static fn(array $v): bool => !$accepted,
+            ],
+            [
+                'key' => 'enable',
+                'label' => _('Enable simulator (link into opensim.d)'),
+                'type' => 'confirm',
+                'default' => 'yes',
+                'when' => $go,
+                'condition' => ['apply' => ['yes']],
+            ],
+            [
+                'key' => 'start',
+                'label' => _('Start simulator now'),
+                'type' => 'confirm',
+                'default' => 'yes',
+                'when' => static fn(array $v): bool => $go($v) && ($v['enable'] ?? 'yes') === 'yes' && $hasRegion,
+                'condition' => ['apply' => ['yes'], 'enable' => ['yes']],
+            ],
+            [
+                'key' => 'warn',
+                'label' => _('The simulator is running: warn its users and wait two minutes before restarting it?'),
+                'type' => 'confirm',
+                'default' => 'no',
+                'when' => static fn(array $v): bool => $go($v) && ($v['start'] ?? 'no') === 'yes' && $running,
+                'condition' => ['apply' => ['yes'], 'start' => ['yes']],
+            ],
+        ];
     }
 
     /** Write as the user who owns the install (see Elevated). */

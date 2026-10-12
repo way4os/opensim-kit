@@ -107,34 +107,7 @@ final class NewGrid
         }
         // What to do once written is asked here, while the user is at the keyboard (writing may be done by another
         // process), with the confirmation of the plan
-        $v = $this->ui->form(
-            [
-                [
-                    'key' => 'apply',
-                    'label' => sprintf(_("Apply this configuration to grid '%s'?"), $plan->gridNick),
-                    'type' => 'confirm',
-                    'default' => 'yes',
-                    'when' => static fn(array $v): bool => !$accepted,
-                ],
-                [
-                    'key' => 'enable',
-                    'label' => _('Enable grid (link into robust.d)'),
-                    'type' => 'confirm',
-                    'default' => 'yes',
-                    'when' => static fn(array $v): bool => ($v['apply'] ?? 'yes') === 'yes',
-                    'condition' => ['apply' => ['yes']],
-                ],
-                [
-                    'key' => 'start',
-                    'label' => _('Start grid now'),
-                    'type' => 'confirm',
-                    'default' => 'yes',
-                    'when' => static fn(array $v): bool => ($v['apply'] ?? 'yes') === 'yes' && $v['enable'] === 'yes',
-                    'condition' => ['apply' => ['yes'], 'enable' => ['yes']],
-                ],
-            ],
-            _('Apply'),
-        );
+        $v = $this->ui->form(self::applyQuestions($plan->gridNick, $accepted), _('Apply'));
         if (($v['apply'] ?? 'yes') === 'no') {
             $this->ui->note(_('Aborted — nothing changed.'));
 
@@ -146,6 +119,43 @@ final class NewGrid
         $this->write($plan, $profile);
 
         return $plan->gridNick;
+    }
+
+    /**
+     * What to do once the grid is written: confirm it (unless the plan was accepted already), enable it, start it. A question
+     * that is not asked counts as a yes for the ones that depend on it.
+     *
+     * @return list<array<string,mixed>>
+     */
+    public static function applyQuestions(string $nick, bool $accepted): array
+    {
+        $go = static fn(array $v): bool => ($v['apply'] ?? '') !== 'no';
+
+        return [
+            [
+                'key' => 'apply',
+                'label' => sprintf(_("Apply this configuration to grid '%s'?"), $nick),
+                'type' => 'confirm',
+                'default' => 'yes',
+                'when' => static fn(array $v): bool => !$accepted,
+            ],
+            [
+                'key' => 'enable',
+                'label' => _('Enable grid (link into robust.d)'),
+                'type' => 'confirm',
+                'default' => 'yes',
+                'when' => $go,
+                'condition' => ['apply' => ['yes']],
+            ],
+            [
+                'key' => 'start',
+                'label' => _('Start grid now'),
+                'type' => 'confirm',
+                'default' => 'yes',
+                'when' => static fn(array $v): bool => $go($v) && ($v['enable'] ?? 'yes') === 'yes',
+                'condition' => ['apply' => ['yes'], 'enable' => ['yes']],
+            ],
+        ];
     }
 
     /**
