@@ -62,7 +62,7 @@
 
 ## Next steps
 
-- [ ] add full import procedure for existing grids/simulators: the config is imported (`opensim import`), the database, the assets and the other data are not
+- [ ] add full import procedure for existing grids/simulators: the config is imported (`opensim import`), the database, the assets and the other data are not; OSGrid closes on 2026-12-31 (the OSGrid preset is obsolete, kept for now): importing a region from OSGrid to another grid (local or a preset) is the first use, an OAR saved from the sim of its owner, then the region made here and the OAR loaded
 - [x] add/update bash completion
 - [ ] build ready to use zip packages for simple download, added to the release assets alongside the source code and apt package
 - [x] simplified installation script: `setup.sh` (`curl … | sudo bash`, or `./setup.sh` in a clone); left: test the clone mode and macOS (Homebrew), which the container scenario does not cover
@@ -117,6 +117,8 @@
 
 ## Less urgent
 
+- [ ] detect abuse by the frequency of asset creation, not by a total quota (an account can have thousands of assets for good reasons): an account, or its scripts, creating a suspicious number of assets over a period; complements `opensim ban` (OSGrid closes after an `iar` flood of random assets, see the announcement of 2026-10-12). After everything that exists is ported, and nothing of this runs on a live grid yet
+- [ ] services split (assets, inventory, users...) in their own Robust and database, to back them up apart; and what a user-run simulator may write in the grid (Hypergrid as the second tier rather than assets kept by the simulator): to decide with the hosting offer
 - [x] localize the setup with gettext (a requirement of the project): the messages of the PHP setup are translatable (`locales/`, `locales/update-pot`)
 - [ ] localize the launcher and the bash scripts with gettext
 - [ ] a first translation of the setup (`locales/fr.po`)
