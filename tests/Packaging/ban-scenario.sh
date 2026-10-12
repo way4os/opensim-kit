@@ -23,10 +23,10 @@ estates=$(mysql -BN -e "SELECT COUNT(*) FROM $simdb.estate_settings")
 rm -rf /tmp/ban && mkdir /tmp/ban && chown opensim /tmp/ban
 (cd /tmp/ban && runuser -u opensim -- opensim ban testgrid Banned.Person 'Evil.Visitor@other.example.org' >/tmp/ban.out 2>&1; echo "exit code: $?" >>/tmp/ban.out)
 check "the users are found, the account of the grid and the visitor" "grep -q 'exit code: 0' /tmp/ban.out && grep -q \"^$banned.Banned.Person\" /tmp/ban.out && grep -q \"^$visitor.Evil.Visitor@other.example.org:8002\" /tmp/ban.out"
-check "the statements are written, with the objects and the ban in every estate" "grep -q \"DELETE FROM \`$db\`.\`UserAccounts\` WHERE PrincipalID = '$banned'\" /tmp/ban/ban.cleanup &&
-    grep -q \"DELETE FROM \`$db\`.\`inventoryfolders\` WHERE agentID = '$banned'\" /tmp/ban/ban.cleanup &&
-    grep -q \"DELETE FROM \`$simdb\`.\`prims\` WHERE OwnerID = '$banned'\" /tmp/ban/ban.cleanup &&
-    grep -q \"DELETE FROM \`$db\`.\`GridUser\` WHERE UserID = '$visitor' OR UserID LIKE '$visitor;%'\" /tmp/ban/ban.cleanup &&
+check "the statements are written, with the objects and the ban in every estate" "grep -q \"DELETE FROM .$db...UserAccounts. WHERE PrincipalID = '$banned'\" /tmp/ban/ban.cleanup &&
+    grep -q \"DELETE FROM .$db...inventoryfolders. WHERE agentID = '$banned'\" /tmp/ban/ban.cleanup &&
+    grep -q \"DELETE FROM .$simdb...prims. WHERE OwnerID = '$banned'\" /tmp/ban/ban.cleanup &&
+    grep -q \"DELETE FROM .$db...GridUser. WHERE UserID = '$visitor' OR UserID LIKE '$visitor;%'\" /tmp/ban/ban.cleanup &&
     [ \"\$(grep -c \"^INSERT INTO .*estateban.* '$banned'\" /tmp/ban/ban.ban)\" -ge $estates ]"
 check "the data of the databases is not changed" "[ \"\$(sql \"SELECT COUNT(*) FROM UserAccounts WHERE PrincipalID='$banned'\")\" = 1 ] &&
     [ \"\$(mysql -BN -e \"SELECT COUNT(*) FROM $simdb.prims WHERE OwnerID='$banned'\")\" = 1 ]"

@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- new: `opensim ban [grid] NAME|UUID...` writes the statements that ban users and delete their data (`libexec/banuser` is gone)
+- update: a grid made by the setup has a master for its simulators (`OpenSimGridDefaults.ini`): the search, the offline messages, the economy and the profiles are decided in its OpenSim.ini, `opensim enable|disable` follows
 - update: `bin/opensim` is the PHP command line of the kit (`src/Console`, symfony/console); every command is a class of it, no bash script is left to run a command
 - update: the port mapping is the engine's (`OpenSim\Network\PortMapping`): the library kick-inside by default, `upnpc` as `PortMappingModule = upnpc`
 - update: `start`, `stop`, `restart`, `status`, `command`, `console` are commands of the application, over the engine's `OpenSim::start()`...; a grid is its Robust, `--sims` adds its simulators

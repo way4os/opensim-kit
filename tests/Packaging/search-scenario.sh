@@ -117,7 +117,12 @@ sim_ini=/etc/opensim/grids/testgrid/sims/testgrid_sim1.ini
 sed -i '/^DATA_SRV_Search/d' "$sim_ini" # (what a former run left)
 cp "$sim_ini" /tmp/sim1.ini.search
 # (an address of the grid on this site: the helpers do not answer an address that has another host name)
-sed -i "/^\[DataSnapshot\]/a DATA_SRV_Search = \"http://localhost:8090/helpers/register.php\"" "$sim_ini"
+# (the simulator says it itself, over the registration of its grid: a section of its own when its config has none)
+if grep -q '^\[DataSnapshot\]' "$sim_ini"; then
+    sed -i "/^\[DataSnapshot\]/a DATA_SRV_Search = \"http://localhost:8090/helpers/register.php\"" "$sim_ini"
+else
+    printf '\n[DataSnapshot]\nDATA_SRV_Search = "http://localhost:8090/helpers/register.php"\n' >>"$sim_ini"
+fi
 mysql testgrid_sim1 -e "UPDATE land SET LandFlags = LandFlags | 4096 WHERE Name = 'Sim1'"
 opensim stop now testgrid_sim1 >/dev/null 2>&1
 opensim start testgrid_sim1 >/dev/null 2>&1

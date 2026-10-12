@@ -221,8 +221,13 @@ check "the simulator wizard ends well, the region is online" "grep -q 'exit code
 check "the region is registered in the grid" "[ \"\$(mysql -BN -e \"SELECT CONCAT(locX DIV 256, ',', locY DIV 256) FROM testgrid_robust.regions WHERE regionName='Sim1'\")\" = 8002,8002 ]"
 # The simulator wizard gives the roles of the default region (not the fallback one, which is not checked by default)
 # to the first region, the one that lets visitors in: without it a login fails with "destination not found"
-check "the simulator knows where the offline messages and the search index of the grid are" "grep -q '^OfflineMessageURL = \"https://localhost/helpers/offline.php\"' /etc/opensim/grids/testgrid/sims/testgrid_sim1.ini &&
-    grep -q '^DATA_SRV_Testgrid = \"https://localhost/helpers/register.php\"' /etc/opensim/grids/testgrid/sims/testgrid_sim1.ini"
+# The grid decided them, in its OpenSim.ini (the helpers read them there); its simulators read them in the master of the grid
+master=/etc/opensim/grids/testgrid/OpenSimGridDefaults.ini
+check "the grid knows where the offline messages and the search index of its simulators are" "grep -q '^OfflineMessageURL = \"https://localhost/helpers/offline.php\"' /etc/opensim/grids/testgrid/OpenSim.ini &&
+    grep -q '^DATA_SRV_Testgrid = \"https://localhost/helpers/register.php\"' /etc/opensim/grids/testgrid/OpenSim.ini &&
+    grep -q '^OfflineMessageURL = \"https://localhost/helpers/offline.php\"' $master && grep -q '^DATA_SRV_Testgrid = \"https://localhost/helpers/register.php\"' $master"
+check "the simulator runs with the master of its grid, and its own config does not repeat it" "ps -axww -o args | grep -q -- \"-inimaster=\$master\" &&
+    ! grep -qE '^\\[(Architecture|OSSL|Search|Messaging|UserProfiles)\\]' /etc/opensim/grids/testgrid/sims/testgrid_sim1.ini && grep -q '^ConnectionString' /etc/opensim/grids/testgrid/sims/testgrid_sim1.ini"
 check "the first region is the default region of the grid, and Robust says so" "grep -q '^Region_Sim1 = \"DefaultRegion, DefaultHGRegion, Persistent\"' /etc/opensim/grids/testgrid/Robust.HG.ini &&
     [ \"\$(mysql -BN -e \"SELECT (flags & 1 AND flags & 1024) FROM testgrid_robust.regions WHERE regionName='Sim1'\")\" = 1 ] &&
     curl -s -d 'METHOD=get_default_regions&SCOPEID=00000000-0000-0000-0000-000000000000' http://127.0.0.1:8003/grid | grep -q '>Sim1<'"
@@ -326,14 +331,16 @@ mysql testgrid_robust -e "DELETE FROM regions WHERE uuid = 'aaaaaaaa-0000-4000-8
 ts "features: search, economy and profiles of a grid, enabled and disabled by a command"
 sims=/etc/opensim/grids/testgrid/sims
 general=/etc/opensim/grids/testgrid/OpenSim.ini
+# What a grid with a master decides is in its OpenSim.ini and in the master made from it (the simulators say what is their own)
+decided="$general $master"
 # A setting that is active: not a comment of it
 active() { echo "^[[:space:]]*$1[[:space:]]*="; }
 cp -p $general /tmp/OpenSim.ini.features
-check "the simulators of a grid with helpers are made with the search module and the profile service" "[ -n \"\$(ls $sims/*.ini)\" ] && [ -z \"\$(grep -L 'SearchURL = \"https://localhost/helpers/query.php\"' $sims/*.ini)\" ] && [ -z \"\$(grep -L 'ProfileServiceURL' $sims/*.ini)\" ]"
+check "a grid with helpers has the search module and the profile service for its simulators, who do not repeat them" "[ -n \"\$(ls $sims/*.ini)\" ] && [ -z \"\$(grep -L 'SearchURL = \"https://localhost/helpers/query.php\"' $decided)\" ] && [ -z \"\$(grep -L 'ProfileServiceURL' $decided)\" ] && [ -z \"\$(grep -lE 'SearchURL|ProfileServiceURL' $sims/*.ini)\" ]"
 out=$(opensim disable testgrid search 2>&1)
-check "opensim disable <grid> search comments the module and the registration out of the simulators, with their value" "echo \"\$out\" | grep -q 'search disabled for testgrid' && [ -z \"\$(grep -lE \"\$(active SearchURL)\" $sims/*.ini)\" ] && [ -z \"\$(grep -lE \"\$(active DATA_SRV_Testgrid)\" $sims/*.ini)\" ] && grep -q ';SearchURL = \"https://localhost/helpers/query.php\"' $sims/*.ini"
+check "opensim disable <grid> search comments the module and the registration out of the settings of the grid, with their value" "echo \"\$out\" | grep -q 'search disabled for testgrid' && [ -z \"\$(grep -lE \"\$(active SearchURL)\" $decided)\" ] && [ -z \"\$(grep -lE \"\$(active DATA_SRV_Testgrid)\" $decided)\" ] && grep -q ';SearchURL = \"https://localhost/helpers/query.php\"' $decided"
 out=$(opensim enable testgrid search 2>&1)
-check "opensim enable <grid> search puts them back, at the address of the helpers of the grid" "echo \"\$out\" | grep -q 'search enabled for testgrid' && [ -z \"\$(grep -L 'SearchURL = \"https://localhost/helpers/query.php\"' $sims/*.ini)\" ] && [ -z \"\$(grep -L 'DATA_SRV_Testgrid = \"https://localhost/helpers/register.php\"' $sims/*.ini)\" ]"
+check "opensim enable <grid> search puts them back, at the address of the helpers of the grid" "echo \"\$out\" | grep -q 'search enabled for testgrid' && [ -z \"\$(grep -L 'SearchURL = \"https://localhost/helpers/query.php\"' $decided)\" ] && [ -z \"\$(grep -L 'DATA_SRV_Testgrid = \"https://localhost/helpers/register.php\"' $decided)\" ]"
 out=$(opensim enable testgrid search 2>&1)
 check "opensim enable <grid> search again changes nothing and says so" "echo \"\$out\" | grep -q 'nothing to change: search is already enabled for testgrid'"
 # The OpenSim.ini of the grid, which the helpers read first: a registration at the address of the search is put right, and
@@ -344,19 +351,19 @@ check "opensim enable <grid> search puts right a registration the OpenSim.ini of
 opensim disable testgrid search >/dev/null 2>&1
 check "opensim disable <grid> search comments it out there too" "! grep -qE \"\$(active DATA_SRV_Testgrid)\" $general && grep -q ';DATA_SRV_Testgrid' $general"
 out=$(opensim enable testgrid search https://search.example.net/h 2>&1)
-check "opensim enable <grid> search <url prefix> uses that address, in the simulators and in the OpenSim.ini of the grid" "echo \"\$out\" | grep -q 'search enabled for testgrid' && [ -z \"\$(grep -L 'SearchURL = \"https://search.example.net/h/query.php\"' $sims/*.ini)\" ] && grep -q 'DATA_SRV_Testgrid = \"https://search.example.net/h/register.php\"' $general"
+check "opensim enable <grid> search <url prefix> uses that address, in the OpenSim.ini of the grid and the master" "echo \"\$out\" | grep -q 'search enabled for testgrid' && [ -z \"\$(grep -L 'SearchURL = \"https://search.example.net/h/query.php\"' $decided)\" ] && grep -q 'DATA_SRV_Testgrid = \"https://search.example.net/h/register.php\"' $general"
 opensim enable testgrid search >/dev/null 2>&1
 cp -p /tmp/OpenSim.ini.features $general
 out=$(opensim enable testgrid economy 2>&1)
-check "opensim enable <grid> economy is the beta module" "echo \"\$out\" | grep -q 'economy (beta) enabled for testgrid' && [ -z \"\$(grep -L 'economymodule = BetaGridLikeMoneyModule' $sims/*.ini)\" ]"
+check "opensim enable <grid> economy is the beta module" "echo \"\$out\" | grep -q 'economy (beta) enabled for testgrid' && [ -z \"\$(grep -L 'economymodule = BetaGridLikeMoneyModule' $decided)\" ]"
 out=$(opensim enable testgrid economy gloebit 2>&1)
-check "opensim enable <grid> economy gloebit sets the module, and says which keys are the operator's" "echo \"\$out\" | grep -q 'economy (gloebit) enabled' && echo \"\$out\" | grep -q 'GLBKey' && [ -z \"\$(grep -L 'economymodule = Gloebit' $sims/*.ini)\" ] && [ -z \"\$(grep -l 'GLBKey' $sims/*.ini)\" ]"
+check "opensim enable <grid> economy gloebit sets the module, and says which keys are the operator's" "echo \"\$out\" | grep -q 'economy (gloebit) enabled' && echo \"\$out\" | grep -q 'GLBKey' && [ -z \"\$(grep -L 'economymodule = Gloebit' $decided)\" ] && [ -z \"\$(grep -l 'GLBKey' $decided)\" ]"
 out=$(opensim disable testgrid economy 2>&1)
-check "opensim disable <grid> economy comments the module out: OpenSimulator has its beta one again" "echo \"\$out\" | grep -q 'economy disabled for testgrid' && [ -z \"\$(grep -lE \"\$(active economymodule)\" $sims/*.ini)\" ]"
+check "opensim disable <grid> economy comments the module out: OpenSimulator has its beta one again" "echo \"\$out\" | grep -q 'economy disabled for testgrid' && [ -z \"\$(grep -lE \"\$(active economymodule)\" $decided)\" ]"
 out=$(opensim disable testgrid profiles 2>&1)
-check "opensim disable <grid> profiles comments the profile service out of the simulators, and turns it off in Robust" "echo \"\$out\" | grep -q 'profiles disabled for testgrid' && [ -z \"\$(grep -lE \"\$(active ProfileServiceURL)\" $sims/*.ini)\" ] && grep -A8 '^\\[UserProfilesService\\]' /etc/opensim/grids/testgrid/Robust.HG.ini | grep -q 'Enabled = false'"
+check "opensim disable <grid> profiles comments the profile service out of the settings of the grid, and turns it off in Robust" "echo \"\$out\" | grep -q 'profiles disabled for testgrid' && [ -z \"\$(grep -lE \"\$(active ProfileServiceURL)\" $decided)\" ] && grep -A8 '^\\[UserProfilesService\\]' /etc/opensim/grids/testgrid/Robust.HG.ini | grep -q 'Enabled = false'"
 out=$(opensim enable testgrid profiles 2>&1)
-check "opensim enable <grid> profiles puts them back" "echo \"\$out\" | grep -q 'profiles enabled for testgrid' && [ -z \"\$(grep -L 'ProfileServiceURL' $sims/*.ini)\" ] && grep -A8 '^\\[UserProfilesService\\]' /etc/opensim/grids/testgrid/Robust.HG.ini | grep -q 'Enabled = true'"
+check "opensim enable <grid> profiles puts them back" "echo \"\$out\" | grep -q 'profiles enabled for testgrid' && [ -z \"\$(grep -L 'ProfileServiceURL' $decided)\" ] && grep -A8 '^\\[UserProfilesService\\]' /etc/opensim/grids/testgrid/Robust.HG.ini | grep -q 'Enabled = true'"
 check "a grid that is not there is said" "! opensim enable nowhere search 2>&1 | grep -qv 'no grid called nowhere'"
 # The ports of an instance are a block of ten, the same on any machine: Robust
 # 8002 public and 8003 private; the first simulator 9000, 9004 for its console
