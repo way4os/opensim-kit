@@ -137,7 +137,7 @@ final class SetupRunner
             }
             $last = $made;
             foreach (array_slice($sim['regions'] ?? [], 1, null, true) as $j => $_) {
-                (new NewSim(new PresetUi($this->ui, SetupFile::regionPrompts(), $ask, $prefill)))->addRegion(
+                (new NewSim(new PresetUi($this->ui, SetupFile::regionPrompts($data, $i), $ask, $prefill)))->addRegion(
                     $made[0],
                     $this->simName($made),
                     SetupFile::regionValues($data, $i, $j),

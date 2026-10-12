@@ -93,10 +93,18 @@ test('answers what the application asks once the grid is made, and the administr
 
     expect(SetupFile::gridPrompts($data))->toBe(['Administrator user' => 'dbroot', 'Password of ' => 'rootpw', 'Enable grid' => true, 'Apply this configuration' => true, 'Start grid' => false])
         ->and(SetupFile::simPrompts($data, 0))->toMatchArray(['Administrator user' => 'dbroot', 'Enable simulator' => true, 'Start simulator' => true])
-        ->and(SetupFile::regionPrompts())->toBe(['Add region' => true, 'Load it now' => true]);
+        ->and(SetupFile::regionPrompts($data, 0))->toBe(['Add region' => true, 'Load it now' => true]);
 
     $data['grid']['enable'] = false;
     expect(SetupFile::gridPrompts($data)['Start grid'])->toBeFalse();
+
+    // A region added to a simulator that is not to be started is not loaded
+    $data['simulators'][0]['enable'] = false;
+    expect(SetupFile::regionPrompts($data, 0)['Load it now'])->toBeFalse();
+    $data['simulators'][0]['enable'] = true;
+    $data['simulators'][0]['start'] = false;
+    expect(SetupFile::regionPrompts($data, 0)['Load it now'])->toBeFalse();
+    unset($data['simulators'][0]['enable'], $data['simulators'][0]['start']);
 
     $ui = new PresetUi(new QuietUi(), SetupFile::simPrompts($data, 0));
     expect($ui->text('Administrator user', 'root'))->toBe('dbroot')
