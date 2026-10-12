@@ -158,13 +158,13 @@ test('keeps what the setup did, to make it again', function () {
     expect(SetupFile::problems($data))->toBe([]);
 });
 
-test('writes the setup file of a grid for its owner only', function () {
+test('writes the setup file of a grid for its owner and the group of the install', function () {
     $dir = test_tmp() . '/setup-' . uniqid();
     mkdir($dir);
     SetupFile::record($dir, static fn(array $d): array => $d + ['version' => 1]);
 
     expect(fileperms("$dir/setup.json") & 0o777)
-        ->toBe(0o600)
+        ->toBe(0o640)
         ->and(json_decode(file_get_contents("$dir/setup.json"), true))
         ->toBe(['version' => 1]);
 });

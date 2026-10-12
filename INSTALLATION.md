@@ -88,7 +88,7 @@ Joining a grid by a preset makes `/etc/opensim/presets/<name>` a whole folder, a
 
 ### A setup in a file
 
-A setup can be described in a file, JSON or YAML (the example is `share/examples/setup.yaml`, in `/usr/share/opensim-tools/share/examples/`): the grid, its owner, its simulators and regions, and the accounts to make. `opensim import setup.yaml` brings it in: without `--apply` it tells what it would make, with `--apply` it makes it, with the questions of the wizard answered from the file. What the wizard does is kept in the folder of the grid, `setup.json` (readable by its owner only, it holds the database passwords), to make the same grid again.
+A setup can be described in a file, JSON or YAML (the example is `share/examples/setup.yaml`, in `/usr/share/opensim-tools/share/examples/`): the grid, its owner, its simulators and regions, and the accounts to make. `opensim import setup.yaml` brings it in: without `--apply` it tells what it would make, with `--apply` it makes it, with the questions of the wizard answered from the file. What the wizard does is kept in the folder of the grid, `setup.json` (readable by the group of the install, as the ini files are, it holds the database passwords), to make the same grid again.
 
 ## The web side of a grid
 
@@ -172,7 +172,7 @@ The `opensim` service starts the enabled instances at boot. Package upgrades nev
 
 ## Backups and archives
 
-`opensim backup [GRID [SIM|REGION]] [--logs] [--archives] [--output DIR] [--keep N]` saves what it takes to install a grid again: configuration, data, one dump per database. One archive per grid (or simulator) in `<data>/backups/admin`, readable by its owner only. `--keep N` keeps the N newest backups of the same grid and kind and removes the older ones; `opensim save iar|oar` takes it too.
+`opensim backup [GRID [SIM|REGION]] [--logs] [--archives] [--output DIR] [--keep N]` saves what it takes to install a grid again: configuration, data, one dump per database. One archive per grid (or simulator) in `<data>/backups/admin`, readable by the group of the install. `--keep N` keeps the N newest backups of the same grid and kind and removes the older ones; `opensim save iar|oar` takes it too.
 
 `opensim save|load iar|oar` go through the console of a running simulator, into `<data of the grid>/backups/iar` and `oar`:
 
