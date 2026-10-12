@@ -252,7 +252,7 @@
             "dist": {
                 "type": "path",
                 "url": "../opensim-engine",
-                "reference": "d804e9e7e585ab2130a99fa16b2c6511cd062db6"
+                "reference": "99719ede0ee66ab2cf7fad2920a4df2c994354c6"
             },
             "require": {
                 "ext-curl": "*",
@@ -291,11 +291,11 @@
                     "OpenSim\\": "src/"
                 },
                 "classmap": [
-                    "class-health.php"
+                    "class-health.php",
+                    "legacy/"
                 ],
                 "files": [
-                    "includes/functions-escaping.php",
-                    "legacy/autoload.php"
+                    "includes/functions-escaping.php"
                 ]
             },
             "scripts": {
