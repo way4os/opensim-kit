@@ -292,6 +292,10 @@ source /test/economy-scenario.sh
 source /test/pages-scenario.sh
 [[ ${STOP_AFTER:-} != pages ]] || { ts "done after the pages: $([ $FAILED = 0 ] && echo 'all checks passed' || echo 'SOME CHECKS FAILED')"; exit $FAILED; }
 
+# Users are banned: the statements are written, nothing is changed until they are run
+source /test/ban-scenario.sh
+[[ ${STOP_AFTER:-} != ban ]] || { ts "done after the ban: $([ $FAILED = 0 ] && echo 'all checks passed' || echo 'SOME CHECKS FAILED')"; exit $FAILED; }
+
 # A region that exists is changed in place: its place, not its identity
 regionfile=/etc/opensim/grids/testgrid/sims/testgrid_sim1/regions/Sim1North.ini
 regionuuid=$(grep -m1 '^RegionUUID' $regionfile)

@@ -221,10 +221,10 @@ green, then the next one.
    `Models\Grid|Robust|Simulator|Instance|Core`, `Runtime\*`, `Console\*` (REST and screen), the port mapping with
    kick-inside called by start and stop. The commands `start`, `stop`, `restart`, `status`, `console`, `command`, `enable`,
    `disable` are commands of the application; the test doubles are `OpenSim\Testing\*` for the front-ends' tests.
-3. **Reading the config.** Partly. `OpenSim\Config\{Layout, IniEditor, IniReader, TextFileService, GridFileService}` are
-   the engine's; `crudget` is gone from the commands (it stays in `libexec/os-helpers`, for `install/*.sh` and `banuser`).
-   Still to do: the configuration of a simulator (a generated master and the simulator's own OpenSim.ini, see above), and
-   one reader for `OpenSim_Config`, `IniReader` and `InstancePorts`.
+3. **Reading the config.** Partly. `OpenSim\Config\{Layout, ConfigReader, GridConfig, ConnectionString, IniEditor, TextFileService,
+   GridFileService}` are the engine's, one reader of the ini files for the importers, the ports, the grids and the legacy
+   `OpenSim_Config`; `crudget` is gone from the commands (it stays in `libexec/os-helpers`, for `install/*.sh`).
+   Still to do: the configuration of a simulator (a generated master and the simulator's own OpenSim.ini, see above).
 4. **Writing the config.** Mostly. `OpenSim\Provisioning\*` holds what decides and writes: `SimConfig`, `RobustConfig`,
    `GridShared`, `Presets`, `Features`, `MoneyServerConfig`, `DatabaseService`, `GridAccounts`, `AccountWriter`, the
    importers, `GridRegistry`, `Places`, `LocationFinder`... Still to do: `NewGrid` and `NewSim` (OpenSimKit\Setup) hold the
@@ -236,8 +236,8 @@ green, then the next one.
    `OpenSimKit\System`. The namespace `OpenSim\Installer` is gone.
 7. **Legacy names** of the engine in `legacy/`, the helpers on the new names. To do.
 8. **Bash removed.** Done for the commands: `libexec/opensim-legacy`, `newgrid`, `newsim`, `newregion` are gone. Left:
-   `libexec/os-helpers`, `load-helpers`, `venv-setup` (used by `install/*.sh` and `banuser`), until `banuser` is a command and
-   `install/install.sh` is replaced by the package.
+   `libexec/os-helpers`, `load-helpers`, `venv-setup` (used by `install/*.sh`), until `install/install.sh` is replaced by the
+   package. `banuser` is `opensim ban` (engine `OpenSim\Moderation`).
 
 ## Decisions (2026-10-11)
 

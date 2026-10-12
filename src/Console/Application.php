@@ -14,6 +14,7 @@ use OpenSimKit\Console\Commands\DisableCommand;
 use OpenSimKit\Console\Commands\EnableCommand;
 use OpenSimKit\Console\Commands\RestartCommand;
 use OpenSimKit\Console\Commands\BackupCommand;
+use OpenSimKit\Console\Commands\BanCommand;
 use OpenSimKit\Console\Commands\ImportCommand;
 use OpenSimKit\Console\Commands\InstallDotnetCommand;
 use OpenSimKit\Console\Commands\LoadCommand;
@@ -83,6 +84,7 @@ final class Application extends ConsoleApplication
             new EnableCommand($environment),
             new DisableCommand($environment),
             new BackupCommand($environment),
+            new BanCommand($environment),
             new ImportCommand($environment),
             new InstallDotnetCommand($environment),
             new LoadCommand($environment),

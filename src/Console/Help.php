@@ -36,6 +36,7 @@ Grids
     web [grid] [show|check]
     web [grid] snippet <caddy|nginx|apache>
     next <grid> location [X,Y] [COUNT] [-e X,Y]
+    ban [grid] <name|uuid>... [--output DIR]
 
 Archives and backups
     save iar [GRID [SIM]] [options] [--keep N] FIRST LAST PATH [PASSWORD] [FILE]

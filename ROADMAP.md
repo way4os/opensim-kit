@@ -4,8 +4,9 @@
 
 - [ ] PRIRORITY: Refactor as a true PHP application, PSR-4, using consistant namespaces and classes, leaving the CLI only as a shortcut for main features. Done: the lifecycle and every command in the engine and the kit (see REFACTORING.md). Left:
     - [ ] the configuration of a simulator: a master generated per grid (`OpenSimGridDefaults.ini`, on top of `OpenSimKitDefaults.ini` of the kit) given with `-inimaster`, the simulator's own ini holding only what differs; the conversion of the grids made the old way is for the import
-    - [ ] one reader of ini files (`OpenSim_Config`, `IniReader`, `InstancePorts`)
-    - [ ] `libexec/banuser` becomes a command, then `os-helpers`, `venv-setup`, `load-helpers` and the dependency on crudini go (the installer from source needs them until then)
+    - [x] one reader of ini files (`OpenSim\Config\ConfigReader`, `GridConfig`, `ConnectionString`); left in the kit: `InstallConfig` (opensim.conf)
+    - [x] `libexec/banuser` is `opensim ban`
+    - [ ] `os-helpers`, `venv-setup`, `load-helpers` and the dependency on crudini go (`install/install.sh` and the postinst scripts need them until they are PHP)
     - [ ] the old global names of the engine as aliases (`legacy/`), the helpers and w4os on the new names
 - [x] Separation of concern is not respected in child libraries. Each library must remain strictly independent and never rely on data, classes or concept defined in the apps/projects/libraries consuming it.
 - [x] The port-based location must only be used to set the initial center of the grild. Once it has been set, it is not overridable by the rule.
