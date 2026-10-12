@@ -56,6 +56,12 @@ sudo opensim install-dotnet
 
 `opensim setup` is a wizard: it goes one level deeper at a time (the core, the grids, a grid, a simulator, a region), and every screen ends with `Back` and `Quit`.
 
+### In the terminal or in your browser
+
+`opensim setup` asks where you want to go through it, or you say it: `opensim setup --terminal`, `opensim setup --web`. With `--web` the setup starts a small web server on this machine only (`127.0.0.1`, a free port), gives an address and opens it when there is a browser in front of you. The address works once, from this machine; the server stops when the setup ends (or with Ctrl-C in the terminal). The questions are the same as in the terminal.
+
+On a server you reach over SSH, the address is not reachable from your computer: forward the port the setup tells (`ssh -L 8123:127.0.0.1:8123 your-server`) and open the address there, or stay in the terminal.
+
 ### Quick and advanced
 
 `Add grid` proposes the quick setup first. One screen with the name of the grid, its login URI (`host:port`, the address the viewers log in to), the owner of the grid (First Last), their password and an optional email, to go through with Tab or Enter. The usual settings are chosen for everything else and shown together, for the grid and for its first simulator, before anything is written: `Continue` makes everything, `Edit config` asks every question again, with those settings as the answers proposed. The database is the setup's business: its user and password are the defaults, and the credentials of a database administrator are asked only if the database cannot be made without them.
