@@ -404,7 +404,7 @@ check "modules in their own folders" "[ -f /usr/share/opensim-modules/0.9.3.0/op
     [ ! -e /usr/share/opensim/0.9.3.0/bin/OpenSimSearch.Modules.dll ]"
 check "log config of the wizard" "[ -f /var/log/opensim/testgrid_robust.log ]"
 grid_core() {
-    runuser -u opensim -- crudini --inplace --set /etc/opensim/grids/testgrid/testgrid.conf Grid CoreDirectory "$1"
+    runuser -u opensim -- sed -i "s|^CoreDirectory = .*|CoreDirectory = $1|" /etc/opensim/grids/testgrid/testgrid.conf
     opensim restart now testgrid >/tmp/robust-restart.out 2>&1
 }
 
@@ -485,7 +485,7 @@ rm -f /etc/opensim/opensim.d/elsewhere_far.ini
 
 ts "modules enabled for a region"
 conf=/etc/opensim/opensim.conf
-check "opensim-kit enabled the safe modules" "[ \"\$(crudini --get $conf Defaults EnabledModules)\" = 'opensimsearch gloebit' ]"
+check "opensim-kit enabled the safe modules" "grep -q '^EnabledModules = opensimsearch gloebit\$' $conf"
 mkdir -p /etc/opensim/opensim.d /var/lib/opensim/data/testsim /var/cache/opensim/testsim
 cat >/etc/opensim/opensim.d/testsim.ini <<'EOF'
 [Const]
@@ -508,10 +508,10 @@ opensim start testsim >/tmp/nogdiplus.out 2>&1; nogdiplus=$?
 mv /tmp/libgdiplus.off "$(readlink -f "$gdiplus")" && ldconfig
 check "a region without libgdiplus is refused with the way out" "[ $nogdiplus != 0 ] && grep -aq 'libgdiplus is missing' /tmp/nogdiplus.out && grep -aq 'apt install libgdiplus' /tmp/nogdiplus.out"
 check "the core packages depend on libgdiplus" "dpkg -s opensim-0.9.3.0 | grep '^Depends:' | grep -q libgdiplus"
-crudini --inplace --set $conf Defaults EnabledModules opensimsearch
+ini_set $conf Defaults EnabledModules opensimsearch
 opensim start testsim >/dev/null 2>&1; opensim stop now testsim >/dev/null 2>&1
 check "a module no longer enabled is unlinked" "[ ! -e $addins/Gloebit.dll ] && [ -L $addins/OpenSimSearch.Modules.dll ]"
-crudini --inplace --set $conf Defaults EnabledModules "opensimsearch gloebit"
+ini_set $conf Defaults EnabledModules "opensimsearch gloebit"
 rm -f /etc/opensim/opensim.d/testsim.ini
 
 # The setup run by a person who is not the system user

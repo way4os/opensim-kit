@@ -11,49 +11,11 @@ conf=/etc/opensim/opensim.conf
 layout="/etc/opensim /etc/opensim/grids /etc/opensim/presets /etc/opensim/opensim.d /etc/opensim/robust.d
     /var/lib/opensim /var/lib/opensim/data /var/log/opensim /var/cache/opensim"
 
-# One profile per release in /usr/share/opensim, added or removed with it.
-# The first one becomes the default: [Defaults] points to it and mirrors it.
+# One profile per release in /usr/share/opensim, added or removed with it. The first one becomes the default: [Defaults]
+# points to it and mirrors it. Done by the PHP of the tools, which keeps what the administrator wrote in the file.
 update_profiles() {
-    for core in /usr/share/opensim/*/; do
-        core=${core%/}
-        # OpenSim.exe in the releases, only OpenSim.dll in builds made on Linux
-        [ -f "$core/bin/OpenSim.exe" ] || [ -f "$core/bin/OpenSim.dll" ] || continue
-        version=${core##*/}
-        profile=opensim-$version
-        crudini --get "$conf" "$profile" >/dev/null 2>&1 && continue
-        # Self-contained: the locations of [Defaults], and this release
-        for key in DirectoryLayout CoreRoot EtcRoot VarRoot LogsRoot CacheRoot DataRoot SystemUser; do
-            value=$(crudini --get "$conf" Defaults "$key" 2>/dev/null) || continue
-            crudini --inplace --set "$conf" "$profile" "$key" "$value"
-        done
-        crudini --inplace --set "$conf" "$profile" OpensimVersion "$version"
-        crudini --inplace --set "$conf" "$profile" CoreDirectory "$core"
-        crudini --inplace --set "$conf" "$profile" Runtime dotnet
-    done
-
-    for profile in $(crudini --get "$conf" | grep -vx Defaults); do
-        core=$(crudini --get "$conf" "$profile" CoreDirectory 2>/dev/null) || continue
-        case "$core" in /usr/share/opensim/*) ;; *) continue ;; esac
-        [ -d "$core" ] && continue
-        crudini --inplace --del "$conf" "$profile"
-        if [ "$(crudini --get "$conf" Defaults DefaultProfile 2>/dev/null)" = "$profile" ]; then
-            crudini --inplace --del "$conf" Defaults DefaultProfile
-        fi
-    done
-
-    if ! crudini --get "$conf" Defaults DefaultProfile >/dev/null 2>&1; then
-        # The latest release, or else another build (e.g. unstable)
-        cores=$(ls -d /usr/share/opensim/*/bin/OpenSim.exe /usr/share/opensim/*/bin/OpenSim.dll 2>/dev/null |
-            sed 's:/bin/OpenSim\.[a-z]*$::' | sort -uV)
-        core=$(echo "$cores" | grep -E '/[0-9]+(\.[0-9]+)+$' | tail -1)
-        [ -n "$core" ] || core=$(echo "$cores" | tail -1)
-        if [ -n "$core" ]; then
-            crudini --inplace --set "$conf" Defaults DefaultProfile "opensim-${core##*/}"
-            crudini --inplace --set "$conf" Defaults OpensimVersion "${core##*/}"
-            crudini --inplace --set "$conf" Defaults CoreDirectory "$core"
-            crudini --inplace --set "$conf" Defaults Runtime dotnet
-        fi
-    fi
+    php /usr/share/opensim-tools/libexec/update-profiles.php --conf "$conf" --cores /usr/share/opensim ||
+        echo "opensim-tools: could not update the install profiles in $conf (opensim profile add)" >&2
 }
 
 case "$1" in

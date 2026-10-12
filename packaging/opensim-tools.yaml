@@ -27,9 +27,7 @@ license: AGPL-3.0-or-later
 
 depends:
   - adduser
-  - bash-tools (>= ${BASH_TOOLS_VERSION})
   - bsdextrautils | bsdmainutils
-  - crudini
   - curl
   - default-mysql-client | virtual-mysql-client
   - opensim-engine

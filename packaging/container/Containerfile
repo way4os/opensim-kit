@@ -18,7 +18,7 @@ RUN groupadd --system --gid 10001 opensim \
 # The packages depend on "a database server, or PostgreSQL, or SQLite" and on
 # "a MySQL client": what is installed first satisfies them, so no server is added
 # (the database is another container, or another machine).
-# The Magiiic repository gives bash-tools.
+# The Magiiic repository gives the packages of the family.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends ca-certificates curl gpg libsqlite3-0 default-mysql-client dotnet-runtime-8.0 \
  && curl -fsSL https://apt.magiiic.com/magiiic-packaging.asc | gpg --dearmor -o /usr/share/keyrings/magiiic-packaging.gpg \
@@ -27,7 +27,7 @@ RUN apt-get update \
 
 COPY pkgs/ /pkgs/
 RUN apt-get install -y --no-install-recommends /pkgs/*.deb \
- && crudini --inplace --set /etc/opensim/opensim.conf Defaults EnabledModules "opensimsearch gloebit" \
+ && php /usr/share/opensim-tools/libexec/update-profiles.php --default-modules "opensimsearch gloebit" \
  && chown opensim:opensim /etc/opensim/opensim.conf \
  && rm -rf /pkgs /var/lib/apt/lists/*
 

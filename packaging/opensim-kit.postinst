@@ -8,7 +8,6 @@ set -e
 conf=/etc/opensim/opensim.conf
 
 if [ "$1" = "configure" ] && [ -f "$conf" ]; then
-    if ! crudini --get "$conf" Defaults EnabledModules >/dev/null 2>&1; then
-        crudini --inplace --set "$conf" Defaults EnabledModules "opensimsearch gloebit"
-    fi
+    php /usr/share/opensim-tools/libexec/update-profiles.php --conf "$conf" --default-modules "opensimsearch gloebit" ||
+        echo "opensim-kit: could not enable the modules in $conf" >&2
 fi
