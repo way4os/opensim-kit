@@ -23,6 +23,10 @@ echo 'tester ALL=(opensim) NOPASSWD: ALL' >/etc/sudoers.d/tester
 chmod 440 /etc/sudoers.d/tester
 mysql -e "CREATE USER tester@localhost IDENTIFIED VIA unix_socket; GRANT ALL ON *.* TO tester@localhost WITH GRANT OPTION;"
 
+# An account of the database that exists already, with a password the setup cannot guess: it asks for it for the database of the grid,
+# and must not ask again for the one of the simulator (the same account)
+mysql -e "CREATE USER opensim@localhost IDENTIFIED BY 'knownpw12';"
+
 ts "the setup, in the browser"
 (cd /tmp && runuser -u tester -- opensim setup --web >/tmp/wizard.out 2>&1
     echo "exit code: $?" >>/tmp/wizard.out) &
@@ -34,6 +38,8 @@ fold -s -w 200 /tmp/browser.out | sed 's/^/   | /' | head -60
 check "the browser went through the setup to its last page" "grep -q '^done: ' /tmp/browser.out && grep -q 'exit code: 0' /tmp/browser.out"
 pages=$(sed -n 's/^pages: //p' /tmp/browser.out)
 check "a grid and its first region need a handful of pages ($pages), not a page per question" "[ \"${pages:-99}\" -le 10 ]"
+check "the password of the account is asked once, for the database of the grid: the simulator uses it" "[ \"\$(grep -c '^page [0-9]*: Database' /tmp/browser.out)\" = 1 ]"
+check "what the setup is about to create is a note, not a warning" "! grep -q '^warning: .*\(does not exist\|has no access\)' /tmp/browser.out"
 wait_check 20 "the setup ends well, in the terminal too" "grep -q 'exit code: 0' /tmp/wizard.out"
 dump /tmp/wizard.out 40
 

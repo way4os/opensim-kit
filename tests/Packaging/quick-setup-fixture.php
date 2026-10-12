@@ -7,6 +7,8 @@ return [
         'Login URI' => 'localhost:8002',
         'Grid owner' => 'Web Owner',
         'Owner password' => 'secret12',
+        // The account of the database exists already: its password is asked, once
+        'Database password' => 'knownpw12',
     ],
     'click' => [],
 ];
