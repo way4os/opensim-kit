@@ -195,7 +195,7 @@ describe('The customizations of an imported Robust', function () {
 });
 
 /**
- * Run libexec/import.php as a user whose install is a temporary tree with a core that has the example of Robust.
+ * Run bin/opensim import as a user whose install is a temporary tree with a core that has the example of Robust.
  *
  * @param list<string> $arguments What follows `opensim import`.
  * @param string $original The Robust config to port.
@@ -221,7 +221,8 @@ function import_run(array $arguments, string $original): array
     $process = proc_open(
         [
             PHP_BINARY,
-            "$code/libexec/import.php",
+            "$code/bin/opensim",
+            'import',
             ...array_map(static fn(string $a): string => str_replace('@OLD@', "$root/old/bin", $a), $arguments),
         ],
         [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
@@ -268,7 +269,7 @@ describe('import grid config', function () {
     test('refuses a grid that is already configured', function () use ($original) {
         [, , , $root] = import_run(['@OLD@/Robust.HG.ini', '--apply'], $original);
         $again = proc_open(
-            [PHP_BINARY, dirname(__DIR__, 2) . '/libexec/import.php', "$root/old/bin/Robust.HG.ini"],
+            [PHP_BINARY, dirname(__DIR__, 2) . '/bin/opensim', 'import', "$root/old/bin/Robust.HG.ini"],
             [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
             $pipes,
             dirname(__DIR__, 2),
@@ -352,7 +353,8 @@ describe('import sim config', function () {
         $sim = import_sim_tree();
         $code = dirname(__DIR__, 2);
         $process = proc_open(
-            [PHP_BINARY, "$code/libexec/import.php", 'oldworld', $sim, '--apply'],
+            [PHP_BINARY, "$code/bin/opensim",
+            'import', 'oldworld', $sim, '--apply'],
             [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
             $pipes,
             $code,
@@ -386,7 +388,8 @@ function import_file(string $name, string $content, array $arguments = []): arra
     $process = proc_open(
         [
             PHP_BINARY,
-            "$code/libexec/import.php",
+            "$code/bin/opensim",
+            'import',
             ...array_map(static fn(string $a): string => str_replace('@FILE@', "$dir/$name", $a), $arguments),
         ],
         [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],

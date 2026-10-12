@@ -230,8 +230,8 @@ green, then the next one.
    importers, `GridRegistry`, `Places`, `LocationFinder`... Still to do: `NewGrid` and `NewSim` (OpenSimKit\Setup) hold the
    screens and the apply together, the apply goes to `OpenSim\Provisioning`.
 5. **The other commands.** Done: `ports`, `next`, `web`, `profile`, `oar`, `save`, `load`, `backup`, `rest`,
-   `install-dotnet`, `setup`, `import` are commands. `setup`, `rest`, `import` and `install-dotnet` hand over to the program
-   they come from (`DelegateCommand`), `libexec/import*.php` become classes next.
+   `install-dotnet`, `setup`, `import` are commands. `setup`, `rest` and `install-dotnet` hand over to the program they
+   come from (`DelegateCommand`); `import` is `OpenSimKit\Setup\Import\*`.
 6. **The rest of `OpenSim\Installer`** moved: `OpenSimKit\Setup` (the wizard, its plan, its config), `OpenSimKit\Ui`,
    `OpenSimKit\System`. The namespace `OpenSim\Installer` is gone.
 7. **Legacy names** of the engine in `legacy/`, the helpers on the new names. To do.
