@@ -4,7 +4,7 @@ namespace OpenSimKit\System;
 
 use OpenSim\Provisioning\SetupFailedException;
 use OpenSim\Provisioning\UiInterface;
-use OpenSimKit\Ui\CapturesOutput;
+use OpenSimKit\Ui\Captured;
 
 /**
  * Hands the writing of the files and the instances to the system user of the
@@ -40,7 +40,8 @@ final class Elevated
     public static function run(UiInterface $ui, string $flag, array $payload, string $user): void
     {
         // The terminal shows what it says, unless the setup is somewhere else (a browser): then it is given to the frontend
-        $captured = $ui instanceof CapturesOutput;
+        $capture = Captured::by($ui);
+        $captured = $capture !== null;
         $process = proc_open(
             ['sudo', '-H', '-u', $user, PHP_BINARY, dirname(__DIR__, 2) . '/install/install.php', $flag],
             [0 => ['pipe', 'r'], 1 => $captured ? ['pipe', 'w'] : STDOUT, 2 => $captured ? ['redirect', 1] : STDERR],
@@ -55,7 +56,7 @@ final class Elevated
         fclose($pipes[0]);
         if ($captured) {
             while (($line = fgets($pipes[1])) !== false) {
-                $ui->stream($line);
+                $capture->stream($line);
             }
             fclose($pipes[1]);
         }

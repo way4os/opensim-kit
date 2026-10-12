@@ -35,7 +35,7 @@ check "the browser went through the setup to its last page" "grep -q '^done: ' /
 pages=$(sed -n 's/^pages: //p' /tmp/browser.out)
 check "a grid and its first region need a handful of pages ($pages), not a page per question" "[ \"${pages:-99}\" -le 10 ]"
 wait_check 20 "the setup ends well, in the terminal too" "grep -q 'exit code: 0' /tmp/wizard.out"
-dump /tmp/wizard.out 12
+dump /tmp/wizard.out 40
 
 ts "what the setup made"
 grid=/etc/opensim/grids/web_grid

@@ -208,3 +208,13 @@ describe('what is said', function () {
         expect($ui->entity('home'))->toBe("\u{E000}home\u{E001}");
     });
 });
+
+describe('what the programs of the setup say', function () {
+    test('goes to the page, also when the interface is answered from a table in front of it', function () {
+        [$ui] = webSetup([]);
+        $preset = new \OpenSimKit\Ui\PresetUi(new \OpenSimKit\Ui\PresetUi($ui, []), []);
+
+        expect(\OpenSimKit\Ui\Captured::by($preset))->toBe($ui)
+            ->and(\OpenSimKit\Ui\Captured::by(new \OpenSimKit\Ui\PresetUi(new \OpenSimKit\Ui\QuietUi(), [])))->toBeNull();
+    });
+});

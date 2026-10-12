@@ -40,6 +40,12 @@ final class PresetUi implements UiInterface
         private bool $prefill = false,
     ) {}
 
+    /** The interface behind, which shows what is not answered from the table. */
+    public function inner(): UiInterface
+    {
+        return $this->inner;
+    }
+
     /** Set when something failed (the database): its settings are asked again, not answered from the table */
     private bool $retrying = false;
 
