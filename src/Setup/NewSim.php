@@ -3,27 +3,22 @@
 namespace OpenSimKit\Setup;
 
 use OpenSimKit\System\Elevated;
+use OpenSimKit\Ui\FieldForm;
+use OpenSim\Forms\FieldSet;
 use OpenSim\Config\GridFileService;
 use OpenSim\Console\InstanceConsoleService;
-use OpenSim\Models\Core;
 use OpenSim\Models\GridInfo;
 use OpenSim\Models\GridState;
 use OpenSim\Models\RegionState;
 use OpenSim\Models\SimState;
-use OpenSim\Network\Ports;
+use OpenSim\Models\Simulator;
 use OpenSim\Provisioning\DatabaseService;
-use OpenSim\Provisioning\GridAccounts;
-use OpenSim\Provisioning\GridRegistry;
 use OpenSim\Provisioning\LocationFinder;
-use OpenSim\Provisioning\Places;
 use OpenSim\Provisioning\Presets;
-use OpenSim\Provisioning\RandomName;
-use OpenSim\Provisioning\RegionFlags;
-use OpenSim\Provisioning\RegionName;
-use OpenSim\Provisioning\RobustGrid;
+use OpenSim\Provisioning\RegionPlanner;
 use OpenSim\Provisioning\SetupFailedException;
-use OpenSim\Provisioning\SimName;
 use OpenSim\Provisioning\SimPlan;
+use OpenSim\Provisioning\SimPlanner;
 use OpenSim\Provisioning\Slug;
 use OpenSim\Provisioning\UiInterface;
 
@@ -115,7 +110,7 @@ final class NewSim
 
                 throw new SetupFailedException('database');
             }
-            $this->askDatabase($plan, $grid);
+            $this->askDatabase($plan);
             $check = $plan->databasePlan();
         }
 
@@ -227,24 +222,29 @@ final class NewSim
             $probe->gridNick = $grid->nick;
             $probe->gridDir = $grid->dir;
         }
-        $values = $this->regionValues($probe, $grid, $database, false, $pool);
+        $planner = RegionPlanner::forSim(
+            $probe,
+            $grid,
+            $database,
+            false,
+            $pool,
+            '',
+            static fn(string $instance): int => (int) (GridInfo::parse("{$grid->dir}/sims/$instance.ini")['httpPort'] ?? 0),
+        );
+        $answers = $this->regionAnswers($planner, $grid);
 
-        if (($values['sim'] ?? '+') === '+') {
-            $plan = $this->gather($grid, $profile, $database, null, $values);
+        if (($answers['sim'] ?? '+') === '+') {
+            $plan = $this->gather($grid, $profile, $database, null, $answers);
 
             return $plan === null ? null : $this->complete($plan, $grid, $profile, false);
         }
 
-        $slug = $values['sim'];
+        $slug = $answers['sim'];
         $plan = $this->regionPlan($grid, $this->simNameOf($grid, $slug));
         if ($plan === null) {
             return null;
         }
-        // The port proposed was the one of the first simulator of the pool
-        if ($values['port'] === $values['default_port'] && $slug !== array_key_first($pool)) {
-            $values['port'] = '';
-        }
-        $this->takeRegion($plan, $grid, $database, $values);
+        RegionPlanner::forSim($plan, $grid, $database)->apply($plan, $answers);
         $this->ui->note(
             sprintf(
                 _("Region %s at %s, port %s, for simulator '%s'."),
@@ -406,49 +406,27 @@ final class NewSim
         $current = RegionState::values($region['file']);
 
         $plan->regionName = $regionName;
-        $plan->regionUuid = $current['RegionUUID'] ?? self::uuid();
+        $plan->regionUuid = $current['RegionUUID'] ?? RegionPlanner::uuid();
         $plan->regionSize = (int) ($current['SizeX'] ?? 256);
         $plan->externalHost = $current['ExternalHostName'] ?? $plan->externalHost;
         $plan->overwriteRegion = true;
         $plan->start = false;
 
-        $numeric = static fn(string $v): ?string => ctype_digit(trim($v)) ? null : _('Enter a port number.');
-        $v = $this->ui->form(
-            [
-                [
-                    'key' => 'location',
-                    'label' => _('Region location (x,y)'),
-                    'default' => $current['Location'] ?? '',
-                    'validate' => static fn(string $v): ?string => LocationFinder::parse($v) === null
-                        ? _('Use x,y (e.g. 8002,8002).')
-                        : null,
-                ],
-                [
-                    'key' => 'port',
-                    'label' => _('Region port'),
-                    'default' => $current['InternalPort'] ?? (string) $plan->regionPort,
-                    'validate' => $numeric,
-                ],
-                [
-                    'key' => 'apply',
-                    'label' => sprintf(_("Change region '%s'?"), $regionName),
-                    'type' => 'confirm',
-                    'default' => 'yes',
-                ],
-            ],
-            sprintf(_("Region '%s'"), $regionName),
-        );
-        if ($v['apply'] === 'no') {
+        // Its place and its port: the rest of the region is its identity in the grid
+        $database = new DatabaseService($this->ui);
+        $planner = RegionPlanner::forSim($plan, $grid, $database)->fixed();
+        $fields = new FieldSet([
+            ...$planner->fields()->all(),
+            ['name' => 'apply', 'type' => 'boolean', 'label' => sprintf(_("Change region '%s'?"), $regionName)],
+        ]);
+        $proposed = ['location' => $current['Location'] ?? '', 'port' => $current['InternalPort'] ?? (string) $plan->regionPort, 'apply' => true];
+        $v = FieldForm::ask($this->ui, $fields, $proposed, sprintf(_("Region '%s'"), $regionName)) + $proposed;
+        if ($v['apply'] === false) {
             $this->ui->note(_('Aborted — nothing changed.'));
 
             return;
         }
-        $plan->regionLocation = $this->settleLocation(
-            $grid,
-            (new GridRegistry(new DatabaseService($this->ui)))->locations($grid),
-            $v['location'],
-            $current['Location'] ?? null,
-        );
+        $plan->regionLocation = $this->confirmPlace($planner, $grid, $v['location'], $current['Location'] ?? null);
         $plan->regionPort = (int) $v['port'];
         $this->write($plan, $profile);
         $this->ui->note(
@@ -684,146 +662,28 @@ final class NewSim
         ?string $simName,
         ?array $region = null,
     ): ?SimPlan {
-        $required = static fn(string $v): ?string => trim($v) === '' ? 'This field is required.' : null;
-        $numeric = static fn(string $v): ?string => ctype_digit(trim($v)) ? null : _('Enter a port number.');
-
-        $plan = new SimPlan();
-        $plan->gridNick = $grid->nick;
-        $plan->gridName = $grid->name;
-        $plan->gridDir = $grid->dir;
-        $plan->hypergrid = $grid->hypergrid;
-        $plan->baseHostname = $grid->baseHostname;
-        $plan->publicPort = $grid->publicPort;
-        $plan->privatePort = $grid->privatePort;
-        $plan->logsDirectory = $grid->logsDirectory;
-        // A remote grid not kept yet is written with the simulator
-        $plan->remoteGrid = $grid->remote && !is_file("{$grid->dir}/{$grid->nick}.conf") ? $grid->describe() : null;
-        // A grid joined by a preset: the simulators read the files of the preset, where they are
-        $plan->preset = $grid->preset;
-        $plan->configDir = $grid->preset !== '' ? (new Presets([], $profile['EtcRoot']))->dir($grid->preset) : '';
-
-        // The first simulator of a grid has the name of its landing region, that is its first region
-        $firstSim = !$grid->remote && SimState::names($grid->dir) === [];
-        // An accent is not refused, it is transliterated (Noël becomes Noel)
-        $simNameProblem = static fn(string $v): ?string => preg_match(
-            '/^[A-Za-z0-9][A-Za-z0-9 _-]*$/',
-            trim(Slug::ascii($v)),
-        )
-            ? null
-            : _('Letters, digits, spaces, _ and - only.');
         if ($simName === null && $grid->needsLandingRegion()) {
             $this->ui->note(self::LANDING);
         }
-
-        $cores = Core::choices($profile['CoreRoot'] ?? '');
-        if ($cores === []) {
+        // A simulator made for a region is named after it, as the first of a grid is
+        $planner = SimPlanner::forGrid($grid, $profile, $database, $this->ui, $simName, $region['name'] ?? null);
+        if ($planner->cores() === []) {
             $this->ui->error(_('No OpenSim core found.'));
 
             return null;
         }
-
-        // The ports of a simulator are a block of ten, the first free one from where the
-        // simulators of the grid start (9000 for Robust on 8002), on this machine and among
-        // the regions the grids of this machine know on the others: its HTTP port is the first one, the
-        // console is x4, the regions take the others
-        $foreign = (new GridRegistry($database))->knownPorts($profile, $grid);
-        $block = Ports::nextBlock(Ports::simulatorsFrom($grid->publicPort), $foreign);
-        $consoleFor = static function (int $http): int {
-            $base = Ports::simulatorBlock($http);
-
-            return $base !== null ? $base + 4 : Ports::next($http + 1);
-        };
+        $fields = $planner->fields();
 
         // The simulator on one screen: its name, the core, its ports, the public address of this machine (what the regions
         // announce, the viewers connect to it: SYSTEMIP is the first interface, which is not the world behind a NAT or in
         // a container) and its console
-        $simulator = function (array $current, string $name) use (
-            $simName,
-            $simNameProblem,
-            $grid,
-            $cores,
-            $block,
-            $consoleFor,
-            $numeric,
-        ): array {
-            $http = (int) ($current['httpPort'] ?? $block);
-
-            return $this->ui->form(
-                [
-                    [
-                        'key' => 'name',
-                        'label' => _('Simulator name'),
-                        'default' => $name,
-                        'validate' => $simNameProblem,
-                        'when' => static fn(array $v): bool => $simName === null,
-                    ],
-                    [
-                        'key' => 'core',
-                        'label' => _('OpenSim core to run this simulator'),
-                        'type' => 'choice',
-                        'options' => $cores,
-                        'default' => $grid->coreDirectory,
-                        'when' => static fn(array $v): bool => count($cores) > 1,
-                    ],
-                    [
-                        'key' => 'port',
-                        'label' => _('Simulator HTTP port'),
-                        'default' => (string) $http,
-                        'validate' => $numeric,
-                    ],
-                    [
-                        'key' => 'host',
-                        'label' => _('Public address of this machine'),
-                        'default' => $current['externalHost'] ?? 'SYSTEMIP',
-                        'hint' => _('What the regions announce to the viewers (SYSTEMIP: the first interface)'),
-                    ],
-                    [
-                        'key' => 'console',
-                        'label' => _('Console of the simulator'),
-                        'type' => 'choice',
-                        'options' => [
-                            'rest' => _('Remote REST console (recommended)'),
-                            'screen' => _('Screen session (on this machine)'),
-                        ],
-                        'default' => isset($current['consoleUser']) || $current === [] ? 'rest' : 'screen',
-                    ],
-                    [
-                        'key' => 'console_port',
-                        'label' => _('Console port'),
-                        'default' => (string) ($current['consolePort'] ?? $consoleFor($http)),
-                        'validate' => $numeric,
-                        'when' => static fn(array $v): bool => $v['console'] === 'rest',
-                    ],
-                ],
-                _('Simulator'),
-            );
-        };
-
-        // A simulator made for a region is named after it, as the first of a grid is; a random name when the name of the
-        // region does not fit or is taken
-        $defaultName =
-            $simName ??
-            SimName::suggest(
-                $region['name'] ?? null,
-                $firstSim ? self::FIRST : null,
-                fn(string $v): ?string => $simNameProblem($v) ??
-                    (is_file("{$grid->dir}/sims/" . GridInfo::instanceName("{$grid->nick}_$v") . '.ini')
-                        ? 'taken'
-                        : null),
-            );
-        $current = [];
-        if ($simName !== null) {
-            // Named by the caller: it is the one to modify
-            $plan->slug = GridInfo::instanceName($grid->nick . '_' . $simName);
-            $current = is_file($plan->iniPath()) ? GridInfo::parse($plan->iniPath()) : [];
-        }
-        $v = $simulator($current, $defaultName);
-        $plan->simName = $simName ?? Slug::ascii(trim($v['name']));
-        $plan->slug = GridInfo::instanceName($grid->nick . '_' . $plan->simName);
-
-        if ($simName === null && is_file($plan->iniPath())) {
+        $answers = FieldForm::ask($this->ui, $fields->group('simulator'), $planner->resolve(), _('Simulator'));
+        $name = $planner->resolve($answers)['name'];
+        $planner = $planner->forSim($name);
+        $iniPath = "{$grid->dir}/sims/" . $planner->resolve($answers)['slug'] . '.ini';
+        if ($simName === null && is_file($iniPath)) {
             $action = $this->ui->choose(
-                sprintf(_("Simulator '%s' is already configured (%s)."), $plan->simName, $plan->iniPath()),
+                sprintf(_("Simulator '%s' is already configured (%s)."), $name, $iniPath),
                 [
                     'modify' => _('Modify its settings (its regions are kept)'),
                     'abandon' => _('Abandon, keep it unchanged'),
@@ -835,59 +695,21 @@ final class NewSim
 
                 return null;
             }
-            $current = GridInfo::parse($plan->iniPath());
             // Its own settings are the ones to propose
-            $v = $simulator($current, $plan->simName);
+            $answers = FieldForm::ask($this->ui, $fields->group('simulator'), $planner->resolve(['name' => $name]), _('Simulator'));
         }
 
-        $plan->dataDirectory = "{$grid->dataDirectory}/{$plan->slug}";
-        $plan->cacheDirectory = "{$grid->cacheDirectory}/{$plan->slug}";
-        $plan->coreDirectory =
-            $v['core'] !== ''
-                ? $v['core']
-                : (string) ($grid->coreDirectory !== '' && isset($cores[$grid->coreDirectory])
-                    ? $grid->coreDirectory
-                    : array_key_first($cores));
-        $plan->httpPort = (int) $v['port'];
-        $plan->externalHost = trim($v['host']);
-        $plan->consoleMode = $v['console'];
-        // The console port is in the block of the simulator, kept even when the console is a screen one
-        $plan->consolePort = $consoleFor($plan->httpPort);
-        if ($plan->consoleMode === 'rest') {
-            $plan->consolePort = (int) $v['console_port'];
-            // As the helpers make theirs: 12 lower case letters, 32 letters and digits; the host
-            // clients reach it by is the public address of the machine, when it is known
-            $plan->consoleHost =
-                (string) ($current['consoleHost'] ?? ($plan->externalHost !== 'SYSTEMIP' ? $plan->externalHost : ''));
-            $plan->consoleUser = (string) ($current['consoleUser'] ?? self::letters(12));
-            $plan->consolePass = (string) ($current['consolePass'] ?? self::password(32));
-        }
-
-        // Its own database: the account of the grid, a database of its own
-        // The account of the first simulator of the grid is the one of the next ones, and so is its password
-        $account = $this->siblingAccount($grid, $plan->slug);
-        $this->askDatabase($plan, $grid, [
-            'dbHost' => $current['dbHost'] ?? ($account['dbHost'] ?? $grid->dbHost),
-            'dbName' => $current['dbName'] ?? $plan->slug,
-            'dbUser' => $current['dbUser'] ?? ($account['dbUser'] ?? $grid->dbUser),
-            'dbPass' =>
-                $current['dbPass'] ??
-                ($account['dbPass'] ?? ($grid->dbPass !== '' ? $grid->dbPass : self::password(20))),
-        ]);
-
-        // The helpers of the grid, when it has some: offline messages and the search index
-        $plan->offlineUrl = $grid->helperUrl('offline');
-        $plan->registerUrl = $grid->helperUrl('register');
-        $plan->searchUrl = $grid->helperUrl('query');
+        // Its own database: the account of the grid, a database of its own. The account of the first simulator of the grid is the
+        // one of the next ones, and so is its password
+        $answers += $this->databaseAnswers($planner->resolve($answers));
 
         // The estate and its owner, then the first region, each on one screen
-        if (!$this->askEstate($plan, $grid, $database, $current)) {
-            return null;
-        }
+        $answers += $this->askEstate($planner, $grid, $answers);
+        $plan = $planner->plan($answers);
 
         if ($region !== null) {
             // The region was asked first, the simulator is the one that takes it
-            $this->takeRegion($plan, $grid, $database, $region);
+            RegionPlanner::forSim($plan, $grid, $database)->apply($plan, $region);
         } else {
             $plan->createRegion = (glob("{$plan->regionsDir()}/*.ini") ?: []) === [];
             if ($plan->createRegion) {
@@ -898,103 +720,47 @@ final class NewSim
         return $plan;
     }
 
-    private static function letters(int $length): string
+
+    /** The database settings of the plan, asked again: what the plan has is what is proposed. */
+    private function askDatabase(SimPlan $plan): void
     {
-        $letters = '';
-        for ($i = 0; $i < $length; $i++) {
-            $letters .= chr(random_int(97, 122));
-        }
-
-        return $letters;
-    }
-
-    private static function password(int $length = 24): string
-    {
-        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        $password = '';
-        for ($i = 0; $i < $length; $i++) {
-            $password .= $alphabet[random_int(0, strlen($alphabet) - 1)];
-        }
-
-        return $password;
+        $v = $this->databaseAnswers([
+            'database_host' => $plan->dbHost,
+            'database_name' => $plan->dbName,
+            'database_user' => $plan->dbUser,
+            'database_password' => $plan->dbPass,
+        ]);
+        [$plan->dbHost, $plan->dbName, $plan->dbUser, $plan->dbPass] = [$v['database_host'], $v['database_name'], $v['database_user'], $v['database_password']];
     }
 
     /**
-     * The database settings, with these defaults (those of the grid's account
-     * when none is given).
+     * The four answers about the database, asked. An account keeps its password for the whole session: the one of the grid's account is
+     * proposed.
      *
-     * @param ?array{dbHost:string,dbName:string,dbUser:string,dbPass:string} $defaults
+     * @param array<string,string> $proposed
+     * @return array<string,string>
      */
-    /**
-     * The database account another simulator of the grid uses (host, user, password), when it has any.
-     *
-     * @return array{dbHost?:string,dbUser?:string,dbPass?:string}
-     */
-    private function siblingAccount(GridInfo $grid, string $slug): array
+    private function databaseAnswers(array $proposed): array
     {
-        foreach (glob("{$grid->dir}/sims/*.ini") ?: [] as $ini) {
-            if (basename($ini, '.ini') === $slug) {
-                continue;
-            }
-            $found = GridInfo::parse($ini);
-            if (($found['dbUser'] ?? '') !== '' && ($found['dbPass'] ?? '') !== '') {
-                return array_intersect_key($found, array_flip(['dbHost', 'dbUser', 'dbPass']));
-            }
-        }
+        $proposed['database_password'] = DatabaseService::recall($proposed['database_host'], $proposed['database_user']) ?? $proposed['database_password'];
+        $fields = (new FieldSet(Simulator::fields()))->group('database');
+        $v = FieldForm::ask($this->ui, $fields, $proposed, _('Database')) + $proposed;
+        DatabaseService::remember($v['database_host'], $v['database_user'], $v['database_password']);
 
-        return [];
+        return array_intersect_key($v, array_flip(['database_host', 'database_name', 'database_user', 'database_password']));
     }
 
-    private function askDatabase(SimPlan $plan, GridInfo $grid, ?array $defaults = null): void
-    {
-        $required = static fn(string $v): ?string => trim($v) === '' ? 'This field is required.' : null;
-        $defaults ??= [
-            'dbHost' => $plan->dbHost,
-            'dbName' => $plan->dbName,
-            'dbUser' => $plan->dbUser,
-            'dbPass' => $plan->dbPass,
-        ];
-
-        // An account keeps its password for the whole session: the one of the grid's account is proposed
-        $password = DatabaseService::recall($defaults['dbHost'], $defaults['dbUser']) ?? $defaults['dbPass'];
-        $v = $this->ui->form(
-            [
-                ['key' => 'host', 'label' => _('Database host'), 'default' => $defaults['dbHost']],
-                ['key' => 'name', 'label' => _('Database name'), 'default' => $defaults['dbName']],
-                ['key' => 'user', 'label' => _('Database user'), 'default' => $defaults['dbUser']],
-                ['key' => 'pass', 'label' => _('Database password'), 'default' => $password],
-            ],
-            _('Database'),
-        );
-        [$plan->dbHost, $plan->dbName, $plan->dbUser, $plan->dbPass] = [$v['host'], $v['name'], $v['user'], $v['pass']];
-        DatabaseService::remember($plan->dbHost, $plan->dbUser, $plan->dbPass);
-    }
 
     /**
-     * The estate and its owner, on one screen: an account of the grid, chosen or created (its name, password and email are
-     * asked when it is a new one).
+     * The estate and its owner, on one screen: an account of the grid, chosen or created (its name, password and email are asked when
+     * it is a new one).
      *
-     * @param array<string,string|int> $current
-     * @return bool false when abandoned
+     * @param array<string,mixed> $answers what was answered before
+     * @return array<string,mixed>
      */
-    private function askEstate(SimPlan $plan, GridInfo $grid, DatabaseService $database, array $current): bool
+    private function askEstate(SimPlanner $planner, GridInfo $grid, array $answers): array
     {
-        $required = static fn(string $v): ?string => trim($v) === '' ? 'This field is required.' : null;
-        $name = static fn(string $v): ?string => GridAccounts::validName(trim($v))
-            ? null
-            : _('First and last name, e.g. Jane Doe.');
-        $accounts = $grid->remote ? null : (new GridAccounts($database, $this->ui))->names($grid);
-        $currentOwner = isset($current['estateOwner']) ? (string) $current['estateOwner'] : null;
-
-        $fields = [
-            [
-                'key' => 'estate',
-                'label' => _('Estate name'),
-                'default' => (string) ($current['estateName'] ?? "{$grid->name} Estate"),
-                'validate' => $required,
-            ],
-        ];
-        $newAccount = static fn(array $v): bool => true;
+        $accounts = $planner->accounts();
         if ($accounts === null) {
             // Not an account to make: the owner has to exist, its database is not read
             $this->ui->note(
@@ -1010,98 +776,18 @@ final class NewSim
                         $grid->nick,
                     ),
             );
-            $fields[] = [
-                'key' => 'owner',
-                'label' => _('Estate owner (an account of the grid)'),
-                'default' => $currentOwner ?? '',
-                'validate' => $name,
-            ];
-            $newAccount = static fn(array $v): bool => false;
-        } else {
-            $choices = array_combine($accounts, $accounts);
-            if ($choices !== []) {
-                $choices['+'] = _('Create a new account in the grid');
-                $fields[] = [
-                    'key' => 'owner',
-                    'label' => _('Estate owner'),
-                    'type' => 'choice',
-                    'options' => $choices,
-                    'default' =>
-                        $currentOwner !== null && isset($choices[$currentOwner])
-                            ? $currentOwner
-                            : (string) array_key_first($choices),
-                ];
-                $newAccount = static fn(array $v): bool => ($v['owner'] ?? '') === '+';
-            } else {
-                $this->ui->note(
-                    sprintf(
-                        _("The grid '%s' has no account yet: the owner of the estate is the first one to create."),
-                        $grid->nick,
-                    ),
-                );
-            }
-            $fields[] = [
-                'key' => 'new_name',
-                'label' => _('Name of the new account (First Last)'),
-                'validate' => $name,
-                'when' => $newAccount,
-            ];
-            $fields[] = [
-                'key' => 'new_password',
-                'label' => _('Password of the new account'),
-                'type' => 'secret',
-                'validate' => static fn(string $v): ?string => preg_match('/^[^"\r\n]{6,}$/', $v)
-                    ? null
-                    : _('At least 6 characters, without double quote.'),
-                'when' => $newAccount,
-            ];
-            $fields[] = [
-                'key' => 'new_email',
-                'label' => _('Email of the new account (optional)'),
-                'required' => false,
-                // OpenSimulator does not need one, no more than the setup
-                'validate' => static fn(string $v): ?string => trim($v) === '' ||
-                preg_match('/^[^\s"\'\\\\]+@[^\s"\'\\\\]+$/', trim($v))
-                    ? null
-                    : _('An email address, or nothing.'),
-                'when' => $newAccount,
-            ];
+        } elseif ($accounts === []) {
+            $this->ui->note(
+                sprintf(
+                    _("The grid '%s' has no account yet: the owner of the estate is the first one to create."),
+                    $grid->nick,
+                ),
+            );
         }
 
-        $v = $this->ui->form($fields, _('Estate'));
-        $plan->estateName = trim($v['estate']);
-        if ($newAccount($v)) {
-            $plan->estateOwner = trim($v['new_name']);
-            $plan->createOwner = true;
-            $plan->ownerPassword = $v['new_password'];
-            $plan->ownerEmail = trim($v['new_email']);
-        } else {
-            $plan->estateOwner = trim($v['owner']);
-        }
-
-        return true;
+        return FieldForm::ask($this->ui, $planner->fields()->group('estate'), $planner->resolve($answers), _('Estate'), $answers);
     }
 
-    /**
-     * The roles no region of the grid has yet, as options: the default region is checked, so is the one of
-     * Hypergrid visitors when the grid has Hypergrid, the fallback is not.
-     *
-     * @return array<string,string>
-     */
-    private function roleOptions(GridInfo $grid): array
-    {
-        $labels = [
-            RegionFlags::DEFAULT => 'Default Region',
-            RegionFlags::DEFAULT_HG => 'Default HG Region',
-            RegionFlags::FALLBACK => 'Fallback Region',
-        ];
-        $options = [];
-        foreach ($grid->missingRoles() as $role) {
-            $options[$role] = $labels[$role];
-        }
-
-        return $options;
-    }
 
     /**
      * The first region of a simulator, or the next ones, on one screen: its name, its roles, its place and its port. When
@@ -1109,235 +795,78 @@ final class NewSim
      */
     private function askRegion(SimPlan $plan, GridInfo $grid, DatabaseService $database, bool $optional = false): void
     {
-        $values = $this->regionValues($plan, $grid, $database, $optional);
-        if ($optional && $values['create'] === 'no') {
+        $planner = RegionPlanner::forSim($plan, $grid, $database, $optional);
+        $answers = $this->regionAnswers($planner, $grid);
+        if ($optional && ($answers['create'] ?? true) === false) {
             $plan->createRegion = false;
 
             return;
         }
-        $this->takeRegion($plan, $grid, $database, $values);
+        $planner->apply($plan, $answers);
     }
 
     /**
-     * The form of a region. With a pool of simulators, it asks which one has the region (a new one, or one of the pool),
-     * and the port of the region when it is one of the pool.
+     * The screen of a region: the answers, the place being one that is free or that the person accepted in place of the one asked.
      *
-     * @param array<string,string> $pool the simulators that can take it, by instance
-     * @return array<string,string>
+     * @return array<string,mixed>
      */
-    private function regionValues(
-        SimPlan $plan,
-        GridInfo $grid,
-        DatabaseService $database,
-        bool $optional = false,
-        array $pool = [],
-        string $defaultName = '',
-    ): array {
-        // A region name is unique in the grid: the same name registered twice stops the simulator
-        $taken = (new GridRegistry($database))->names($grid);
-        $name = static function (string $v) use ($taken, $grid): ?string {
-            $v = Slug::ascii($v); // an accent is not refused, it is transliterated (Noël becomes Noel)
-            if (($problem = RegionName::problem($v)) !== null) {
-                return $problem;
-            }
-            if (
-                isset($taken[strtolower(trim($v))]) ||
-                ($grid->remote && RobustGrid::hasRegion($grid->baseHostname, $grid->privatePort, trim($v)) === true)
-            ) {
-                return 'The grid has a region of this name already.';
-            }
-
-            return null;
-        };
-        $numeric = static fn(string $v): ?string => ctype_digit(trim($v)) ? null : _('Enter a port number.');
-
+    private function regionAnswers(RegionPlanner $planner, GridInfo $grid): array
+    {
         // A grid run from this machine needs a landing region: until it exists nobody can log in
         if ($grid->needsLandingRegion()) {
             $this->ui->note(self::LANDING);
         }
-        // The name of the simulator is the one of its first region; the next ones are not called the same
-        $first = (glob("{$plan->regionsDir()}/*.ini*") ?: []) === [];
-        $default =
-            $defaultName !== '' && $name($defaultName) === null
-                ? $defaultName
-                : ($first && $plan->simName !== '' && $name($plan->simName) === null
-                    ? $plan->simName
-                    : RandomName::make($name));
-        $known = (new GridRegistry($database))->locations($grid);
-        // The place proposed is the first free one from the center of the grid
-        $place = implode(',', $this->freePlace($grid, $known, ...$grid->centerPlace()));
-        $roles = $this->roleOptions($grid);
-        $there = static fn(array $v): bool => !$optional || ($v['create'] ?? 'yes') === 'yes';
-        $fields = [];
-        if ($optional) {
-            $fields[] = [
-                'key' => 'create',
-                'label' => _('Create the first region of this simulator?'),
-                'type' => 'confirm',
-                'default' => 'yes',
-            ];
+        $answers = FieldForm::ask($this->ui, $planner->fields(), $planner->resolve(), _('Region'));
+        if (isset($answers['location'])) {
+            $answers['location'] = $this->confirmPlace($planner, $grid, $answers['location']);
         }
-        $fields[] = [
-            'key' => 'name',
-            'label' => _('Region name'),
-            'default' => $default,
-            'validate' => $name,
-            'when' => $there,
-        ];
-        foreach ($roles as $role => $label) {
-            $fields[] = [
-                'key' => "role_$role",
-                'label' => $label,
-                'type' => 'confirm',
-                'default' => $role === RegionFlags::FALLBACK ? 'no' : 'yes',
-                'when' => $there,
-            ];
-        }
-        $fields[] = [
-            'key' => 'location',
-            'label' => _('Region location (x,y)'),
-            'default' => $place,
-            'validate' => static fn(string $v): ?string => LocationFinder::parse($v) === null
-                ? _('Use x,y (e.g. 8002,8002).')
-                : null,
-            'when' => $there,
-        ];
-        if ($pool !== []) {
-            $fields[] = [
-                'key' => 'sim',
-                'label' => _('Simulator'),
-                'type' => 'choice',
-                'options' => ['+' => _('Auto (add new)')] + $pool,
-                'default' => '+',
-                'when' => $there,
-            ];
-        }
-        $fields[] = [
-            'key' => 'port',
-            'label' => _('Region port'),
-            'default' => (string) $this->nextRegionPort($plan, $grid, $database),
-            'validate' => $numeric,
-            // The port of a region of a new simulator is in its block, known when the simulator is
-            'when' => static fn(array $v): bool => $there($v) && ($v['sim'] ?? '') !== '+',
-        ];
-        $v = $this->ui->form($fields, _('Region'));
-        $v['roles'] = implode(
-            ',',
-            array_keys(
-                array_filter(
-                    $roles,
-                    static fn(string $label, string $role): bool => ($v["role_$role"] ?? 'no') === 'yes',
-                    ARRAY_FILTER_USE_BOTH,
-                ),
-            ),
-        );
-        $v['default_port'] = $fields[array_key_last($fields)]['default'];
 
-        return $v;
+        return $answers;
     }
 
-    /**
-     * Give a plan the region its form describes.
-     *
-     * @param array<string,string> $v what regionValues() gave
-     */
-    private function takeRegion(SimPlan $plan, GridInfo $grid, DatabaseService $database, array $v): void
-    {
-        $known = (new GridRegistry($database))->locations($grid);
-        $plan->createRegion = true;
-        $plan->regionName = Slug::ascii(trim($v['name']));
-        $plan->regionRoles = array_values(array_filter(explode(',', $v['roles'] ?? '')));
-        $plan->regionUuid = self::uuid();
-        $plan->regionLocation = $this->settleLocation($grid, $known, $v['location']);
-        $plan->regionPort =
-            ($v['port'] ?? '') !== '' ? (int) $v['port'] : $this->nextRegionPort($plan, $grid, $database);
-    }
 
     /**
-     * The place of a region: the one asked, or the free place nearest to it by the rule of the grid, the free blocks it
-     * leaves between its regions.
-     *
-     * @param array<string,true> $known the places taken that are known here
+     * The place of a region: the one asked, or, when it is taken (or too close to a region, by the rule of the grid: the free blocks
+     * it leaves between its regions), the free one nearest to it, which the person accepts or replaces by another.
      */
-    private function settleLocation(GridInfo $grid, array $known, string $asked, ?string $current = null): string
+    private function confirmPlace(RegionPlanner $planner, GridInfo $grid, string $asked, ?string $current = null): string
     {
-        // A region that moves frees the place it holds
-        $ignored =
-            $current !== null && ($place = LocationFinder::parse($current)) !== null
-                ? LocationFinder::key($place[0], $place[1])
-                : null;
-        if ($ignored !== null) {
-            unset($known[$ignored]);
-        }
-        [$x, $y] = LocationFinder::parse($asked) ?? $grid->centerPlace();
         while (true) {
-            [$freeX, $freeY] = $this->freePlace($grid, $known, $x, $y, $ignored);
-            if ($freeX === $x && $freeY === $y) {
-                return "$x,$y";
+            $settled = $planner->settle($asked, $current);
+            if ($settled['unreachable']) {
+                $this->ui->warn(
+                    sprintf(
+                        _(
+                            'The grid does not answer at %s:%s: its regions are not known here, ask its owner which place is free.',
+                        ),
+                        $grid->baseHostname,
+                        $grid->privatePort,
+                    ),
+                );
+            }
+            if (!$settled['moved']) {
+                return $settled['free'];
             }
             $why =
                 $grid->regionSpacing > 0
                     ? "taken or too close to a region (the grid leaves {$grid->regionSpacing} free block(s) between them)"
                     : 'taken';
+            [$x, $y] = explode(',', $settled['asked']);
+            [$freeX, $freeY] = explode(',', $settled['free']);
             $this->ui->note(
                 sprintf(_('The place %s,%s is %s: the nearest free one is %s,%s.'), $x, $y, $why, $freeX, $freeY),
             );
             if ($this->ui->confirm(sprintf(_('Use %s,%s?'), $freeX, $freeY), true)) {
-                return "$freeX,$freeY";
+                return $settled['free'];
             }
             // Another place is asked, in the same words as the form
-            $again = $this->ui->text(
+            $asked = $this->ui->text(
                 _('Region location (x,y)'),
-                "$freeX,$freeY",
-                static fn(string $v): ?string => LocationFinder::parse($v) === null
-                    ? 'Use x,y (e.g. 8002,8002).'
-                    : null,
+                $settled['free'],
+                static fn(string $v): ?string => LocationFinder::parse($v) === null ? 'Use x,y (e.g. 8002,8002).' : null,
             );
-            [$x, $y] = LocationFinder::parse($again) ?? [$freeX, $freeY];
+            $asked = LocationFinder::parse($asked) === null ? $settled['free'] : $asked;
         }
-    }
-
-    /**
-     * The free place nearest to a place, by the rule of the grid (see Places).
-     *
-     * @param array<string,true> $known the places taken that are known here
-     * @return array{0:int,1:int}
-     */
-    private function freePlace(GridInfo $grid, array $known, int $x, int $y, ?string $ignored = null): array
-    {
-        $unreachable = false;
-        $place = Places::nearestFree($grid, $known, $x, $y, $ignored, $unreachable);
-        if ($unreachable) {
-            $this->ui->warn(
-                sprintf(
-                    _(
-                        'The grid does not answer at %s:%s: its regions are not known here, ask its owner which place is free.',
-                    ),
-                    $grid->baseHostname,
-                    $grid->privatePort,
-                ),
-            );
-        }
-
-        return $place;
-    }
-
-    /** The port of a region: the next one of the block of its simulator, else the next free one. */
-    private function nextRegionPort(SimPlan $plan, GridInfo $grid, DatabaseService $database): int
-    {
-        $taken = array_merge((new GridRegistry($database))->ports($grid) ?? [], [$plan->httpPort]);
-
-        return Ports::nextRegion($plan->httpPort, $taken) ?? Ports::next($plan->httpPort + 1, $taken);
-    }
-
-    /** A random UUID (version 4). */
-    private static function uuid(): string
-    {
-        $bytes = random_bytes(16);
-        $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40);
-        $bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);
-
-        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($bytes), 4));
     }
 
     private function showPlan(SimPlan $plan): void

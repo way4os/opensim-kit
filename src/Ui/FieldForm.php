@@ -31,17 +31,18 @@ final class FieldForm
             }
             $name = $field['name'];
             $type = $field['type'] ?? 'string';
+            $several = $type === 'checkbox' && ($field['multiple'] ?? false) === true;
             $question = [
                 'key' => $name,
                 'label' => (string) ($field['label'] ?? $name),
-                'type' => ['boolean' => 'confirm', 'select' => 'choice', 'secret' => 'secret'][$type] ?? 'text',
+                'type' => $several ? 'checklist' : (['boolean' => 'confirm', 'select' => 'choice', 'secret' => 'secret'][$type] ?? 'text'),
                 'default' => self::shown($proposed[$name] ?? ($field['default'] ?? ''), $type),
                 'required' => $field['required'] ?? false,
             ];
             if (isset($field['description'])) {
                 $question['hint'] = (string) $field['description'];
             }
-            if ($type === 'select') {
+            if ($type === 'select' || $several) {
                 $question['options'] = $field['options'] ?? [];
             }
             $callback = $field['callback'] ?? ($field['validation'] ?? null);
@@ -75,7 +76,11 @@ final class FieldForm
     /** What the interface shows of a value: yes or no for a boolean. */
     private static function shown(mixed $value, string $type): string
     {
-        return $type === 'boolean' ? (filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'yes' : 'no') : (string) $value;
+        return match (true) {
+            $type === 'boolean' => filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'yes' : 'no',
+            is_array($value) => implode(',', $value),
+            default => (string) $value,
+        };
     }
 
     /**
@@ -88,7 +93,12 @@ final class FieldForm
     {
         $typed = [];
         foreach ($values as $name => $value) {
-            $typed[$name] = ($fields->get($name)['type'] ?? '') === 'boolean' ? $value === 'yes' : $value;
+            $field = $fields->get($name) ?? [];
+            $typed[$name] = match (true) {
+                ($field['type'] ?? '') === 'boolean' => $value === 'yes',
+                ($field['type'] ?? '') === 'checkbox' && ($field['multiple'] ?? false) === true => array_values(array_filter(explode(',', $value))),
+                default => $value,
+            };
         }
 
         return $typed;
