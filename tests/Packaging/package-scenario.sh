@@ -526,6 +526,10 @@ source /test/no-region-scenario.sh
 source /test/sim-name-scenario.sh
 [[ ${STOP_AFTER:-} != sim-name ]] || { ts "done after the name of the simulator: $([ $FAILED = 0 ] && echo 'all checks passed' || echo 'SOME CHECKS FAILED')"; exit $FAILED; }
 
+# A setup file gives its answers by the names of the fields
+source /test/setupfile-scenario.sh
+[[ ${STOP_AFTER:-} != setupfile ]] || { ts "done after the setup file: $([ $FAILED = 0 ] && echo 'all checks passed' || echo 'SOME CHECKS FAILED')"; exit $FAILED; }
+
 # Configuring a grid that exists keeps what the operator set
 source /test/configure-scenario.sh
 [[ ${STOP_AFTER:-} != configure ]] || { ts "done after configuring: $([ $FAILED = 0 ] && echo 'all checks passed' || echo 'SOME CHECKS FAILED')"; exit $FAILED; }
