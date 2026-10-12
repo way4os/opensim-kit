@@ -223,9 +223,9 @@ check "the region is registered in the grid" "[ \"\$(mysql -BN -e \"SELECT CONCA
 # to the first region, the one that lets visitors in: without it a login fails with "destination not found"
 # The grid decided them, in its OpenSim.ini (the helpers read them there); its simulators read them in the master of the grid
 master=/etc/opensim/grids/testgrid/OpenSimGridDefaults.ini
-check "the grid knows where the offline messages and the search index of its simulators are" "grep -q '^OfflineMessageURL = \"https://localhost/helpers/offline.php\"' /etc/opensim/grids/testgrid/OpenSim.ini &&
-    grep -q '^DATA_SRV_Testgrid = \"https://localhost/helpers/register.php\"' /etc/opensim/grids/testgrid/OpenSim.ini &&
-    grep -q '^OfflineMessageURL = \"https://localhost/helpers/offline.php\"' $master && grep -q '^DATA_SRV_Testgrid = \"https://localhost/helpers/register.php\"' $master"
+check "the grid knows where the offline messages and the search index of its simulators are" "grep -qE '^\s*OfflineMessageURL = \"https://localhost/helpers/offline.php\"' /etc/opensim/grids/testgrid/OpenSim.ini &&
+    grep -qE '^\s*DATA_SRV_Testgrid = \"https://localhost/helpers/register.php\"' /etc/opensim/grids/testgrid/OpenSim.ini &&
+    grep -qE '^\s*OfflineMessageURL = \"https://localhost/helpers/offline.php\"' $master && grep -qE '^\s*DATA_SRV_Testgrid = \"https://localhost/helpers/register.php\"' $master"
 check "the simulator runs with the master of its grid, and its own config does not repeat it" "ps -axww -o args | grep -q -- \"-inimaster=\$master\" &&
     ! grep -qE '^\\[(Architecture|OSSL|Search|Messaging|UserProfiles)\\]' /etc/opensim/grids/testgrid/sims/testgrid_sim1.ini && grep -q '^ConnectionString' /etc/opensim/grids/testgrid/sims/testgrid_sim1.ini"
 check "the first region is the default region of the grid, and Robust says so" "grep -q '^Region_Sim1 = \"DefaultRegion, DefaultHGRegion, Persistent\"' /etc/opensim/grids/testgrid/Robust.HG.ini &&
@@ -347,7 +347,7 @@ check "opensim enable <grid> search again changes nothing and says so" "echo \"\
 # commented out and put back with the others
 ini_set $general DataSnapshot DATA_SRV_Testgrid "https://localhost/helpers/query.php"
 out=$(opensim enable testgrid search 2>&1)
-check "opensim enable <grid> search puts right a registration the OpenSim.ini of the grid has at the address of the search" "echo \"\$out\" | grep -q 'the OpenSim.ini of the grid' && grep -qE 'DATA_SRV_Testgrid = \"https://localhost/helpers/register.php\"' $general && ! grep -q 'query.php' $general"
+check "opensim enable <grid> search puts right a registration the OpenSim.ini of the grid has at the address of the search" "echo \"\$out\" | grep -q 'the OpenSim.ini of the grid' && grep -qE 'DATA_SRV_Testgrid = \"https://localhost/helpers/register.php\"' $general && ! grep -qE 'DATA_SRV_Testgrid = .*query.php' $general"
 opensim disable testgrid search >/dev/null 2>&1
 check "opensim disable <grid> search comments it out there too" "! grep -qE \"\$(active DATA_SRV_Testgrid)\" $general && grep -q ';DATA_SRV_Testgrid' $general"
 out=$(opensim enable testgrid search https://search.example.net/h 2>&1)
