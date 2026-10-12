@@ -12,6 +12,8 @@ use OpenSimKit\Ui\WebUi;
  */
 final class WebSession
 {
+    private bool $stopped = false;
+
     /**
      * @param resource $process the web server
      */
@@ -29,6 +31,10 @@ final class WebSession
      */
     public function stop(string $message = '', float $wait = 3.0): void
     {
+        if ($this->stopped) {
+            return;
+        }
+        $this->stopped = true;
         if ($message !== '') {
             $id = $this->mailbox->publish(['kind' => 'done', 'message' => $message]);
             $deadline = microtime(true) + $wait;

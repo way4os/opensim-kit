@@ -1,6 +1,7 @@
 <?php
 
 use OpenSim\Provisioning\SetupFailedException;
+use OpenSim\Runtime\ShellService;
 use OpenSimKit\Setup\Actions;
 use OpenSimKit\Setup\Hub;
 use OpenSimKit\Setup\NewGrid;
@@ -55,6 +56,8 @@ try {
                 $opened = WizardLauncher::open($session->url);
                 $terminal->note(SetupMode::instructions($session->url, $session->port, $opened, getenv('SSH_CONNECTION') !== false));
                 $ui = $session->ui;
+                // What the commands of the setup say (downloads, installs) is shown on the page, not in the terminal
+                ShellService::showOutputWith($ui->stream(...));
             }
             (new Hub($ui, new RuntimeCheck($ui)))->run();
             $ending = _('The setup is finished.');
@@ -63,6 +66,7 @@ try {
         } catch (SetupFailedException) {
             $status = 1;
         } finally {
+            ShellService::showOutputWith(null);
             $session?->stop($ending);
         }
         exit($status);

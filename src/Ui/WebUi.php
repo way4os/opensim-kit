@@ -21,6 +21,8 @@ final class WebUi implements UiInterface, CapturesOutput
     public const ENTITY_START = "\u{E000}";
     public const ENTITY_END = "\u{E001}";
 
+    private string $partial = '';
+
     /**
      * @param ?\Closure():void $idle called while waiting for an answer (to see the server is still there)
      * @param int $pollMicros how long to sleep between two looks at the mailbox
@@ -60,16 +62,28 @@ final class WebUi implements UiInterface, CapturesOutput
 
     public function outro(string $message): void
     {
+        $this->endLine();
         $this->mailbox->publish(['kind' => 'done', 'message' => $message]);
     }
 
     public function stream(string $chunk): void
     {
-        // What a program says on its own: without the colours of a terminal, a line at a time
-        $text = preg_replace('/\e\[[0-9;?]*[A-Za-z]/', '', str_replace("\r\n", "\n", $chunk)) ?? $chunk;
-        foreach (preg_split('/\r|\n/', rtrim($text)) ?: [] as $line) {
-            trim($line) !== '' && $this->mailbox->say('output', rtrim($line));
+        // What a program says on its own: without the colours of a terminal, a line at a time. A line it rewrites
+        // (a download) is the progress, which shows until the line is done or the next screen
+        $this->partial .= preg_replace('/\e\[[0-9;?]*[A-Za-z]/', '', str_replace("\r\n", "\n", $chunk)) ?? $chunk;
+        $lines = explode("\n", $this->partial);
+        $this->partial = array_pop($lines);
+        foreach ($lines as $line) {
+            $line = rtrim(substr((string) strrchr("\r$line", "\r"), 1));
+            $line !== '' && $this->mailbox->say('output', $line);
         }
+        $this->mailbox->progress(rtrim(substr((string) strrchr("\r{$this->partial}", "\r"), 1)));
+    }
+
+    /** What a program said without ending the line is a line, when what comes next is not the program's. */
+    private function endLine(): void
+    {
+        $this->partial !== '' && $this->stream("\n");
     }
 
     public function choose(string $label, array $options, ?string $default = null, ?string $hint = null): string
@@ -131,9 +145,13 @@ final class WebUi implements UiInterface, CapturesOutput
 
     public function spin(\Closure $callback, string $message): mixed
     {
+        $this->endLine();
         $this->mailbox->publish(['kind' => 'working', 'message' => $message]);
-
-        return $callback();
+        try {
+            return $callback();
+        } finally {
+            $this->endLine();
+        }
     }
 
     public function form(array $fields, string $title = ''): array
@@ -275,6 +293,7 @@ final class WebUi implements UiInterface, CapturesOutput
      */
     private function ask(array $screen): array
     {
+        $this->endLine();
         $id = $this->mailbox->publish($screen);
         $start = microtime(true);
         while (($answer = $this->mailbox->answered($id)) === null) {

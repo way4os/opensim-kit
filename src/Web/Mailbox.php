@@ -35,6 +35,7 @@ final class Mailbox
     {
         $id = ($this->screen()['id'] ?? 0) + 1;
         $this->clearAnswer();
+        $this->progress('');
         $this->write('screen.json', ['id' => $id] + $screen);
 
         return $id;
@@ -77,6 +78,28 @@ final class Mailbox
     {
         $line = json_encode(['after' => $this->current(), 'level' => $level, 'message' => $message], JSON_THROW_ON_ERROR);
         file_put_contents("{$this->dir}/log.jsonl", $line . "\n", FILE_APPEND | LOCK_EX);
+    }
+
+    /** What a program is saying right now, on a line it keeps rewriting (a download): it replaces the one before. */
+    public function progress(string $line): void
+    {
+        $file = "{$this->dir}/progress.txt";
+        if ($line === '') {
+            is_file($file) && unlink($file);
+
+            return;
+        }
+        $tmp = "$file." . bin2hex(random_bytes(3));
+        file_put_contents($tmp, $line);
+        rename($tmp, $file);
+    }
+
+    /** The line the programs are rewriting, empty when there is none. */
+    public function progressLine(): string
+    {
+        $file = "{$this->dir}/progress.txt";
+
+        return is_file($file) ? (string) file_get_contents($file) : '';
     }
 
     /**

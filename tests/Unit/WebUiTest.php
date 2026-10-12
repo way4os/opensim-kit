@@ -163,6 +163,28 @@ describe('what is said', function () {
         expect(array_column($mailbox->log(), 'message'))->toBe(['done', 'next']);
     });
 
+    test('a line a program rewrites is the progress, it is a line of the log when it ends', function () {
+        [$ui, $mailbox] = webSetup([]);
+
+        $ui->stream("10%\r20%\r30%");
+        $partial = $mailbox->progressLine();
+        $ui->stream("\r100%\nnext");
+
+        expect($partial)->toBe('30%')
+            ->and(array_column($mailbox->log(), 'message'))->toBe(['100%'])
+            ->and($mailbox->progressLine())->toBe('next');
+    });
+
+    test('what a program left unfinished is a line when the setup goes on', function () {
+        [$ui, $mailbox] = webSetup([['values' => ['value' => 'x']]]);
+
+        $ui->stream('Password:');
+        $ui->text('Question');
+
+        expect(array_column($mailbox->log(), 'message'))->toBe(['Password:'])
+            ->and($mailbox->progressLine())->toBe('');
+    });
+
     test('the work being done is a screen, and its result is returned', function () {
         [$ui, $mailbox] = webSetup([]);
 

@@ -12,12 +12,16 @@ use OpenSimKit\Ui\WebUi;
  */
 final class Page
 {
+    /** How many lines of what a program says the page of the work being done shows. */
+    private const TAIL = 40;
+
     /**
      * @param array<string,mixed>|null $screen the screen being asked, null before the first one
      * @param list<array{after:int,level:string,message:string}> $log
      * @param bool $working the answer to this screen is given and the next one is not there yet
+     * @param string $progress the line a program is rewriting at this moment
      */
-    public static function render(?array $screen, array $log, bool $working): string
+    public static function render(?array $screen, array $log, bool $working, string $progress = ''): string
     {
         $id = (int) ($screen['id'] ?? 0);
         $kind = $working || $screen === null ? 'working' : (string) $screen['kind'];
@@ -31,8 +35,10 @@ final class Page
         $recent = array_filter($log, static fn(array $e): bool => $e['level'] !== 'intro' && $e['after'] >= $before);
         $earlier = array_filter($log, static fn(array $e): bool => $e['level'] !== 'intro' && $e['after'] < $before);
 
+        // The work being done shows the end of what is said, not all of it
+        $kind === 'working' && $recent = array_slice($recent, -self::TAIL);
         $body = match ($kind) {
-            'working' => self::working($screen, $working),
+            'working' => self::working($screen, $working, $progress),
             'done' => self::done($screen),
             default => self::question($screen, $kind),
         };
@@ -184,11 +190,12 @@ final class Page
     }
 
     /** @param ?array<string,mixed> $screen */
-    private static function working(?array $screen, bool $answered): string
+    private static function working(?array $screen, bool $answered, string $progress): string
     {
         $message = $answered || $screen === null || ($screen['kind'] ?? '') !== 'working' ? _('Working...') : (string) $screen['message'];
 
-        return '<section class="working"><div class="spinner" aria-hidden="true"></div><p>' . self::text($message) . '</p></section>';
+        return '<section class="working"><div class="spinner" aria-hidden="true"></div><p>' . self::text($message) . '</p>' .
+            ($progress !== '' ? '<p class="progress">' . self::text($progress) . '</p>' : '') . '</section>';
     }
 
     /** @param array<string,mixed> $screen */
@@ -311,6 +318,7 @@ button.quit { border-color: transparent; background: none; color: var(--muted); 
 details.history { color: var(--muted); }
 details.history summary { cursor: pointer; margin: 0 0 .5rem; }
 .working { text-align: center; }
+.progress { font: .85rem ui-monospace, monospace; color: var(--muted); word-break: break-all; }
 .spinner { width: 2rem; height: 2rem; margin: .5rem auto 1rem; border: 3px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 [hidden] { display: none !important; }

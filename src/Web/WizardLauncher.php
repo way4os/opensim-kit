@@ -46,12 +46,19 @@ final class WizardLauncher
         fclose($socket);
 
         $session = null;
-        $ui = new WebUi($mailbox, static function () use (&$session): void {
+        $kept = time();
+        $ui = new WebUi($mailbox, static function () use (&$session, &$kept): void {
             if ($session !== null && !$session->running()) {
                 throw new \RuntimeException(_('The web server of the setup stopped.'));
             }
+            // The person may take their time with a form: the rights to act as the user of the install (sudo) do not expire meanwhile
+            if (time() - $kept > 240) {
+                $kept = time();
+                self::keepSudo();
+            }
         });
         $session = new WebSession($mailbox, $ui, "http://127.0.0.1:$port/?t=$token", $port, $process);
+        self::stopWith($session);
 
         return $session;
     }
@@ -73,6 +80,29 @@ final class WizardLauncher
         $process = @proc_open([$command, $url], [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
 
         return is_resource($process) && proc_close($process) === 0;
+    }
+
+    /** The server and the exchanges do not outlive the setup, however it ends (Ctrl-C, an error, the end). */
+    private static function stopWith(WebSession $session): void
+    {
+        register_shutdown_function(static fn() => $session->stop());
+        if (function_exists('pcntl_async_signals') && function_exists('pcntl_signal')) {
+            pcntl_async_signals(true);
+            foreach ([SIGINT, SIGTERM, SIGHUP] as $signal) {
+                pcntl_signal($signal, static function () use ($session): never {
+                    $session->stop();
+                    exit(130);
+                });
+            }
+        }
+    }
+
+    /** Renew the sudo rights already given, without ever asking for a password. */
+    private static function keepSudo(): void
+    {
+        if (function_exists('posix_geteuid') && posix_geteuid() !== 0) {
+            @exec('sudo -n -v >/dev/null 2>&1');
+        }
     }
 
     private static function freePort(): int

@@ -67,7 +67,7 @@ final class WizardServer
         $id = (int) ($screen['id'] ?? 0);
         // Answered, and the setup is on it: the page of the work being done, which looks again
         $working = $screen !== null && $this->mailbox->answered($id) !== null;
-        $page = Page::render($screen, $this->mailbox->log(), $working);
+        $page = Page::render($screen, $this->mailbox->log(), $working, $this->mailbox->progressLine());
         ($screen['kind'] ?? '') === 'done' && $this->mailbox->seen($id);
 
         return self::html(200, $page);
