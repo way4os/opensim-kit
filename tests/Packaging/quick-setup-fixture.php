@@ -7,8 +7,6 @@ return [
         'Login URI' => 'localhost:8002',
         'Grid owner' => 'Web Owner',
         'Owner password' => 'secret12',
-        // Nothing is started: the scenario has no .NET runtime
-        'Start' => 'no',
     ],
     'click' => [],
 ];

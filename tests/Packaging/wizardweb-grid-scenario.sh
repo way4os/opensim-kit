@@ -13,6 +13,10 @@ apt_q install sudo
 systemctl start mariadb
 check "the core and the tools are installed" "[ -f /usr/share/opensim/0.9.3.0/bin/OpenSim.exe ] && command -v opensim >/dev/null"
 
+ts dotnet
+opensim install-dotnet -y 2>&1 | tail -1
+check ".NET runtime" "runuser -u opensim -- dotnet --list-runtimes | grep -q NETCore.App"
+
 # A person who runs the setup: may act as opensim (sudo), and administers the database server with her own account
 useradd -m tester
 echo 'tester ALL=(opensim) NOPASSWD: ALL' >/etc/sudoers.d/tester
@@ -31,6 +35,7 @@ check "the browser went through the setup to its last page" "grep -q '^done: ' /
 pages=$(sed -n 's/^pages: //p' /tmp/browser.out)
 check "a grid and its first region need a handful of pages ($pages), not a page per question" "[ \"${pages:-99}\" -le 10 ]"
 wait_check 20 "the setup ends well, in the terminal too" "grep -q 'exit code: 0' /tmp/wizard.out"
+dump /tmp/wizard.out 12
 
 ts "what the setup made"
 grid=/etc/opensim/grids/web_grid
@@ -41,6 +46,9 @@ check "the database is made, by the administrator access of the person" "[ \"\$(
 check "the setup is kept for the group of the install" "[ \"\$(stat -c '%a %U:%G' $grid/setup.json)\" = '640 opensim:opensim' ]"
 check "what the writing says (it is done as opensim) is on the page, not in the terminal" "grep -q \"configured\" /tmp/browser.out &&
     ! grep -q 'configured' /tmp/wizard.out"
+# The quick setup enables and starts what it makes: Robust, then the simulator and its region, started by the commands of the setup
+wait_check 300 "Robust of the grid is running" "pgrep -f '^dotnet .*Robust.dll' >/dev/null"
+wait_check 400 "the region of the first simulator registers in the grid" "grep -q 'Region Welcome .* registered at 8002,8002' /var/log/opensim/web_grid_welcome.log"
 check "nothing is left of the exchanges, the web server is stopped" "[ -z \"\$(ls -d /tmp/opensim-wizard-* 2>/dev/null)\" ] && ! pgrep -f 'php -S 127.0.0.1' >/dev/null"
 
 ts "done: $([ $FAILED = 0 ] && echo 'all checks passed' || echo 'SOME CHECKS FAILED')"
