@@ -5,22 +5,17 @@
 # test container.
 
 source /test/scenario-lib.sh
-magiiic_repository
 
-ts "packages"
-apt_q install "$(deb opensim-0.9.3.0)" "$(deb opensim-rest-php)" "$(deb opensim-engine)" "$(deb opensim-helpers)" "$(deb opensim-tools)"
-apt_q install sudo
+# The core, the .NET runtime and the person who runs the setup are prepared once (PREPARE=wizardweb-grid-prepare.sh in tests/Packaging/run
+# keeps them in an image); without it they are made here
+[[ -d /home/tester ]] || bash /test/wizardweb-grid-prepare.sh || exit 1
+
+ts "the packages of the tools, which change from a run to the next"
+apt_q install "$(deb opensim-rest-php)" "$(deb opensim-engine)" "$(deb opensim-helpers)" "$(deb opensim-tools)"
 systemctl start mariadb
-check "the core and the tools are installed" "[ -f /usr/share/opensim/0.9.3.0/bin/OpenSim.exe ] && command -v opensim >/dev/null"
+check "the tools are the ones of this run" "[ \"\$(dpkg-query -W -f='\${Version}' opensim-tools)\" = \"\$(dpkg-deb -f \$(deb opensim-tools) Version)\" ]"
 
-ts dotnet
-opensim install-dotnet -y 2>&1 | tail -1
-check ".NET runtime" "runuser -u opensim -- dotnet --list-runtimes | grep -q NETCore.App"
-
-# A person who runs the setup: may act as opensim (sudo), and administers the database server with her own account
-useradd -m tester
-echo 'tester ALL=(opensim) NOPASSWD: ALL' >/etc/sudoers.d/tester
-chmod 440 /etc/sudoers.d/tester
+# The person administers the database server with her own account
 mysql -e "CREATE USER tester@localhost IDENTIFIED VIA unix_socket; GRANT ALL ON *.* TO tester@localhost WITH GRANT OPTION;"
 
 # An account of the database that exists already, with a password the setup cannot guess: it asks for it for the database of the grid,

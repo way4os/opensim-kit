@@ -6,7 +6,7 @@
 # Usage, from the repository root, after building the packages:
 #   tests/Packaging/run [base image]
 #   e.g. tests/Packaging/run docker.io/library/ubuntu:24.04
-# KEEP=1 keeps the container for inspection, SCENARIO=web-scenario.sh runs another script of this folder, STOP_AFTER=search
+# PREPARE=<script> prepares the container once and keeps it as an image (see below), KEEP=1 keeps the container for inspection, SCENARIO=web-scenario.sh runs another script of this folder, STOP_AFTER=search
 # ends package-scenario.sh after the search tests (search-scenario.sh).
 # The packages of the libraries the tools depend on are taken from the dist folders of their projects (DEPS_ENGINE,
 # DEPS_REST and DEPS_HELPERS say where they are). What the container needs is sent to it as a tar stream, so it can run
@@ -42,30 +42,67 @@ available=$(podman run --rm --pull=never --entrypoint awk "$name" '/MemAvailable
 if [[ "${available:-0}" -gt 0 && "${available:-0}" -lt 800 ]]; then
     warning "Only ${available} MB of memory are available in the machine of podman: stop the containers you do not need first, or the test may make it stop one of them (see DEVELOPERS.md)."
 fi
-podman rm -f "$name" >/dev/null 2>&1 || true
-# The memory is capped: a machine that lacks memory stops the biggest process
-# of any container, so the test must not reach that limit outside its own
-podman run -d --name "$name" --systemd=always --memory="${MEMORY:-700m}" "$name" >/dev/null
 stage=$(mktemp -d)
 cleanup() {
     rm -rf "$stage"
     [[ -n "${KEEP:-}" ]] || podman rm -f "$name" >/dev/null
 }
 trap cleanup EXIT
-sleep 3
 
-# The packages for the architecture of the container (and the ones for all), and the test scripts
-arch=$(podman exec "$name" dpkg --print-architecture)
-mkdir "$stage/dist" "$stage/test"
-for dir in dist "${DEPS_ENGINE:-../opensim-engine/dist}" "${DEPS_REST:-../opensim-rest-php/dist}" "${DEPS_HELPERS:-../opensim-helpers/dist}"; do
-    for deb in "$dir"/*_all.deb "$dir"/*_"$arch".deb; do
-        [[ ! -e "$deb" ]] || ln -sf "$(cd "$(dirname "$deb")" && pwd)/$(basename "$deb")" "$stage/dist/"
+# A new container from an image, with systemd. The memory is capped: a machine that lacks memory stops the biggest process
+# of any container, so the test must not reach that limit outside its own
+start() {
+    podman rm -f "$name" >/dev/null 2>&1 || true
+    podman run -d --name "$name" --systemd=always --memory="${MEMORY:-700m}" "$1" >/dev/null
+    sleep 3
+}
+
+# The packages for the architecture of the container (and the ones for all), and the test scripts, sent to the running container
+send() {
+    local arch dir deb file
+    arch=$(podman exec "$name" dpkg --print-architecture)
+    rm -rf "$stage/dist" "$stage/test"
+    mkdir "$stage/dist" "$stage/test"
+    for dir in dist "${DEPS_ENGINE:-../opensim-engine/dist}" "${DEPS_REST:-../opensim-rest-php/dist}" "${DEPS_HELPERS:-../opensim-helpers/dist}"; do
+        for deb in "$dir"/*_all.deb "$dir"/*_"$arch".deb; do
+            [[ ! -e "$deb" ]] || ln -sf "$(cd "$(dirname "$deb")" && pwd)/$(basename "$deb")" "$stage/dist/"
+        done
     done
-done
-for file in "$TEST_DIR"/*; do
-    ln -s "$PWD/$file" "$stage/test/"
-done
-# The script of the installation, which setup-scenario.sh runs
-ln -s "$PWD/setup.sh" "$stage/test/"
-COPYFILE_DISABLE=1 tar -chf - -C "$stage" dist test | podman exec -i "$name" tar -xf - --no-same-owner --warning=no-unknown-keyword -C /
+    for file in "$TEST_DIR"/*; do
+        ln -s "$PWD/$file" "$stage/test/"
+    done
+    # The script of the installation, which setup-scenario.sh runs
+    ln -s "$PWD/setup.sh" "$stage/test/"
+    COPYFILE_DISABLE=1 tar -chf - -C "$stage" dist test | podman exec -i "$name" tar -xf - --no-same-owner --warning=no-unknown-keyword -C /
+}
+
+# PREPARE=wizardweb-grid-prepare.sh: what takes minutes and does not change from a run to the next (the core, the .NET runtime, the
+# users) is done once, in a container that is kept as an image. The next runs start from it, and the scenario only installs the
+# packages of the tools, which are the ones that change. The image is named after what it was made of (the script, the scenario
+# library, the core package): REPREPARE=1 makes it again (a newer .NET runtime...).
+image=$name
+if [[ -n "${PREPARE:-}" ]]; then
+    [[ -f "$TEST_DIR/$PREPARE" ]] || die "no script $TEST_DIR/$PREPARE to prepare the container with"
+    sum() { sha256sum 2>/dev/null || shasum -a 256; }
+    key=$({
+        cat "$TEST_DIR/$PREPARE" "$TEST_DIR/scenario-lib.sh" "$TEST_DIR/scenario-image.Containerfile"
+        echo "$BASE"
+        ls -l dist/opensim-0.9.[0-9].[0-9]_*.deb 2>/dev/null | awk '{print $5, $NF}'
+    } | sum | cut -c1-12)
+    image="localhost/$name-prepared:$key"
+    if [[ -n "${REPREPARE:-}" ]] || ! podman image exists "$image"; then
+        log "Preparing the container once (image $image): $PREPARE"
+        start "$name"
+        send
+        podman exec "$name" bash "/test/$PREPARE" || die "the preparation failed, nothing was kept"
+        podman commit -q "$name" "$image" >/dev/null
+        # What older preparations made is of no use
+        podman images --format '{{.Repository}}:{{.Tag}}' | grep "^localhost/$name-prepared:" | grep -v ":$key\$" | xargs -r podman rmi >/dev/null 2>&1 || true
+    else
+        log "Starting from the prepared image $image"
+    fi
+fi
+
+start "$image"
+send
 podman exec ${STOP_AFTER:+-e STOP_AFTER="$STOP_AFTER"} "$name" bash "/test/${SCENARIO:-package-scenario.sh}"
