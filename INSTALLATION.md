@@ -58,16 +58,21 @@ sudo opensim install-dotnet
 
 ### In the terminal or in your browser
 
-`opensim setup` asks where you want to go through it, or you say it: `opensim setup --terminal`, `opensim setup --web`. With `--web` the setup starts a small web server on this machine only (`127.0.0.1`, a free port), gives an address and opens it when there is a browser in front of you. The address works once, from this machine; the server stops when the setup ends (or with Ctrl-C in the terminal). The questions are the same as in the terminal.
+`opensim setup` asks where you want to go through it, or you say it: `opensim setup --terminal`, `opensim setup --web`. With `--web` the setup starts a small web server (`php -S`) on a free port (`--port N` to choose it), gives an address and opens it when there is a browser in front of you. The address works once; the server stops when the setup ends (or with Ctrl-C in the terminal). The questions are the same as in the terminal.
 
-On a server you reach over SSH, the address is not reachable from your computer: choose the port, open the tunnel, and open the address the setup gives in your browser:
+On the machine itself, the server answers to this machine only. Over SSH, your browser is somewhere else, so it answers to the address you connected from and nothing else, and the address it gives is the one you connected to: nothing to tunnel.
 
 ```bash
-ssh -L 8123:127.0.0.1:8123 your-server
-sudo opensim setup --web --port 8123    # in that session
+sudo opensim setup --web --port 8123    # then open the address it gives
 ```
 
-Or stay in the terminal.
+The page is not encrypted: what you type, the passwords included, crosses the network as it is. On a network you do not trust, keep it on the machine and open a tunnel (`ssh -L 8123:127.0.0.1:8123 your-server`, then `sudo opensim setup --web --listen local --port 8123`), or stay in the terminal. If the page does not open, a firewall may be blocking the port.
+
+| Option | |
+|---|---|
+| `--listen local\|all\|ADDRESS` | where the server listens: this machine only, every interface, or one address (local, or all over SSH, by default) |
+| `--allow ADDRESS,...\|any` | who may connect (the address you connected from over SSH, by default; it must be said when you open the server without SSH) |
+| `--host NAME` | the name of the machine in the address it gives (the one you connected to over SSH, by default) |
 
 ### Quick and advanced
 
