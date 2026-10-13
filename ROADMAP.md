@@ -18,6 +18,7 @@
 - [x] Could not get load/save oar/iar to work
 - [ ] Could not get helpers to work (web returns 500) (the helpers answer with the new `config.php` on a test grid, and say when `helpers.ini` is unreadable by the web user instead of a 500; to confirm on the real site: what does the error log say? The packaged helpers answer behind real nginx, Apache and Caddy in `web-scenario.sh`)
 - [ ] setup (to review with the whole setup): `screen` is not a dependency; without it the consoles are the REST ones only, the default anyway (today `Installer` requires it and `setup.sh` installs it)
+- [ ] setup from a clone on macOS: OpenSim does not start without libgdiplus (Homebrew `mono-libgdiplus`), which `setup.sh` does not install (the installer of the runtime does it on Linux); the clone on macOS is still to try to the end
 - [ ] setup from a clone: the archive of the core is downloaded into `src/` of the clone (`src/opensim-0.9.3.0.tar.gz`), the folder of the PHP code; it belongs in the cache
 - [ ] setup: working from grid/sims was a design flaw: (done: the grid screen lists regions, "Add region" asks the simulator of the pool, `opensim save|load oar` and `opensim backup` take a sim or a region; to do: the other commands)
     - from user's point of view, there is a grid, with regions
