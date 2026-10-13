@@ -73,6 +73,24 @@ function wanted(array &$clicks, string $where): ?string
     return null;
 }
 
+/**
+ * The buttons that send a choice (a menu, a yes or no, its Back and Quit), whatever the order of their attributes.
+ *
+ * @return list<array{0:string,1:string,2:string,3:string}> the whole button, the value it sends, its class, its label
+ */
+function choice_buttons(string $page): array
+{
+    $buttons = [];
+    preg_match_all('#<button([^>]*)>(.*?)</button>#s', $page, $all, PREG_SET_ORDER);
+    foreach ($all as $button) {
+        if (str_contains($button[1], 'name="v[value]"') && preg_match('/value="([^"]*)"/', $button[1], $value)) {
+            $buttons[] = [$button[0], $value[1], preg_match('/class="([^"]*)"/', $button[1], $class) ? $class[1] : '', $button[2]];
+        }
+    }
+
+    return $buttons;
+}
+
 /** The label a fixture answer is given for matches: a part of it, whatever its case. */
 function given(array $answers, string $label): ?string
 {
@@ -162,7 +180,7 @@ for ($turn = 0; $turn < 120; $turn++) {
         foreach ($boxes as $box) {
             fwrite(STDOUT, "   boxes: $box\n");
         }
-    } elseif (preg_match_all('#<button type="submit" name="v\[value\]" value="([^"]*)" class="([^"]*)">(.*?)</button>#s', $page, $buttons, PREG_SET_ORDER)) {
+    } elseif (($buttons = choice_buttons($page)) !== []) {
         // A menu, or a yes or no: the button the fixture names, otherwise the one that stands out
         $want = wanted($clicks, $heading . ' ' . text((string) preg_replace('#<form.*$#s', '', (string) strstr($page, '<section>'))));
         $chosen = null;

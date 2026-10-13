@@ -121,6 +121,62 @@ describe('a server open to the network', function () {
     });
 });
 
+describe('the navigation of the setup', function () {
+    /** The page of a screen, and its navigation row. */
+    $page = static function (array $screen, int $before = 0): array {
+        [$server, $mailbox, $cookie] = wizardServer();
+        for ($i = 0; $i < $before; $i++) {
+            $mailbox->publish(['kind' => 'text', 'label' => 'Before', 'value' => '']);
+        }
+        $mailbox->publish($screen);
+        $html = wizardGet($server, $cookie)[2];
+        preg_match('#<div class="nav">(.*?)</div></form>#s', $html, $nav);
+        preg_match('#<div class="choices">(.*?)</div>#s', $html, $choices);
+
+        return [$html, $nav[1] ?? '', $choices[1] ?? ''];
+    };
+    $form = ['kind' => 'form', 'title' => 'Grid', 'fields' => [['key' => 'name', 'label' => 'Name', 'type' => 'text', 'options' => [], 'value' => '', 'hint' => null, 'required' => true, 'hasDefault' => false, 'error' => null, 'condition' => null, 'shown' => true, 'rendered' => true]]];
+
+    test('a menu has its Back and Quit in the navigation, not among its choices, and not twice', function () use ($page) {
+        [$html, $nav, $choices] = $page(['kind' => 'choose', 'label' => 'Grid', 'options' => ['configure' => 'Configure grid', 'back' => 'Back', 'quit' => 'Quit'], 'default' => 'configure', 'hint' => null], 1);
+
+        expect($choices)->toContain('value="configure"')->not->toContain('value="back"')->not->toContain('value="quit"')
+            ->and($nav)->toContain('name="v[value]" value="back"')->toContain('name="v[value]" value="quit"')
+            ->and(substr_count($html, '>Back<'))->toBe(1)->and(substr_count($html, '>Quit<'))->toBe(1)
+            ->and(substr_count($html, '<form'))->toBe(1);
+    });
+
+    test('the home menu has no Back, only its Quit', function () use ($page) {
+        [, $nav] = $page(['kind' => 'choose', 'label' => 'OpenSim — setup', 'options' => ['add' => 'Add grid', 'quit' => 'Quit'], 'default' => 'add', 'hint' => null]);
+
+        expect($nav)->toContain('value="quit"')->not->toContain('value="back"')->not->toContain('Cancel');
+    });
+
+    test('the choice that is proposed stays a choice, whatever its key: "Finish setup" is the one to press', function () use ($page) {
+        [, $nav, $choices] = $page(['kind' => 'choose', 'label' => 'Setup', 'options' => ['quit' => 'Finish setup', 'more' => 'Continue setup'], 'default' => 'quit', 'hint' => null], 4);
+
+        expect($choices)->toContain('value="quit" class="primary">Finish setup')->toContain('value="more"')
+            ->and($nav)->not->toContain('Finish setup');
+    });
+
+    test('a form has Cancel, Quit and Continue in one row, in the same form as its fields; Cancel gives up the screen, it does not go back', function () use ($page, $form) {
+        [$html, $nav] = $page($form, 2);
+
+        expect($nav)->toContain('>Continue<')->toContain('>Cancel<')->toContain('Quit the setup')
+            ->and($nav)->toContain('name="action" value="back"')->toContain('name="action" value="quit"')
+            ->and(substr_count($html, '<form'))->toBe(1)
+            ->and($html)->not->toContain('>Back<');
+        // Continue is the first button of the page, the one Enter presses
+        expect(strpos($nav, 'Continue'))->toBeLessThan((int) strpos($nav, 'Cancel'));
+    });
+
+    test('and on the first screen there is no Cancel, which would be the same as Quit', function () use ($page, $form) {
+        [, $nav] = $page($form);
+
+        expect($nav)->toContain('>Continue<')->toContain('Quit the setup')->not->toContain('Cancel');
+    });
+});
+
 describe('the screens', function () {
     test('the page shows the screen, what was said before it, and escapes what comes from outside', function () {
         [$server, $mailbox, $cookie] = wizardServer();

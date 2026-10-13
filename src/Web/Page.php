@@ -68,15 +68,21 @@ final class Page
         $head = '<h2>' . self::text((string) ($screen['label'] ?? $screen['title'] ?? '')) . '</h2>';
         $hint = isset($screen['hint']) && $screen['hint'] !== '' ? '<p class="hint">' . self::text((string) $screen['hint']) . '</p>' : '';
         $error = isset($screen['error']) ? '<p class="error">' . self::text((string) $screen['error']) . '</p>' : '';
-        $next = '<button class="primary" type="submit" name="action" value="next">' . self::e(_('Continue')) . '</button>';
+
+        // A menu has its own Back and Quit among its choices: they are the navigation, not two more choices
+        $options = $kind === 'choose' ? $screen['options'] : [];
+        // (unless it is the choice proposed: 'quit' of a menu that says "Finish setup" is the one to press)
+        $default = (string) ($screen['default'] ?? '');
+        $menu = array_filter(array_intersect_key($options, ['back' => 1, 'quit' => 1]), static fn(mixed $label, mixed $key): bool => (string) $key !== $default, ARRAY_FILTER_USE_BOTH);
+        $options = array_diff_key($options, $menu);
 
         $inner = match ($kind) {
-            'choose' => self::choices($screen),
+            'choose' => self::choices($options, $default),
             'confirm' => self::confirmation($screen),
-            'checklist' => self::checklist($screen) . self::buttons($next),
-            'text' => '<input type="text" name="v[value]" value="' . self::e((string) ($screen['value'] ?? '')) . '" autofocus>' . self::buttons($next),
-            'secret' => '<input type="password" name="v[value]" autocomplete="new-password" autofocus>' . self::buttons($next),
-            'form' => self::fields($screen) . self::buttons($next),
+            'checklist' => self::checklist($screen),
+            'text' => '<input type="text" name="v[value]" value="' . self::e((string) ($screen['value'] ?? '')) . '" autofocus>',
+            'secret' => '<input type="password" name="v[value]" autocomplete="new-password" autofocus>',
+            'form' => self::fields($screen),
             default => '',
         };
         if ($kind === 'form') {
@@ -84,16 +90,45 @@ final class Page
         }
 
         return '<section>' . $head . $hint . $error . '<form method="post" action="/answer" id="screen">' .
-            '<input type="hidden" name="id" value="' . (int) $screen['id'] . '">' . $inner . '</form>' .
-            self::back((int) $screen['id']) . '</section>' . self::script();
+            '<input type="hidden" name="id" value="' . (int) $screen['id'] . '">' . $inner . self::navigation($screen, $kind, $menu) . '</form></section>' . self::script();
     }
 
-    /** @param array<string,mixed> $screen */
-    private static function choices(array $screen): string
+    /**
+     * The navigation of the setup, in one row: Cancel and Quit on the left, Continue on the right. Continue comes first in the page,
+     * so it is the button Enter presses; the style puts it last.
+     *
+     * A menu has no Continue (its choices send it), and its Back and Quit are its own choices. Cancel gives up the screen, back to
+     * the menu it came from (nothing is written before the end), and there is none on the first screen: Quit is the same.
+     *
+     * @param array<string,mixed> $screen
+     * @param array<string,string> $menu the Back and Quit choices of a menu
+     */
+    private static function navigation(array $screen, string $kind, array $menu): string
+    {
+        $buttons = '';
+        if (in_array($kind, ['text', 'secret', 'checklist', 'form'], true)) {
+            $buttons .= '<button class="primary" type="submit" name="action" value="next">' . self::e(_('Continue')) . '</button>';
+        }
+        if ($kind === 'choose') {
+            isset($menu['back']) && $buttons .= '<button class="back" type="submit" name="v[value]" value="back" formnovalidate>' . self::text((string) $menu['back']) . '</button>';
+            isset($menu['quit']) && $buttons .= '<button class="quit" type="submit" name="v[value]" value="quit" formnovalidate>' . self::text((string) $menu['quit']) . '</button>';
+        } else {
+            (int) $screen['id'] > 1 && $buttons .= '<button class="cancel" type="submit" name="action" value="back" formnovalidate>' . self::e(_('Cancel')) . '</button>';
+            $buttons .= '<button class="quit" type="submit" name="action" value="quit" formnovalidate onclick="return confirm(\'' . self::e(addslashes(_('Leave the setup?'))) . '\')">' .
+                self::e(_('Quit the setup')) . '</button>';
+        }
+
+        return $buttons === '' ? '' : '<div class="nav">' . $buttons . '</div>';
+    }
+
+    /**
+     * @param array<string,string> $options the choices, without the Back and Quit of a menu
+     */
+    private static function choices(array $options, string $default): string
     {
         $out = '<div class="choices">';
-        foreach ($screen['options'] as $key => $label) {
-            $class = (string) $key === (string) ($screen['default'] ?? '') ? 'primary' : '';
+        foreach ($options as $key => $label) {
+            $class = (string) $key === $default ? 'primary' : '';
             $out .= '<button type="submit" name="v[value]" value="' . self::e((string) $key) . '" class="' . $class . '">' . self::text((string) $label) . '</button>';
         }
 
@@ -173,20 +208,6 @@ final class Page
         }
 
         return $out . '</select>';
-    }
-
-    /** The first button is the one Enter presses; the style puts it on the right. */
-    private static function buttons(string $next): string
-    {
-        return '<div class="buttons">' . $next . '</div>';
-    }
-
-    private static function back(int $id): string
-    {
-        return '<form method="post" action="/answer" class="side"><input type="hidden" name="id" value="' . $id . '">' .
-            '<button type="submit" name="action" value="back" formnovalidate>' . self::e(_('Back')) . '</button>' .
-            '<button type="submit" name="action" value="quit" class="quit" onclick="return confirm(\'' . self::e(addslashes(_('Leave the setup?'))) . '\')">' .
-            self::e(_('Quit the setup')) . '</button></form>';
     }
 
     /** @param ?array<string,mixed> $screen */
@@ -312,9 +333,10 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .choices { display: grid; gap: .5rem; margin-top: .75rem; }
 .choices.inline { display: flex; }
 .choices button { text-align: left; }
-.buttons { display: flex; justify-content: flex-end; margin-top: 1rem; }
-.side { display: flex; justify-content: space-between; margin-top: 1rem; }
-button.quit { border-color: transparent; background: none; color: var(--muted); }
+.nav { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: 1rem; }
+.nav .back, .nav .cancel { order: 1; }
+.nav .quit { order: 2; border-color: transparent; background: none; color: var(--muted); }
+.nav .primary { order: 3; margin-left: auto; }
 details.history { color: var(--muted); }
 details.history summary { cursor: pointer; margin: 0 0 .5rem; }
 .working { text-align: center; }
