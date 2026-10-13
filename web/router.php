@@ -13,7 +13,14 @@ use OpenSimKit\Web\WizardServer;
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 $port = (string) getenv('OPENSIM_WIZARD_PORT');
-$server = new WizardServer(new Mailbox((string) getenv('OPENSIM_WIZARD_DIR')), ["127.0.0.1:$port", "localhost:$port"]);
+// Open to the network (the setup says so): any host name, and only the clients it names; else this machine only
+$open = getenv('OPENSIM_WIZARD_OPEN') === '1';
+$allow = (string) getenv('OPENSIM_WIZARD_ALLOW');
+$server = new WizardServer(
+    new Mailbox((string) getenv('OPENSIM_WIZARD_DIR')),
+    $open ? null : ["127.0.0.1:$port", "localhost:$port"],
+    allow: $allow === '' ? null : array_map(WizardServer::address(...), explode(',', $allow)),
+);
 
 $headers = array_change_key_case(array_filter(getallheaders() ?: [], 'is_string'), CASE_LOWER);
 [$status, $out, $body] = $server->handle(
@@ -23,6 +30,7 @@ $headers = array_change_key_case(array_filter(getallheaders() ?: [], 'is_string'
     $_POST,
     $_COOKIE,
     $headers,
+    (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
 );
 
 http_response_code($status);

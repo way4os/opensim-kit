@@ -11,7 +11,11 @@ use OpenSimKit\Web\WizardLauncher;
 
 require dirname(__DIR__, 2) . '/vendor/autoload.php';
 
-$session = WizardLauncher::start();
+// OPEN=<addresses>: the server is open to the network for these clients only (see SetupMode::network())
+$open = (string) getenv('WIZARD_TEST_OPEN');
+$session = $open === ''
+    ? WizardLauncher::start()
+    : WizardLauncher::start(null, ['listen' => '0.0.0.0', 'allow' => explode(',', $open), 'host' => '127.0.0.1', 'open' => true]);
 fwrite(STDOUT, $session->url . "\n");
 $ui = $session->ui;
 $out = [];

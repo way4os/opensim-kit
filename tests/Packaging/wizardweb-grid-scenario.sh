@@ -23,10 +23,18 @@ mysql -e "CREATE USER tester@localhost IDENTIFIED VIA unix_socket; GRANT ALL ON 
 mysql -e "CREATE USER opensim@localhost IDENTIFIED BY 'knownpw12';"
 
 ts "the setup, in the browser"
-(cd /tmp && runuser -u tester -- opensim setup --web >/tmp/wizard.out 2>&1
+# Over SSH (here said by SSH_CONNECTION: the client address and port, then the server's), the page is open to the network for the address the
+# person connected from, and given at the address they connected to
+(cd /tmp && runuser -u tester -- env SSH_CONNECTION='127.0.0.1 40000 127.0.0.1 22' opensim setup --web >/tmp/wizard.out 2>&1
     echo "exit code: $?" >>/tmp/wizard.out) &
 wait_check 40 "the setup gives the address of its page" "grep -q 'http://127.0.0.1:[0-9]*/?t=' /tmp/wizard.out"
 url=$(grep -o 'http://127.0.0.1:[0-9]*/?t=[0-9a-f]*' /tmp/wizard.out | head -1)
+port=${url#http://*:}
+port=${port%%/*}
+ip=$(hostname -I 2>/dev/null | awk '{print $1}')
+check "over SSH the server is open to the network: it listens on every interface" "grep -qi \"^ *[0-9]*: 00000000:\$(printf %04X $port) 00000000:0000 0A\" /proc/net/tcp"
+check "only the address the person connected from is let in: another address of this machine is refused before anything else" "[ -z \"$ip\" ] || [ \"\$(curl -s http://$ip:$port/)\" = Forbidden ]"
+check "the address let in reaches the server by any name, and is asked for the address of the page" "curl -s -H 'Host: grid.example.org' http://127.0.0.1:$port/ | grep -q 'cannot be used'"
 php /test/web-browser-driver.php "$url" /test/quick-setup-fixture.php >/tmp/browser.out 2>&1
 echo "exit code: $?" >>/tmp/browser.out
 fold -s -w 200 /tmp/browser.out | sed 's/^/   | /' | head -60

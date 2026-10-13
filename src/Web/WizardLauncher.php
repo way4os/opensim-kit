@@ -14,9 +14,10 @@ final class WizardLauncher
 {
     /**
      * @param ?int $port the port to listen on, a free one when null
+     * @param array{listen:string,allow:?list<string>,host:string,open:bool} $network see SetupMode::network()
      * @throws \RuntimeException when the server does not start
      */
-    public static function start(?int $port = null): WebSession
+    public static function start(?int $port = null, array $network = ['listen' => '127.0.0.1', 'allow' => null, 'host' => '127.0.0.1', 'open' => false]): WebSession
     {
         $mailbox = Mailbox::create();
         $token = bin2hex(random_bytes(16));
@@ -24,11 +25,11 @@ final class WizardLauncher
         $port ??= self::freePort();
 
         $process = proc_open(
-            [PHP_BINARY, '-S', "127.0.0.1:$port", '-t', dirname(__DIR__, 2) . '/web', dirname(__DIR__, 2) . '/web/router.php'],
+            [PHP_BINARY, '-S', (str_contains($network['listen'], ':') ? "[{$network['listen']}]" : $network['listen']) . ":$port", '-t', dirname(__DIR__, 2) . '/web', dirname(__DIR__, 2) . '/web/router.php'],
             [0 => ['file', '/dev/null', 'r'], 1 => ['file', "{$mailbox->dir}/server.log", 'w'], 2 => ['redirect', 1]],
             $pipes,
             null,
-            ['OPENSIM_WIZARD_DIR' => $mailbox->dir, 'OPENSIM_WIZARD_PORT' => (string) $port] + (getenv() ?: []),
+            ['OPENSIM_WIZARD_DIR' => $mailbox->dir, 'OPENSIM_WIZARD_PORT' => (string) $port, 'OPENSIM_WIZARD_OPEN' => $network['open'] ? '1' : '0', 'OPENSIM_WIZARD_ALLOW' => implode(',', $network['allow'] ?? [])] + (getenv() ?: []),
         );
         if (!is_resource($process)) {
             $mailbox->remove();
@@ -60,7 +61,7 @@ final class WizardLauncher
                 self::keepSudo();
             }
         });
-        $session = new WebSession($mailbox, $ui, "http://127.0.0.1:$port/?t=$token", $port, $process);
+        $session = new WebSession($mailbox, $ui, "http://{$network['host']}:$port/?t=$token", $port, $process);
         self::stopWith($session);
 
         return $session;

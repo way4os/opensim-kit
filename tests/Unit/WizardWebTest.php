@@ -39,9 +39,9 @@ function screenId(string $page): int
 }
 
 /** The setup side: the temporary folder is its own, so the exchanges of another run of the tests are not mistaken for its own. */
-function wizardDriver(string $tmp): array
+function wizardDriver(string $tmp, string $open = ''): array
 {
-    $process = proc_open([PHP_BINARY, __DIR__ . '/wizard-driver.php'], [1 => ['pipe', 'w'], 2 => ['redirect', 1]], $pipes, null, ['TMPDIR' => $tmp] + (getenv() ?: []));
+    $process = proc_open([PHP_BINARY, __DIR__ . '/wizard-driver.php'], [1 => ['pipe', 'w'], 2 => ['redirect', 1]], $pipes, null, ['TMPDIR' => $tmp, 'WIZARD_TEST_OPEN' => $open] + (getenv() ?: []));
     stream_set_timeout($pipes[1], 90);
 
     return [$process, $pipes];
@@ -122,4 +122,24 @@ describe('the setup in a browser, with the real web server', function () {
             ->and(glob("$tmp/opensim-wizard-*"))->toBe([]);
         rmdir($tmp);
     });
+
+    test('open to the network for chosen clients: they are let in, the others are not', function () {
+        $machine = gethostbyname((string) gethostname());
+        [$process, $pipes] = wizardDriver(sys_get_temp_dir(), '127.0.0.1');
+        $address = trim((string) fgets($pipes[1]));
+        $port = (int) parse_url($address, PHP_URL_PORT);
+
+        // From here (127.0.0.1) the address works, from the address of this machine (another client) it does not, even with the token
+        $refused = $machine !== '127.0.0.1' && !str_starts_with($machine, '127.') ? browse("http://$machine:$port/?t=" . substr($address, (int) strpos($address, '?t=') + 3))[0] : 403;
+        [$status, , $headers] = browse($address);
+        preg_match('/' . WizardServer::COOKIE . '=([0-9a-f]+)/', $headers['set-cookie'] ?? '', $m);
+        [, $page] = browse(substr($address, 0, (int) strpos($address, '/?t=')) . '/', [], $m[1] ?? '');
+        browse(substr($address, 0, (int) strpos($address, '/?t=')) . '/answer', ['id' => screenId($page), 'action' => 'quit'], $m[1] ?? '');
+        proc_close($process);
+
+        expect($refused)->toBe(403)
+            ->and($status)->toBe(303)
+            ->and($page)->toContain('Your name');
+    });
 });
+

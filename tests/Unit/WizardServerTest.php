@@ -91,6 +91,36 @@ describe('who is let in', function () {
     });
 });
 
+describe('a server open to the network', function () {
+    test('lets in the addresses it was told, whatever name they use, and refuses the others', function () {
+        $mailbox = webMailbox();
+        $mailbox->allow('good-token');
+        $server = new WizardServer($mailbox, null, 0, 0, ['203.0.113.7']);
+        $headers = ['host' => 'grid.example.org:8123'];
+
+        $stranger = $server->handle('GET', '/', ['t' => 'good-token'], [], [], $headers, '198.51.100.9');
+        $mapped = $server->handle('GET', '/', ['t' => 'good-token'], [], [], $headers, '::ffff:203.0.113.7');
+
+        // The stranger did not use up the address: the person who may come can
+        expect($stranger[0])->toBe(403)
+            ->and($mapped[0])->toBe(303)
+            ->and($server->handle('GET', '/', [], [], [], [], '203.0.113.7')[0])->toBe(403);
+    });
+
+    test('takes the answers of its own pages, from any name, and not those of another site', function () {
+        $mailbox = webMailbox();
+        $mailbox->allow('t');
+        $server = new WizardServer($mailbox, null, 0, 0, null);
+        $reply = $server->handle('GET', '/', ['t' => 't'], [], [], ['host' => '198.51.100.20:8123'], '203.0.113.7');
+        preg_match('/' . WizardServer::COOKIE . '=([0-9a-f]+)/', $reply[1]['Set-Cookie'], $m);
+        $id = $mailbox->publish(['kind' => 'text', 'label' => 'Name', 'value' => '']);
+        $post = static fn(array $headers): int => $server->handle('POST', '/answer', [], ['id' => $id, 'v' => ['value' => 'x']], [WizardServer::COOKIE => $m[1]], $headers + ['host' => '198.51.100.20:8123'], '203.0.113.7')[0];
+
+        expect($post(['origin' => 'http://evil.example']))->toBe(403)
+            ->and($post(['origin' => 'http://198.51.100.20:8123']))->toBe(303);
+    });
+});
+
 describe('the screens', function () {
     test('the page shows the screen, what was said before it, and escapes what comes from outside', function () {
         [$server, $mailbox, $cookie] = wizardServer();

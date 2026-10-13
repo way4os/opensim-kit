@@ -52,9 +52,16 @@ try {
         try {
             $ui = $terminal;
             if ($mode === SetupMode::WEB) {
-                $session = WizardLauncher::start(SetupMode::port(array_slice($argv, 1)));
+                try {
+                    $network = SetupMode::network(array_slice($argv, 1), ['SSH_CONNECTION' => (string) getenv('SSH_CONNECTION')], (string) gethostname());
+                } catch (\InvalidArgumentException $e) {
+                    // What was asked of the web side cannot be done, or is not safe to guess
+                    $terminal->error($e->getMessage());
+                    exit(2);
+                }
+                $session = WizardLauncher::start(SetupMode::port(array_slice($argv, 1)), $network);
                 $opened = WizardLauncher::open($session->url);
-                $terminal->note(SetupMode::instructions($session->url, $session->port, $opened, getenv('SSH_CONNECTION') !== false));
+                $terminal->note(SetupMode::instructions($session->url, $session->port, $opened, getenv('SSH_CONNECTION') !== false, $network['open'], $network['allow']));
                 $ui = $session->ui;
                 // What the commands of the setup say (downloads, installs) is shown on the page, not in the terminal
                 ShellService::showOutputWith($ui->stream(...));

@@ -6,36 +6,54 @@ namespace OpenSimKit\Web;
 
 /**
  * What the web server of the setup answers. It shows the screen in the mailbox and brings the answers back to it; it knows
- * nothing of the setup itself. The address given by the setup works once (it gives the browser a secret, kept in a cookie), and
- * only this machine can reach it: the host name of a request must be the one of the server, so a page of another site cannot
- * speak to it through the name of a machine it controls.
+ * nothing of the setup itself. The address given by the setup works once (it gives the browser a secret, kept in a cookie).
+ *
+ * On this machine only (the default), the host name of a request must be the one of the server, so a page of another site cannot
+ * speak to it through the name of a machine it controls. When the server is open to the network, the host name is the one the person
+ * used (the server cannot know it), a request that comes from a page of another site is refused by its origin, and only the addresses
+ * the person said (the one they connected from) are let in.
  */
 final class WizardServer
 {
     public const COOKIE = 'opensim_wizard';
 
     /**
-     * @param list<string> $hosts the host names (with the port) the server answers to
+     * @param ?list<string> $hosts the host names (with the port) the server answers to, null for any (a server open to the network)
      * @param int $waitSeconds how long an answer waits for the next screen before showing the page of the work being done
      * @param int $pollMicros how long to sleep between two looks at the mailbox
+     * @param ?list<string> $allow the addresses of the clients let in, null for any
      */
     public function __construct(
         private readonly Mailbox $mailbox,
-        private readonly array $hosts,
+        private readonly ?array $hosts,
         private readonly int $waitSeconds = 20,
         private readonly int $pollMicros = 50_000,
+        private readonly ?array $allow = null,
     ) {}
+
+    /** An address as it is compared: an IPv4 address that arrives as an IPv6 one is the IPv4 address. */
+    public static function address(string $ip): string
+    {
+        $packed = @inet_pton(trim($ip, '[] '));
+
+        return $packed === false ? strtolower($ip) : (string) inet_ntop(strlen($packed) === 16 && str_starts_with($packed, "\0\0\0\0\0\0\0\0\0\0\xff\xff") ? substr($packed, 12) : $packed);
+    }
 
     /**
      * @param array<string,string> $query
      * @param array<string,mixed> $post
      * @param array<string,string> $cookies
      * @param array<string,string> $headers names in lower case (host, origin)
+     * @param string $remote the address of the client
      * @return array{0:int,1:array<string,string>,2:string} the status, the headers, the page
      */
-    public function handle(string $method, string $path, array $query, array $post, array $cookies, array $headers): array
+    public function handle(string $method, string $path, array $query, array $post, array $cookies, array $headers, string $remote = ''): array
     {
-        if (!in_array(strtolower($headers['host'] ?? ''), $this->hosts, true)) {
+        if ($this->allow !== null && !in_array(self::address($remote), $this->allow, true)) {
+            return self::plain(403, 'Forbidden');
+        }
+        $host = strtolower($headers['host'] ?? '');
+        if ($this->hosts === null ? $host === '' : !in_array($host, $this->hosts, true)) {
             return self::plain(403, 'Forbidden');
         }
         if (isset($query['t'])) {
@@ -84,7 +102,8 @@ final class WizardServer
         // from this site (Sec-Fetch-Site), or by its origin, which is absent from a request that is not a browser's
         $origin = $headers['origin'] ?? '';
         $fromHere = ($headers['sec-fetch-site'] ?? '') === 'same-origin';
-        if (!$fromHere && $origin !== '' && !in_array(strtolower((string) parse_url($origin, PHP_URL_HOST) . ':' . (string) parse_url($origin, PHP_URL_PORT)), $this->hosts, true)) {
+        $hosts = $this->hosts ?? [strtolower($headers['host'] ?? '')];
+        if (!$fromHere && $origin !== '' && !in_array(strtolower((string) parse_url($origin, PHP_URL_HOST) . ':' . (string) parse_url($origin, PHP_URL_PORT)), $hosts, true)) {
             return self::plain(403, 'Forbidden');
         }
         $id = (int) ($post['id'] ?? 0);
