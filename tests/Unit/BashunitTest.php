@@ -23,6 +23,6 @@ describe('Shell scripts', function () use ($root, $bash, $missing) {
         $output = stream_get_contents($pipes[1]) . stream_get_contents($pipes[2]);
         $status = proc_close($process);
 
-        expect($status, $output)->toBe(0);
+        expect($status)->toBe(0, $output);
     })->skip('' !== $missing, $missing);
 });

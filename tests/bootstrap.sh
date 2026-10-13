@@ -1,26 +1,47 @@
 #!/usr/bin/env bash
-# The environment of the tests, sourced by every script of tests/ that starts a container (and by the tools that start them for
-# the tests). Nothing specific to a machine is written in the tests: what is, is in tests/.env (see tests/.env.example), which is
-# made from the example the first time.
+# The environment of the tests, sourced by every script of tests/ that starts a container (and by bashunit, which sources the
+# bootstrap of a tests folder itself: this file is plain bash, safe in strict mode, and changes nothing but the environment).
+# Nothing specific to a machine is written in the tests: what is, is in tests/.env (see tests/.env.example), which is made from the
+# example the first time.
 #
 #   CONTAINER_CONNECTION  the podman connection every container of the tests goes to, the machine that has the CPU and not the
 #                         one the tests are started from. Every podman command that follows goes there, whoever runs it.
 #   MEMORY                the memory of the container of a scenario
 #
-# Usage: source tests/bootstrap.sh   (from anywhere in the repository)
+# The .env of the project, then tests/.env, are read; what the caller already set (MEMORY=1g tests/Packaging/run) is kept.
+#
+# Usage: source tests/bootstrap.sh   (from anywhere)
 
-TESTS_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-[[ -f "$TESTS_ROOT/vendor/bin/bash-helpers" ]] || { echo "bash-tools is not installed: composer install" >&2; exit 1; }
-source "$TESTS_ROOT/vendor/bin/bash-helpers"
+__tests_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
-if [[ ! -f "$TESTS_ROOT/tests/.env" && -f "$TESTS_ROOT/tests/.env.example" ]]; then
-    cp "$TESTS_ROOT/tests/.env.example" "$TESTS_ROOT/tests/.env"
-    log "tests/.env made from tests/.env.example: edit it to run the containers on another machine"
+if [[ ! -f "$__tests_root/tests/.env" && -f "$__tests_root/tests/.env.example" ]]; then
+    cp "$__tests_root/tests/.env.example" "$__tests_root/tests/.env"
+    echo "tests: tests/.env made from tests/.env.example, edit it to run the containers on another machine" >&2
 fi
 
-# The environment of the project (.env) and the one of the tests (tests/.env)
-ENV_SLUG=tests read_env || true
+for __tests_file in "$__tests_root/.env" "$__tests_root/tests/.env"; do
+    [[ -f "$__tests_file" ]] || continue
+    while IFS= read -r __tests_line || [[ -n "$__tests_line" ]]; do
+        [[ "$__tests_line" =~ ^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]] || continue
+        __tests_name=${BASH_REMATCH[1]}
+        __tests_value=${BASH_REMATCH[2]}
+        __tests_value=${__tests_value%%[[:space:]]#*}
+        __tests_value=${__tests_value%\"}
+        __tests_value=${__tests_value#\"}
+        __tests_value=${__tests_value%\'}
+        __tests_value=${__tests_value#\'}
+        # What the caller set wins over the files, tests/.env wins over the .env of the project
+        if [[ -z "${!__tests_name+x}" || "${__tests_set:-}" == *" $__tests_name "* ]]; then
+            export "$__tests_name=$__tests_value"
+            __tests_set="${__tests_set:-} $__tests_name "
+        fi
+    done <"$__tests_file"
+done
+
 if [[ -n "${CONTAINER_CONNECTION:-}" ]]; then
     export CONTAINER_CONNECTION
-    log "Podman connection: $CONTAINER_CONNECTION"
+    [[ -n "${__tests_said:-}" ]] || echo "tests: podman connection: $CONTAINER_CONNECTION" >&2
+    export __tests_said=1
 fi
+unset __tests_root __tests_file __tests_line __tests_name __tests_value __tests_set
+true

@@ -17,6 +17,8 @@ cd "$(dirname "$0")/../.."
 BASE_DIR=$PWD
 # The environment of the tests (tests/.env): CONTAINER_CONNECTION, MEMORY...
 source tests/bootstrap.sh
+[[ -f vendor/bin/bash-helpers ]] || { echo "bash-tools is not installed: composer install" >&2; exit 1; }
+source vendor/bin/bash-helpers
 
 DEPS_ENGINE=${DEPS_ENGINE:-$PWD/../opensim-engine/dist}
 DEPS_REST=${DEPS_REST:-$PWD/../opensim-rest-php/dist}

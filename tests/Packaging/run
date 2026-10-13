@@ -23,6 +23,8 @@ cd "$(git rev-parse --show-toplevel)"
 BASE_DIR=$PWD
 # The environment of the tests (tests/.env): CONTAINER_CONNECTION, MEMORY...
 source tests/bootstrap.sh
+[[ -f vendor/bin/bash-helpers ]] || { echo "bash-tools is not installed: composer install" >&2; exit 1; }
+source vendor/bin/bash-helpers
 
 # The packages to install: those of dist/ and those of the libraries
 for dir in dist "${DEPS_ENGINE:-../opensim-engine/dist}" "${DEPS_REST:-../opensim-rest-php/dist}" "${DEPS_HELPERS:-../opensim-helpers/dist}"; do
