@@ -124,6 +124,15 @@ for ($turn = 0; $turn < 120; $turn++) {
     $seen[$id] = $id;
     $pages++;
 
+    // A form that comes back with what is wrong on it is refused: said, and not asked for ever
+    if (preg_match_all('#<div class="field invalid".*?<p class="error">(.*?)</p>#s', $page, $wrong)) {
+        $refusals = ($refusals ?? 0) + 1;
+        fwrite(STDOUT, '   refused: ' . implode(' / ', array_map('text', $wrong[1])) . "\n");
+        $refusals < 3 || fail("the form '$heading' is refused again and again", $page);
+    } else {
+        $refusals = 0;
+    }
+
     $post = ['id' => $id, 'action' => 'next'];
     if (str_contains($page, '<div class="field')) {
         // A form: what the fixture answers, the values proposed for the rest

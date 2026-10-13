@@ -3,7 +3,7 @@
 /** A region added to the grid the quick setup made, from its menu, in the browser (see web-browser-driver.php). */
 return [
     'fill' => [
-        'Region name' => 'Second Place',
+        'Region name' => 'Third Place',
         'Database password' => 'knownpw12',
     ],
     'click' => [
