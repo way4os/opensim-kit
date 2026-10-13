@@ -58,6 +58,12 @@ final class PresetUi implements UiInterface
         if ($this->prefill) {
             return $this->askForm($fields, $title);
         }
+        // The settings of the database after a failure: one screen with all of them, as the first time, not a question for each
+        if ($this->retrying && self::isDatabaseForm($fields)) {
+            $this->retrying = false;
+
+            return $this->inner->form($fields, $title);
+        }
         $values = [];
         foreach ($fields as $field) {
             $values[$field['key']] = $this->visible($field, $values)
@@ -66,6 +72,18 @@ final class PresetUi implements UiInterface
         }
 
         return $values;
+    }
+
+    /** @param list<array<string,mixed>> $fields */
+    private static function isDatabaseForm(array $fields): bool
+    {
+        foreach ($fields as $field) {
+            if (str_starts_with((string) ($field['label'] ?? ''), 'Database ')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function intro(string $title): void

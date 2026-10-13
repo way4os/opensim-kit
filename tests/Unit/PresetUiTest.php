@@ -143,3 +143,61 @@ test('answers a form field by field', function () {
 
     expect($v)->toBe(['mode' => 'screen', 'port' => '', 'start' => 'no', 'roles' => 'a,b']);
 });
+
+/** An interface that shows each form as one screen, and keeps what it was given. */
+final class ScreenUi implements UiInterface
+{
+    /** @var list<array{0:string,1:list<string>}> the title and the labels of each form shown */
+    public array $screens = [];
+
+    public function intro(string $title): void {}
+    public function note(string $message): void {}
+    public function entity(string $name): string { return $name; }
+    public function warn(string $message): void {}
+    public function error(string $message): void {}
+    public function outro(string $message): void {}
+    public function choose(string $label, array $options, ?string $default = null, ?string $hint = null): string { return (string) $default; }
+    public function checklist(string $label, array $options, array $defaults = [], ?string $hint = null): array { return $defaults; }
+    public function text(string $label, string $default = '', ?\Closure $validate = null, ?string $hint = null): string { return $default; }
+    public function secret(string $label, ?\Closure $validate = null, ?string $hint = null): string { return ''; }
+    public function confirm(string $label, bool $default = true): bool { return $default; }
+    public function spin(\Closure $callback, string $message): mixed { return $callback(); }
+    public function form(array $fields, string $title = ''): array
+    {
+        $this->screens[] = [$title, array_column($fields, 'label')];
+
+        return array_column(array_map(static fn(array $f): array => ['k' => $f['key'], 'v' => (string) ($f['default'] ?? '')], $fields), 'v', 'k');
+    }
+}
+
+describe('the settings of the database asked again after a failure', function () {
+    $database = [
+        ['key' => 'database_host', 'label' => 'Database host', 'default' => 'localhost'],
+        ['key' => 'database_user', 'label' => 'Database user', 'default' => 'opensim'],
+        ['key' => 'database_password', 'label' => 'Database password', 'default' => 'typed'],
+    ];
+
+    test('are one screen, not a question for each field', function () use ($database) {
+        $inner = new ScreenUi();
+        $ui = new PresetUi($inner, []);
+
+        $first = $ui->form($database, 'Database');
+        $ui->error('User exists but the password is rejected');
+        $again = $ui->form($database, 'Database');
+
+        // The first time the table answers by itself, after the failure the person is asked, once, with everything
+        expect($first)->toBe(['database_host' => 'localhost', 'database_user' => 'opensim', 'database_password' => 'typed'])
+            ->and($again)->toBe($first)
+            ->and($inner->screens)->toBe([['Database', ['Database host', 'Database user', 'Database password']]]);
+    });
+
+    test('and the forms after it are answered from the table again', function () use ($database) {
+        $inner = new ScreenUi();
+        $ui = new PresetUi($inner, []);
+        $ui->error('failed');
+        $ui->form($database, 'Database');
+        $ui->form($database, 'Database');
+
+        expect($inner->screens)->toHaveCount(1);
+    });
+});
