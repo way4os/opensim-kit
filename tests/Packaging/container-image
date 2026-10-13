@@ -8,6 +8,9 @@
 # KEEP=1 keeps the containers; ENGINE=docker; IMAGE=<image>
 # The memory of each container is capped: the machine of podman is shared.
 
+# The environment of the tests (tests/.env): the containers go to its CONTAINER_CONNECTION
+source "$(git rev-parse --show-toplevel)/tests/bootstrap.sh"
+
 ENGINE=${ENGINE:-podman}
 IMAGE=${IMAGE:-opensim-kit:dev}
 p=opensim-kit-ctest
