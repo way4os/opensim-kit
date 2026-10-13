@@ -85,7 +85,8 @@ if [[ -n "${PREPARE:-}" ]]; then
     key=$({
         cat "$TEST_DIR/$PREPARE" "$TEST_DIR/scenario-lib.sh" "$TEST_DIR/scenario-image.Containerfile"
         echo "$BASE"
-        ls -l dist/opensim-0.9.[0-9].[0-9]_*.deb 2>/dev/null | awk '{print $5, $NF}'
+        # The version of the core, not its size: the package is made again by each build, and is not the same to the byte
+        ls dist/opensim-0.9.[0-9].[0-9]_*.deb 2>/dev/null | sed 's|.*/||'
     } | sum | cut -c1-12)
     image="localhost/$name-prepared:$key"
     if [[ -n "${REPREPARE:-}" ]] || ! podman image exists "$image"; then
