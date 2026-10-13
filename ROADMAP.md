@@ -117,7 +117,8 @@
 
 ## Less urgent
 
-- [ ] `opensim-admin` package: the complete admin interface (web). The web setup (`opensim setup --web`) stays as it is until it is ready, then it is refined with it; the HTTPS of the setup is to be settled there (`php -S` cannot do TLS, the server of the Symfony CLI is a binary with a local authority, a real certificate needs a name and an ACME server such as Caddy; over SSH the page is plain HTTP for now)
+- [ ] `opensim-admin` package: the complete admin interface (web), with the same procedures as the CLI, the simplified web app, WordPress (w4os); the architecture is being decided (engine actions, front-ends as adapters)
+- [ ] the web setup serves HTTPS (self-signed is fine for this temporary step: some browsers refuse forms over plain HTTP, and the passwords must not cross the network in clear): the server of the Symfony CLI, the method the user knows, or a better one (Caddy `tls internal` in front of `php -S`)
 - [ ] detect abuse by the frequency of asset creation, not by a total quota (an account can have thousands of assets for good reasons): an account, or its scripts, creating a suspicious number of assets over a period; complements `opensim ban` (OSGrid closes after an `iar` flood of random assets, see the announcement of 2026-10-12). After everything that exists is ported, and nothing of this runs on a live grid yet
 - [ ] services split (assets, inventory, users...) in their own Robust and database, to back them up apart; and what a user-run simulator may write in the grid (Hypergrid as the second tier rather than assets kept by the simulator): to decide with the hosting offer
 - [x] localize the setup with gettext (a requirement of the project): the messages of the PHP setup are translatable (`locales/`, `locales/update-pot`)
