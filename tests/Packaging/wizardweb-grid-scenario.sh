@@ -40,7 +40,8 @@ echo "exit code: $?" >>/tmp/browser.out
 fold -s -w 200 /tmp/browser.out | sed 's/^/   | /' | head -60
 check "the browser went through the setup to its last page" "grep -q '^done: ' /tmp/browser.out && grep -q 'exit code: 0' /tmp/browser.out"
 pages=$(sed -n 's/^pages: //p' /tmp/browser.out)
-check "a grid and its first region need a handful of pages ($pages), not a page per question" "[ \"${pages:-99}\" -le 10 ]"
+check "the region added in the same session, after the grid was made: every role is offered, the ones the grid has are not checked again" "! grep -q 'boxes:.*\\[x\\] Default' /tmp/browser.out && grep -q 'boxes: Role of this region: \\[ \\] Default Region, \\[ \\] Default HG Region, \\[ \\] Fallback Region' /tmp/browser.out"
+check "a grid, its first region and another one need a handful of pages ($pages), not a page per question" "[ \"${pages:-99}\" -le 20 ]"
 check "the password of the account is asked once, for the database of the grid: the simulator uses it" "[ \"\$(grep -c '^page [0-9]*: Database' /tmp/browser.out)\" = 1 ]"
 check "what the setup is about to create is a note, not a warning" "! grep -q '^warning: .*\(does not exist\|has no access\)' /tmp/browser.out"
 wait_check 20 "the setup ends well, in the terminal too" "grep -q 'exit code: 0' /tmp/wizard.out"
@@ -59,6 +60,18 @@ check "what the writing says (it is done as opensim) is on the page, not in the 
 wait_check 300 "Robust of the grid is running" "pgrep -f '^dotnet .*Robust.dll' >/dev/null"
 wait_check 400 "the region of the first simulator registers in the grid" "grep -q 'Region Welcome .* registered at 8002,8002' /var/log/opensim/web_grid_welcome.log"
 check "nothing is left of the exchanges, the web server is stopped" "[ -z \"\$(ls -d /tmp/opensim-wizard-* 2>/dev/null)\" ] && ! pgrep -f 'php -S 127.0.0.1' >/dev/null"
+
+ts "a region added to the grid, in the browser: the roles the grid has already are not checked"
+(cd /tmp && runuser -u tester -- env SSH_CONNECTION='127.0.0.1 40000 127.0.0.1 22' opensim setup --web >/tmp/wizard2.out 2>&1
+    echo "exit code: $?" >>/tmp/wizard2.out) &
+wait_check 40 "the setup gives the address of its page" "grep -q 'http://127.0.0.1:[0-9]*/?t=' /tmp/wizard2.out"
+url=$(grep -o 'http://127.0.0.1:[0-9]*/?t=[0-9a-f]*' /tmp/wizard2.out | head -1)
+php /test/web-browser-driver.php "$url" /test/add-region-fixture.php >/tmp/browser2.out 2>&1
+echo "exit code: $?" >>/tmp/browser2.out
+fold -s -w 200 /tmp/browser2.out | grep -v "^said:" | sed 's/^/   | /' | head -30
+grep -h "Region_\|DefaultRegion" /etc/opensim/grids/web_grid/Robust.HG.ini | grep -v "^\s*;" | sed 's/^/   | robust: /'
+check "the browser went through the setup to its last page" "grep -q '^done: ' /tmp/browser2.out"
+check "the roles the grid has already (the default region, the one of the visitors) are not checked in the form of the new region" "! grep -q 'boxes:.*\[x\] Default' /tmp/browser2.out"
 
 ts "done: $([ $FAILED = 0 ] && echo 'all checks passed' || echo 'SOME CHECKS FAILED')"
 exit $FAILED

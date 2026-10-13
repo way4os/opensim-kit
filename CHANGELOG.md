@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix: a new region offers every role, checked only when the grid has no region with it yet (several default regions are possible)
 - new: `opensim setup --web [--port N] [--listen] [--allow] [--host]` goes through the setup in a page of the browser, over SSH without a tunnel (an address that works once)
 - fix: the quick setup enabled and started nothing (the questions after the confirmation of the plan were hidden)
 - update: `setup.json` and the backups are readable by the group of the install (640, folders 750)

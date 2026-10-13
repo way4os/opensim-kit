@@ -56,6 +56,23 @@ function fail(string $message, string $page = ''): never
     exit(1);
 }
 
+/** The button a fixture says to click on a page: a part of its label; a list is a queue, one for each time the page comes back. */
+function wanted(array &$clicks, string $where): ?string
+{
+    foreach ($clicks as $part => $value) {
+        if (stripos($where, (string) $part) === false) {
+            continue;
+        }
+        if (is_array($value)) {
+            return array_shift($clicks[$part]);
+        }
+
+        return (string) $value;
+    }
+
+    return null;
+}
+
 /** The label a fixture answer is given for matches: a part of it, whatever its case. */
 function given(array $answers, string $label): ?string
 {
@@ -74,6 +91,7 @@ $cookie = $m[1] ?? '';
 $status === 303 && $cookie !== '' || fail("the address does not give the cookie (status $status)");
 
 $seen = [];
+$clicks = $fixture['click'] ?? [];
 $last = '';
 $pages = 0;
 for ($turn = 0; $turn < 120; $turn++) {
@@ -111,6 +129,7 @@ for ($turn = 0; $turn < 120; $turn++) {
         // A form: what the fixture answers, the values proposed for the rest
         $values = [];
         $said = [];
+        $boxes = [];
         foreach (preg_split('/(?=<div class="field)/', (string) strstr($page, '<div class="field')) as $block) {
             if (!str_contains($block, '<label>')) {
                 continue;
@@ -123,16 +142,20 @@ for ($turn = 0; $turn < 120; $turn++) {
                 $values[$f[1]] = $answer ?? $current;
             } elseif (preg_match('/<input type="(?:text|password)" name="v\[(\w+)\]"(?: autocomplete="[^"]*")?(?: value="([^"]*)")?/', $block, $f)) {
                 $values[$f[1]] = $answer ?? html_entity_decode($f[2] ?? '', ENT_QUOTES);
-            } elseif (preg_match_all('/<input type="checkbox" name="v\[(\w+)\]\[\]" value="([^"]*)"( checked)?/', $block, $all, PREG_SET_ORDER)) {
-                $values[$all[0][1]] = array_merge([''], array_values(array_map(static fn(array $c): string => $c[2], array_filter($all, static fn(array $c): bool => isset($c[3])))));
+            } elseif (preg_match_all('/<input type="checkbox" name="v\[(\w+)\]\[\]" value="([^"]*)"( checked)?> ([^<]*)<\/label>/', $block, $all, PREG_SET_ORDER)) {
+                $values[$all[0][1]] = array_merge([''], array_values(array_map(static fn(array $c): string => $c[2], array_filter($all, static fn(array $c): bool => ($c[3] ?? '') !== ''))));
+                $boxes[] = $label . ': ' . implode(', ', array_map(static fn(array $c): string => (($c[3] ?? '') !== '' ? '[x] ' : '[ ] ') . trim(html_entity_decode($c[4])), $all));
             }
             $answer === null || $said[] = "$label=" . (str_contains(strtolower($label), 'password') ? '***' : $answer);
         }
         $post['v'] = $values;
         fwrite(STDOUT, sprintf("page %d: %s, a form of %d fields%s\n", $pages, $heading, count($values), $said === [] ? '' : ' (' . implode(', ', $said) . ')'));
+        foreach ($boxes as $box) {
+            fwrite(STDOUT, "   boxes: $box\n");
+        }
     } elseif (preg_match_all('#<button type="submit" name="v\[value\]" value="([^"]*)" class="([^"]*)">(.*?)</button>#s', $page, $buttons, PREG_SET_ORDER)) {
         // A menu, or a yes or no: the button the fixture names, otherwise the one that stands out
-        $want = given($fixture['click'] ?? [], $heading . ' ' . text((string) preg_replace('#<form.*$#s', '', (string) strstr($page, '<section>'))));
+        $want = wanted($clicks, $heading . ' ' . text((string) preg_replace('#<form.*$#s', '', (string) strstr($page, '<section>'))));
         $chosen = null;
         foreach ($buttons as $button) {
             if ($want !== null && stripos(text($button[3]), $want) !== false) {

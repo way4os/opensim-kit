@@ -9,6 +9,11 @@ return [
         'Owner password' => 'secret12',
         // The account of the database exists already: its password is asked, once
         'Database password' => 'knownpw12',
+        'Region name' => 'Second Place',
     ],
-    'click' => [],
+    'click' => [
+        // The grid is ready: go on, add a region to the simulator that has one, then leave (the roles the grid has are not checked again)
+        'Simulator: ' => ['Add region', 'Quit'],
+        'Setup' => 'Continue setup',
+    ],
 ];
