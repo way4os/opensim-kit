@@ -17,7 +17,6 @@
     "require": {
         "php": ">=8.2",
         "ext-ctype": "*",
-        "ext-gettext": "*",
         "ext-iconv": "*",
         "ext-json": "*",
         "ext-mbstring": "*",
@@ -83,6 +82,7 @@
     },
     "prefer-stable": true,
     "suggest": {
+        "ext-gettext": "translations of the messages, which stay in English without it",
         "ext-intl": "better transliteration of the grid names",
         "ext-posix": "detect the user the setup runs as"
     },

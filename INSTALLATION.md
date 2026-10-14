@@ -209,7 +209,7 @@ An existing install, e.g. in `/opt/opensim`, keeps working with the packaged too
 
 ## From git
 
-Requires PHP 8.2 or newer, with the `ctype`, `iconv`, `json` and `mbstring` extensions, and those of the engine: `curl`, `filter`, `gettext`, `intl`, `mysqli`, `pdo`, `session` and `simplexml`. `posix` is used when available. The packages install what they need.
+Requires PHP 8.2 or newer, with the `ctype`, `iconv`, `json` and `mbstring` extensions, and those of the engine: `curl`, `filter`, `intl`, `mysqli`, `pdo`, `session` and `simplexml`. `posix` and `gettext` (the translations of the messages, which stay in English without it) are used when available. The packages install what they need.
 
 On Debian and Ubuntu: `sudo apt install php-cli php-curl php-intl php-mbstring php-mysql php-xml`.
 

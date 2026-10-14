@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- update: `gettext` is suggested, not required: without it the messages stay in English
 - update: the navigation of the setup in the browser is one row (Cancel, Quit, Continue), Cancel replaces Back (it gives up the screen), and a menu's Back and Quit are not shown twice
 - fix: a new region offers every role, checked only when the grid has no region with it yet (several default regions are possible)
 - new: `opensim setup --web [--port N] [--listen] [--allow] [--host]` goes through the setup in a page of the browser, over SSH without a tunnel (an address that works once)
