@@ -48,3 +48,4 @@ vendor/
 !.env*.example
 .venv/
 venv/
+.lerd.yaml
