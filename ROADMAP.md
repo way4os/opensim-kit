@@ -1,5 +1,51 @@
 # Roadmap
 
+## Milestones
+
+What ships when. A release goes out when its list is done and tested; what is not on it waits for the next one, even half done. The sections below this one are the backlog: an item belongs to a milestone only if it is named here.
+
+Dates (2026): OSGrid's last public meeting 10-18 11:00 PST (announce something concrete if there is; not required) · OSGrid closes 12-31, most of its region owners move before · OSCC 12-05/06, a session presenting 3.0, registrations open now.
+
+**What is needed first, and what it needs:**
+
+| Need | Needs |
+| --- | --- |
+| bulk import of avatars for the OSCC organisers | a stable release; the accounts tried with a viewer |
+| regions of OSGrid refugees on Speculoos | a beta advanced enough, and a written procedure |
+| the same on other grids | a stable release; security measures; able to take external regions |
+| the 5 crashed simulators of hal | a new stable beta |
+| 3.0 before OSCC | all of the above, plus the manager as an app |
+
+### 3.0.0-beta.7 (target: before 10-18, for Speculoos and hal)
+
+- [ ] the state of the refactoring frozen as a coherent beta of the family (the Unreleased list below), with the container scenarios green (`setup`, `lifecycle`, `package`, `setupfile`, `wizardweb`)
+- [ ] the procedure to move a region from OSGrid, written and tried: the owner saves an OAR from their simulator, the operator adds the region (`opensim`), `opensim load oar`; see "full import procedure" and "the OAR of a region that belongs to a user who is not the owner of the grid"
+- [ ] what hal needs from the beta to restore its 5 simulators: `opensim import` of a simulator (config and data), `opensim restore` (to be told which of the two blocked)
+
+### 3.0.0 (stable; CLI, Debian packages, web app)
+
+The release gate, for everything that is hosted for others:
+
+- [ ] security for regions of other people: detection by frequency of asset creation (moved up from Less urgent), `opensim ban` (done), a decision on the trust given to assets coming from a simulator or an `iar` (the question of the services split stays open, it is decided before the work, not after)
+- [ ] the accounts made by `opensim import --users` tried with a viewer (login, inventory, default outfit, the numbers of the system folders)
+- [ ] `opensim import` tried on real grids; `opensim restore` of a backup on a new machine; the archives of the users (`opensim save oar` for every region, rotation)
+- [ ] libgdiplus on Linux: what the regions do with the 6.1 of the distributions, and what the packages should say
+- [ ] the helpers confirmed on the real sites (the 500, the search with a viewer, the offline messages)
+- [ ] the packaging scenario beyond the upgrade step, with the real `apt-package` (docker left)
+
+The manager, as an app (steps 6 and 7 of its ARCHITECTURE.md, in this order, each a slice that works alone): the agent and start, stop, restart, status; avatars (create, edit, bulk import); regions (add, load an OAR); simulators and grids (add, modify) over the fields and planners of the engine; the settings the models define; the limits before public use (simulator details to their owner, public regions only, personal data, the precautions of SECURITY.md). If the date presses, what is not done moves to 3.1 and the release goes without it.
+
+### 3.1 (useful, not needed for a first release)
+
+- the maps (navigable world map on the web), an avatar picker, the inventory of the user, items added to the shared library
+- the general editor of the `.ini` settings in the manager, the sections of the search database (places, events, classifieds), the tree of an inventory, finer rights of the members of a grid
+- SSL on the OpenSim servers, docker/podman installation in the setup, the zip packages, macOS (the clone, libgdiplus), display names, the OSSL and parcel naming options
+- the pages of a grid: their order, a summary for search engines, where they show
+
+### 3.2 (more, later)
+
+- the CMS (page builder, themes, what w4os covers), the central management of the NPC chatbot, the AI integration (chatbot, MCP), `opensim-flux`, currency modules (MoneyServer forks, PayPal)
+
 ## Fixes
 
 - [ ] PRIRORITY: Refactor as a true PHP application, PSR-4, using consistant namespaces and classes, leaving the CLI only as a shortcut for main features. Done: the lifecycle and every command in the engine and the kit (see REFACTORING.md). Left:
