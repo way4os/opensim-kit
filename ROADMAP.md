@@ -123,9 +123,9 @@ Tests that are missing:
 The engine gives the data (the manager, the plugin and the CLI only show it):
 
 - [ ] all database access through `OSPDO` (PDO), never the `mysql` client
-    - [ ] replace the `mysql` client calls of `DatabaseService`
-    - [ ] backup export through PDO (`BackupService`)
-    - [ ] `UserBan` through PDO
+    - [x] replace the `mysql` client calls of `DatabaseService`
+    - [x] backup export through PDO (`DatabaseDump`)
+    - [x] `UserBan` through PDO
     - [ ] queries checked for sqlite3 and pgsql (mysql only supported until then, not by choice)
 - [ ] databases the engine knows
     - [ ] Robust services

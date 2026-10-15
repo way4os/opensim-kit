@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenSimKit\Console\Commands;
 
 use OpenSim\Archives\BackupService;
+use OpenSim\Archives\DatabaseDump;
 use OpenSim\Archives\Rotation;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -71,7 +72,7 @@ final class BackupCommand extends ScriptCommand
             return 1;
         }
         try {
-            $files = (new BackupService($profile, BackupService::mysqldump(...), static function (string $message) use ($err): void {
+            $files = (new BackupService($profile, DatabaseDump::write(...), static function (string $message) use ($err): void {
                 self::say($err, $message . "\n");
             }))->run($refs, $options);
         } catch (\InvalidArgumentException $e) {
