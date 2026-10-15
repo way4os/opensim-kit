@@ -122,7 +122,39 @@ Tests that are missing:
 
 The engine gives the data (the manager, the plugin and the CLI only show it):
 
-- [ ] one shape for every list: rows as arrays, the total, the columns, the filters available, sort, search, pages
+- [ ] all database access through `OSPDO` (PDO), never the `mysql` client
+    - [ ] replace the `mysql` client calls of `DatabaseService`
+    - [ ] queries checked for sqlite3 and pgsql (mysql only supported until then, not by choice)
+- [ ] databases the engine knows
+    - [ ] Robust services
+    - [ ] assets
+    - [ ] profiles
+    - [ ] region store of each simulator (parcels, estates)
+    - [ ] search index
+    - [ ] economy
+- [ ] standard model contract: `OpenSimModelInterface`
+    - [ ] properties: id, name, slug, uuid, uri
+    - [ ] methods: detail, update, create, delete, enabled, enable, disable, owner, group, flags, lastSeen
+    - [ ] column names mapped to the standard names, per model
+    - [ ] writes through a channel (database, console, ini file), refused when unavailable
+    - [ ] relations
+        - [ ] grid: simulators, regions, places, avatars
+        - [ ] simulator: regions
+        - [ ] region: places
+        - [ ] avatar: places
+- [ ] `Collection` returned by every list
+    - [ ] first, last, count, array, json, csv
+    - [ ] total, columns, filters available, sort, search, pages
+- [ ] constants for flags, aligned on the OpenSim code and the LSL constants
+    - [x] region (`RegionFlags`)
+    - [ ] parcel
+    - [ ] user
+- [ ] models: grid, simulator, region, parcel, avatar
+    - [ ] parcel: bitmap of 4x4 m squares, which parcel holds x,y
+    - [ ] region: is default, fallback, online
+    - [ ] avatar: is god (level 200 and above)
+- [ ] legacy classes (`OpenSim_Avatar`, `OpenSim_Region`, `OpenSim_Service`) folded into the models, aliases in `legacy/`
+- [ ] function that reads the config aligned on Laravel's `config()`, `get_option` kept as an adapter for w4os
 - [ ] avatars list
     - [ ] search, sort, created, last seen
     - [ ] filters by type (user, model, technical accounts), active, online
