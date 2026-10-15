@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 use OpenSim\Models\GridInfo;
 use OpenSim\Provisioning\GridPlan;
-use OpenSim\Provisioning\RegionFlags;
+use OpenSim\Models\Region;
 use OpenSim\Provisioning\UiInterface;
 use OpenSimKit\Setup\NewSim;
 
@@ -115,7 +115,7 @@ describe('The questions about a new simulator', function () {
             // The first region has the name of the simulator, the roles the grid lacks (not the fallback), the place of the center
             ->and($plan->createRegion)->toBeTrue()
             ->and($plan->regionName)->toBe('Welcome')
-            ->and($plan->regionRoles)->toBe([RegionFlags::DEFAULT, RegionFlags::DEFAULT_HG])
+            ->and($plan->regionRoles)->toBe([Region::flagName(Region::DEFAULT_REGION), Region::flagName(Region::DEFAULT_HGREGION)])
             ->and($plan->regionPort)->toBeGreaterThan($plan->httpPort)
             ->and(strlen($plan->regionUuid))->toBe(36);
     });
@@ -125,7 +125,7 @@ describe('The questions about a new simulator', function () {
         $ui = new SimUiFake([
             'Simulator name' => 'Garden Sim', 'Simulator HTTP port' => '9020', 'Console of the simulator' => 'screen',
             'Name of the new account' => 'Ann Poe', 'Password of the new account' => 'secret1',
-            'Region name' => 'Roses', 'Role of this region' => [RegionFlags::FALLBACK], 'Region location' => '8100,8100',
+            'Region name' => 'Roses', 'Role of this region' => [Region::flagName(Region::FALLBACK_REGION)], 'Region location' => '8100,8100',
         ]);
 
         $plan = (new NewSim($ui))->prepare($grid, $profile);
@@ -136,7 +136,7 @@ describe('The questions about a new simulator', function () {
             ->and($plan->consoleMode)->toBe('screen')
             ->and($plan->consolePort)->toBe(9024)
             ->and($plan->regionName)->toBe('Roses')
-            ->and($plan->regionRoles)->toBe([RegionFlags::FALLBACK])
+            ->and($plan->regionRoles)->toBe([Region::flagName(Region::FALLBACK_REGION)])
             ->and($plan->regionLocation)->toBe('8100,8100');
     });
 
@@ -191,7 +191,7 @@ describe('A setup file that answers the questions about a simulator', function (
         return $more + [
             'simulator' => ['name' => 'Garden Sim', 'http_port' => '9020', 'database_user' => 'opensim', 'database_password' => 'secret1'],
             'owner' => ['name' => 'Ann Poe', 'password' => 'secret2', 'email' => 'ann@example.org'],
-            'region' => ['name' => 'Roses', 'location' => '8100,8100', 'roles' => [RegionFlags::DEFAULT]],
+            'region' => ['name' => 'Roses', 'location' => '8100,8100', 'roles' => [Region::flagName(Region::DEFAULT_REGION)]],
         ];
     }
 
@@ -211,7 +211,7 @@ describe('A setup file that answers the questions about a simulator', function (
             ->and($plan->createRegion)->toBeTrue()
             ->and($plan->regionName)->toBe('Roses')
             ->and($plan->regionLocation)->toBe('8100,8100')
-            ->and($plan->regionRoles)->toBe([RegionFlags::DEFAULT]);
+            ->and($plan->regionRoles)->toBe([Region::flagName(Region::DEFAULT_REGION)]);
     });
 
     test('has the owner of the file as the owner when the grid has the account, and no account to make', function () {

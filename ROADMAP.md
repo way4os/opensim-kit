@@ -141,26 +141,26 @@ The engine gives the data (the manager, the plugin and the CLI only show it):
         - `allparcels` (land): reduced columns, more records)
         - `regions`: mostly cached essential data for indexed regions
 - [ ] standard model contract: `OpenSimModelInterface`
-    - [ ] properties: id, name, slug, uuid, uri
-    - [ ] methods: detail, update, create, delete, enabled, enable, disable, owner, group, flags, lastSeen
+    - [x] properties: id, name, slug, uuid, uri
+    - [x] methods: detail, update, create, delete, enabled, enable, disable, owner, group, flags, lastSeen
     - [ ] column names mapped to the standard names, per model
-    - [ ] writes through a channel (database, console, ini file), refused when unavailable
+    - [x] writes through a channel (database, console, ini file), refused when unavailable (avatars: the database; the other models none yet)
     - [ ] relations
         - [ ] grid: simulators, regions, places, avatars
         - [ ] simulator: regions, places, current users
         - [ ] region: places
         - [ ] avatar: places, regions, grids (ownership)
-- [ ] `Collection` returned by every list
-    - [ ] first, last, count, array, json, csv
-    - [ ] total, columns, filters available, sort, search, pages
+- [x] `Collection` returned by every list
+    - [x] first, last, count, array, json, csv
+    - [x] total, columns, filters available, sort, search, pages
 - [ ] constants for flags: the bitwise value, named as in the OpenSim doc or code (and OSSL/LSL when it means the same)
     - in the model class (`Region::FALLBACK_REGION`); global only if a need shows up
     - false friends: the flags of `llGetRegionFlags()` are other flags
-    - [ ] region: `DEFAULT_REGION` 1, `FALLBACK_REGION` 2, `REGION_ONLINE` 4, `NO_DIRECT_LOGIN` 8, `PERSISTENT` 16, `LOCKED_OUT` 32, `NO_MOVE` 64, `RESERVATION` 128, `AUTHENTICATE` 256, `HYPERLINK` 512, `DEFAULT_HGREGION` 1024 (opensimulator.org/wiki/Regions_(database_table))
-    - [ ] remove the `RegionFlags` class
-        - [ ] `Region->flags()` replaces it
-        - [ ] text roles of the Robust config (`Region_<Name> = "DefaultRegion, ..."`) in the region and grid models
-        - [ ] its uses (`GridInfo`, `RegionPlanner`, `SimulatorProvisioner`, tests of the engine and the kit)
+    - [x] region: `DEFAULT_REGION` 1, `FALLBACK_REGION` 2, `REGION_ONLINE` 4, `NO_DIRECT_LOGIN` 8, `PERSISTENT` 16, `LOCKED_OUT` 32, `NO_MOVE` 64, `RESERVATION` 128, `AUTHENTICATE` 256, `HYPERLINK` 512, `DEFAULT_HGREGION` 1024 (opensimulator.org/wiki/Regions_(database_table))
+    - [x] remove the `RegionFlags` class
+        - [x] `Region->flags()` replaces it
+        - [x] text roles of the Robust config (`Region_<Name> = "DefaultRegion, ..."`) in the region and grid models
+        - [x] its uses (`GridInfo`, `RegionPlanner`, `SimulatorProvisioner`, tests of the engine and the kit)
     - [ ] parcel
     - [ ] user
 - [ ] models: grid, simulator, region, parcel, avatar
@@ -168,8 +168,8 @@ The engine gives the data (the manager, the plugin and the CLI only show it):
     - [ ] parcel: source is the `land` table of the simulators (lists of the admin interface, dwell)
     - [ ] parcel: search goes through the API of `query.php` (same base as in-world), never its tables
     - [ ] parcel: index of the parcels of all simulators, to list without asking each simulator (later)
-    - [ ] region: is default, fallback, online
-    - [ ] avatar: is god (level 200 and above)
+    - [x] region: is default, fallback, online
+    - [x] avatar: is god (level 200 and above)
 - [ ] legacy classes (`OpenSim_Avatar`, `OpenSim_Region`, `OpenSim_Service`) folded into the models, aliases in `legacy/`
 - [ ] function that reads the config aligned on Laravel's `config()`, `get_option` kept as an adapter for w4os
 - [ ] avatars list

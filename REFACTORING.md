@@ -155,9 +155,10 @@ looks like one of the engine is not its replacement. For each one:
 4. The kit class becomes a consumer of the engine class, or disappears.
 5. Tests for both.
 
-Same name does not mean same thing, and two names can be one thing: check in the OpenSim source. `RegionFlags` of the kit
-and `OpenSim_Region::match_flags()` both interpret `regions.flags` (see the modelling notes): `Region_<Name> =
-"DefaultRegion, ..."` in Robust is the text form of that column (`ParseFlags` in `GridService.cs`). `Ini` of the kit,
+Same name does not mean same thing, and two names can be one thing: check in the OpenSim source. The kit's `RegionFlags` (now
+`Region::roles()`, `rolesIn()` and `giveRoles()`) and `OpenSim_Region::match_flags()` both interpret `regions.flags` (see the
+modelling notes): `Region_<Name> = "DefaultRegion, ..."` in Robust is the text form of that column (`ParseFlags` in
+`GridService.cs`). `Ini` of the kit,
 `OpenSim_Ini` and `OpenSim_Config` of the engine, `IniReader` of the importer and `crudget` in bash all read ini files.
 
 ## Modelling notes for the engine
