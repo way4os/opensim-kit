@@ -173,10 +173,10 @@ The engine gives the data (the manager, the plugin and the CLI only show it):
 - [ ] legacy classes (`OpenSim_Avatar`, `OpenSim_Region`, `OpenSim_Service`) folded into the models, aliases in `legacy/`
 - [ ] function that reads the config aligned on Laravel's `config()`, `get_option` kept as an adapter for w4os
 - [ ] avatars list
-    - [ ] search, sort, created, last seen
-    - [ ] filters by type (user, model, technical accounts), active, online
+    - [x] search, sort, created, last seen
+    - [ ] filters by type (user, model, technical accounts), active, online (active, online and the account of the services are done; models are not)
 - [ ] regions list
-    - [ ] owner, simulator, presence, control, internal port, size, last seen
+    - [ ] owner, simulator, presence, control, internal port, size, last seen (owner, port, size and last seen are done)
     - [ ] filters by owner and by simulator
 - [ ] simulators list
     - [ ] state (from the files and the processes), last seen
@@ -187,6 +187,13 @@ The engine gives the data (the manager, the plugin and the CLI only show it):
 - [ ] other grids visitors are not excluded, they are counted appart (local residents only vs all visitors)
 - [ ] a grid on another machine: config and database credentials read through the console of its Robust (as w4os 2.9.1 and speculoos do). To confirm: needed for the Speculoos site if it is not on the machine of the Robust
 - [ ] manager uses it: its models of avatars, regions and simulators and its database connections to the grids are replaced by calls to the engine
+    - [x] avatars and registered regions come from the engine, no connection to the databases of the grids
+    - [ ] simulators and grids from the engine models, parcels list
+    - [ ] lists paged by the engine (today all the avatars are loaded for a request)
+- [ ] helpers use it
+    - [x] numbers of the grid status (`Data\Stats`), profile page, search of people, owner of the health page
+    - [ ] search of places, land and events (through the API of `query.php`, not the tables)
+    - [ ] currency and economy functions of the engine (`functions-economy.php`) and the legacy classes
 - [ ] plugin uses it, instead of its own queries
 
 What w4os has and the suite lacks (`W4OS-PARITY.md`):
