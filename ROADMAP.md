@@ -44,7 +44,7 @@ The manager, as an app (steps 6 and 7 of its ARCHITECTURE.md, in this order, eac
 - the general editor of the `.ini` settings in the manager, the sections of the search database (places, events, classifieds), the tree of an inventory, finer rights of the members of a grid
 - SSL on the OpenSim servers, docker/podman installation in the setup, the zip packages, macOS (the clone, libgdiplus), display names, the OSSL and parcel naming options
 - the pages of a grid: their order, a summary for search engines, where they show
-- what w4os has and the suite lacks (`W4OS-PARITY.md`): the web assets server (and the picture of the profile), the new-users block, the avatar to choose at registration (models), the filters and the modal of the avatars list, the counts without models, accounts without an email and visitors, the dashboard of the manager, the Podex and PayPal settings
+- what w4os has and the suite lacks (`W4OS-PARITY.md`): the web assets server (and the picture of the profile), the new-users block, the avatar to choose at registration (models), the filters, the modal and the last seen of the avatars list, the counts without models, accounts without an email and visitors, the dashboard of the manager, the Podex and PayPal settings
 
 ### 3.2 (more, later)
 
