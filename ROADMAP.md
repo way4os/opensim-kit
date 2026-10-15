@@ -161,11 +161,11 @@ The engine gives the data (the manager, the plugin and the CLI only show it):
         - [x] `Region->flags()` replaces it
         - [x] text roles of the Robust config (`Region_<Name> = "DefaultRegion, ..."`) in the region and grid models
         - [x] its uses (`GridInfo`, `RegionPlanner`, `SimulatorProvisioner`, tests of the engine and the kit)
-    - [ ] parcel
+    - [x] parcel (LSL names; `FOR_SALE` and `SHOW_DIRECTORY` are the protocol's, to confirm in libomv)
     - [ ] user
 - [ ] models: grid, simulator, region, parcel, avatar
-    - [ ] parcel: bitmap of 4x4 m squares, which parcel holds x,y
-    - [ ] parcel: source is the `land` table of the simulators (lists of the admin interface, dwell)
+    - [x] parcel: bitmap of 4x4 m squares, which parcel holds x,y
+    - [x] parcel: source is the `land` table of the simulators (lists of the admin interface, dwell)
     - [ ] parcel: search goes through the API of `query.php` (same base as in-world), never its tables
     - [ ] parcel: index of the parcels of all simulators, to list without asking each simulator (later)
     - [x] region: is default, fallback, online
