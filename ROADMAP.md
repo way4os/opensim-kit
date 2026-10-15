@@ -145,8 +145,14 @@ The engine gives the data (the manager, the plugin and the CLI only show it):
 - [ ] `Collection` returned by every list
     - [ ] first, last, count, array, json, csv
     - [ ] total, columns, filters available, sort, search, pages
-- [ ] constants for flags, aligned on the OpenSim code and the LSL constants
-    - [x] region (`RegionFlags`)
+- [ ] constants for flags: the bitwise value, named as in the OpenSim doc or code (and OSSL/LSL when it means the same)
+    - in the class, or global when used often (like `TPLINK_*`)
+    - false friends: the flags of `llGetRegionFlags()` are other flags
+    - [ ] region: `DEFAULT_REGION` 1, `FALLBACK_REGION` 2, `REGION_ONLINE` 4, `NO_DIRECT_LOGIN` 8, `PERSISTENT` 16, `LOCKED_OUT` 32, `NO_MOVE` 64, `RESERVATION` 128, `AUTHENTICATE` 256, `HYPERLINK` 512, `DEFAULT_HGREGION` 1024 (opensimulator.org/wiki/Regions_(database_table))
+    - [ ] remove the `RegionFlags` class
+        - [ ] `Region->flags()` replaces it
+        - [ ] text roles of the Robust config (`Region_<Name> = "DefaultRegion, ..."`) in the region and grid models
+        - [ ] its uses (`GridInfo`, `RegionPlanner`, `SimulatorProvisioner`, tests of the engine and the kit)
     - [ ] parcel
     - [ ] user
 - [ ] models: grid, simulator, region, parcel, avatar
