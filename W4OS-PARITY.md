@@ -1,84 +1,76 @@
-# What w4os does, and where the suite stands
+# What w4os does, and where it goes in the suite
 
-A feature of w4os is not removed from 3.x. The suite (engine, helpers, kit, manager) takes over a feature before the plugin drops its
-own copy of it: **a row below is ✓ before the matching code leaves the plugin.** The plugin keeps what is WordPress (shortcodes, blocks,
-widgets, WooCommerce, the users of the site); the rest is what the suite has to offer.
+**The aim**: every feature of w4os that is not specific to WordPress has its implementation in the suite (engine, helpers, kit, manager),
+so that the plugin only bridges: it calls a method of the engine or the helpers and puts the answer in a shortcode, a block, a widget.
+The manager does the same with Blade and Filament. No feature goes away; what is not in the suite yet is listed below with the
+package it belongs to and the milestone. When the suite is ready, a new integration (Drupal, Ghost, Joomla, PrestaShop...) is a bridge
+of two or three days: the documentation of the engine API is part of that (step 8 of the manager's ARCHITECTURE.md).
 
-Three versions were compared, by their code, not by their documentation: **2.8** (tag `v2.8`, wordpress.org), **2.9.4** (tag `v2.9.4`,
-last stable on GitHub, adds the v3 preview) and **speculoos** (branch `speculoos`, 3.0.1-dev, in service on speculoos.world).
+Three versions were compared, by their code: **2.8** (tag `v2.8`, wordpress.org), **2.9.4** (tag `v2.9.4`, last stable on GitHub, adds the
+v3 preview) and **speculoos** (branch `speculoos`, 3.0.1-dev, in service on speculoos.world, with bugs). Some features of 2.x are not
+all ready in speculoos, which has new ones the others do not: all of them count.
 
-- Integration points (shortcodes, blocks, widgets, admin pages, hooks, cron, post types, ajax) and the ~190 options of 2.8: all of
-  them are still in 2.9.4 and in speculoos (only 3 internal options, `w4os_add_crossorigin`, `w4os_css_classes_body` and
-  `w4os_db_connected`, are not options any more in speculoos).
-- Functions and methods: 304 (2.8), 473 (2.9.4), 558 (speculoos). 42 of 2.9.4 are not in speculoos: they were moved or renamed
-  (`OpenSim_Rest` and the console methods are the engine's, `W4OS3_*` helpers were folded, the models preview, `w4os_fast_xml`...), none is
-  a feature that went away (4 functions of 2.8 are gone from 2.9.4, renamed or folded). Speculoos adds `account_info` and `custom_auth_form` shortcodes, the `w4os/avatar-menu` block, the
-  installation wizard, userless authentication (proof of concept) and the 2to3 migration.
-- Not checked by running the plugin: the Divi modules, WooCommerce flows, the multilingual page lookup, the rendering of every block.
+- Integration points (shortcodes, blocks, widgets, admin pages, hooks, cron, post types, ajax) and the ~190 options of 2.8 are all
+  still in 2.9.4 and in speculoos (3 internal options excepted). Of the 304, 473 and 558 functions and methods, 4 of 2.8 are gone from
+  2.9.4 and 42 of 2.9.4 from speculoos: moved or renamed (`OpenSim_Rest` and the console are the engine's, `W4OS3_*` folded, the models
+  preview...), none is a feature that went away. Speculoos adds the `account_info` and `custom_auth_form` shortcodes, the
+  `w4os/avatar-menu` block, the installation wizard, userless authentication (proof of concept) and the 2to3 migration.
+- Not checked by running the plugin: the Divi modules, WooCommerce flows, the multilingual page lookup, every block as rendered.
 
-Legend: **W** stays in the plugin · **H** helpers · **E** engine · **K** kit (CLI) · **M** manager. ✓ done · ◐ partly · ✗ missing.
+Homes: **E** engine · **H** helpers · **K** kit · **M** manager · **W** WordPress only (the bridge, and what WordPress owns: its users,
+roles, menus, WooCommerce). State: ✓ done · ◐ partly · ✗ missing.
 
-## Public pages
+## Public content (the content comes from H; the shell is a shortcode, a block, a Twig or Blade template)
 
-| Feature | Versions | In the suite | |
+| Feature | Home | State | Milestone |
 | --- | --- | --- | --- |
-| Grid info (shortcode, block, widget) | all | H block `grid-info` | ✓ (shortcode, widget: W) |
-| Grid status (users online, regions...) | all | H block and page `grid_status` | ✓ |
-| Popular places | all | H block | ✓ |
-| Web search (block, page) | all | H block `search` | ✓ |
-| Destinations guide | 2.7+ | H `guide` | ◐ reads any file or URL it is given (see below) |
-| Avatar profile (page, block, mini profile) | all | H block `profile` | ◐ no picture in its code: needs the web assets |
-| Web assets server (`/assets/<uuid>.<format>`: in-world pictures on a site) | all | none | ✗ |
-| New users (shortcode, dashboard widget) | all | none | ✗ |
-| Dashboard widgets (grid info, status, new users) | all | M dashboard shows placeholders | ✗ |
-| Activity feed, statuses, in-world feed tab (Flux) | 2.9.x preview | `opensim-flux`, planned | ✗ (3.2) |
-| Avatar menu, user menu, registration page in the menu | speculoos | W | W |
-| Divi modules, localized pages (WPML, Polylang) | all | W | W |
+| Grid info, grid status, popular places, web search | H blocks | ✓ | |
+| Destinations guide | H | ◐ `Guide::read()` takes any file or URL (w4os fixed an SSRF in `fb665fcf`) | 3.0 |
+| Avatar profile (page, block, mini profile) | H | ◐ no picture: needs the web assets | 3.0 |
+| **Web assets server** (`/assets/<uuid>.<format>`: in-world pictures on a site) | H | ✗ | **3.0** |
+| New users (block, dashboard widget) | H | ✗ trivial, whenever wanted | 3.1 |
+| Dashboard widgets (grid info, status, new users) | content H, shell W and M | M shows placeholders | 3.1 |
+| Activity feed, statuses, in-world feed tab (Flux) | `opensim-flux` | ✗ | 3.2 |
+| The shortcodes, blocks, widgets, Divi modules, avatar menu, localized pages | W | | |
 
-## Avatars and users
+## Avatars and accounts (the engine; the users of the site are WordPress's or Laravel's)
 
-| Feature | Versions | In the suite | |
+| Feature | Home | State | Milestone |
 | --- | --- | --- | --- |
-| Create an avatar from the web: names cleaned (accents out, letters and digits), first letter capital, restricted names refused, taken name refused | all | E `AccountWriter` writes the account; the rules are not there | ◐ |
-| Avatar models: the default outfit chosen at registration, models with a picture, hidden from lists | all | E gives the default outfit only (`AccountWriter`), no choice | ◐ |
-| Password of the avatar kept in step with the site account; change it | all | E hashes at creation; no command or form changes it | ◐ |
-| Accounts in bulk | new | K `opensim import --users` | ✓ (to try with a viewer) |
-| Sign in to a site with avatar name and password, account made when missing | all | M, three ways (private port, OpenID, viewer login) | ✓ |
-| Several avatars for one user | speculoos | M `users.avatars` | ✓ |
-| Terms of service accepted at registration | all | none | W (to carry to a public registration of the manager) |
-| Users and avatars kept in step by hand or by cron | all | W | W |
-| Avatars list: sorted, filtered, searched, profile in a modal, columns and last seen | 2.9.x preview | M list: sort, search, columns (level, created, active, flags, title, UUID); no filter, no modal, no last seen | ◐ |
-| Counts and lists leave out models, accounts without an email, visitors from other grids | all | none known in H or M | ✗ (to check) |
-| Regions list | 2.9.x preview | M | ✓ |
-| Start, stop, create a region from the site (Robust console) | speculoos | K; M in 3.0 | ◐ |
-| WooCommerce: avatar tab, registration fields, paid accounts | all | none | W |
+| Create an avatar: names cleaned (accents out, letters and digits only, first letter capital), restricted names (Default, Test, Admin, the model pattern) refused, taken name refused | E | ◐ `AccountWriter` writes the account, the rules are not there | 3.0 |
+| **Avatar models**: the list to choose from at registration (name and profile picture), what makes a model (a name pattern or a fixed list of avatars), the copy of its appearance and inventory into the new avatar | E (+ H for the picture) | ✗ only the default outfit (`AccountWriter`); the model accounts themselves are made by hand from the console | **3.0** |
+| Change or reset the password of an avatar | E | ✗ | 3.0 |
+| Accounts in bulk | K | ✓ (to try with a viewer) | 3.0 |
+| Sign in with avatar name and password | E `SignIn` | ✓ (the plugin should call it, not its own SQL) | |
+| Counts and lists that leave out models, accounts without email, visitors of other grids | E | ✗ | 3.1 |
+| Avatars list: filters, profile in a modal, last seen | M, E | ◐ sort, search, columns | 3.1, with the admin interface |
+| Regions list; start, stop, create a region | E, K, M | ✓ in E and K; M in 3.0 | 3.0 |
+| User and avatar linked, several avatars for one user, sync by hand or cron, terms accepted at registration, roles | W (its users), M (its users) | each has its own | |
 
-## Services for viewers and simulators
+## Management and services
 
-| Feature | Versions | In the suite | |
+| Feature | Home | State | Milestone |
 | --- | --- | --- | --- |
-| Search: places, land for sale, classifieds, events (2do) | all | H `query`, `register`, `parser`, `eventsparser` | ✓ |
-| Offline messages by mail, sender | all | H `offline` | ✓ |
-| Currency: core money module, Gloebit | all | H `currency`, `landtool` | ✓ |
-| Currency: Podex, PayPal, their settings (messages, URLs) | all | H keeps the code, no setting | ◐ (decided) |
-| Message of the day, splash page, texture from a URL (`textgen`) | new | H | ✓ |
-| Events from HYPEvents | all | H | ✓ |
-| URLs check (login, helpers, assets answer) and requirements page | all | H block `health` (checks in the engine), K `opensim status` | ✓ |
-| Installation wizard, migration of the settings (2to3) | speculoos | K `opensim setup`; the 2to3 migration is W (its helpers part is to port, see ROADMAP) | ◐ |
-| Connections: databases, credentials read from the console, encrypted | 2.9.x preview | E `ConfigReader`, files of the grid | ◐ (remote grids) |
-| Languages: de, fr, it, nl, pt_BR, cy | all | H `locales`: cy, de, fr, it, pt_BR; M: de, en, fr, nl | ◐ |
+| Search: places, land for sale, classifieds, events (2do) | H | ✓ | |
+| Offline messages by mail | H | ✓ | |
+| Currency: core money module, Gloebit | H | ✓ | |
+| Currency: Podex, PayPal and their settings (messages, URLs) | H | ◐ code kept, no setting; analysis first (see below) | later |
+| Message of the day, splash page, texture from a URL (`textgen`), HYPEvents | H | ✓ | |
+| URLs and requirements check | H `health`, K `status` | ✓ | |
+| Installation wizard; migration of the old settings (2to3) | K; E and H | ✓ wizard; ◐ migration of the old `config.php` | 3.0 |
+| Connections: databases, credentials, read from the files or the console | E | ◐ files of the grid; remote grids by console | 3.1 |
+| Languages (cy, de, fr, it, nl, pt_BR) | all | ◐ helpers have all but nl, the manager de, en, fr, nl | 3.1 |
+| Gudz Teleport Board | H | in no version yet | later |
 
-## What the comparison found
+## Money for the grid owner (new)
 
-Fixes made in w4os in 2025 that the suite does not have yet, to carry before 3.0:
+Registration is free on Speculoos and stays so; a paid offer pays for the work and the servers. What a plan or an order unlocks (a
+region, its size and limits, an extra avatar, a service) must be applied from any platform: WooCommerce through the plugin, the Laravel
+app, or a third party through the API of the engine. So the engine holds the catalogue of what can be sold and the actions an order
+triggers (make a region, set its limits, suspend it, restore it); a payment platform is an adapter that calls them when a payment
+comes in or stops. By hand first (3.0: the actions exist, the invoice is not automated), then one adapter (3.1).
 
-- **Guide: SSRF** (`fb665fcf`): `Guide::read()` of the helpers takes any file or URL it is given. Accept an address of the grid's own setting only.
-- Two other fixes concern the SQL of the plugin's own login (password hashed in PHP before the query, `dc1568d2`). The suite signs in through the private port, the password is hashed in PHP and sent as a form: nothing to carry, nothing else to check.
-- Avatar name validation (`e0896cff`, `037431eb`): the rules of the first row of the avatars table, to put in the engine.
-- The search address in https when the site is (`52bdd839`): to check in the setup and the helpers.
-
-Missing, by milestone (also in `ROADMAP.md`):
-
-- **3.0**: the guide fix; the rules of the avatar names and the restricted names where an avatar is made (CLI, manager); change the password of an avatar.
-- **3.1**: the web assets server (the pictures of the profile with it) and the new-users block; a default avatar to choose (models); the filters, the modal and the last seen of the avatars list; the counts that leave out models, accounts without email and visitors; the dashboard of the manager; the Podex and PayPal settings.
-- **3.2**: Flux (`opensim-flux`).
+**Podex**: its model rests on a banker avatar that the grid owner controls and can credit at will, since the balances and the
+transactions are in the grid's database: the owner only promises Podex not to. Gloebit checks every transaction on its side and takes
+the responsibility, without being exposed to a dishonest or clumsy grid owner. Nothing is added to the Podex code until it is analysed,
+including what has to be checked for security.
