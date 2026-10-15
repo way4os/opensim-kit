@@ -4,6 +4,8 @@
 
 What ships when. A release goes out when its list is done and tested; what is not on it waits for the next one, even half done. The sections below this one are the backlog: an item belongs to a milestone only if it is named here.
 
+The rule for w4os: a feature leaves the plugin only when `W4OS-PARITY.md` says the suite has it.
+
 Dates (2026): OSGrid's last public meeting 10-18 11:00 PST (announce something concrete if there is; not required) · OSGrid closes 12-31, most of its region owners move before · OSCC 12-05/06, a session presenting 3.0, registrations open now.
 
 **What is needed first, and what it needs:**
@@ -30,6 +32,7 @@ The release gate, for everything that is hosted for others:
 - [ ] the accounts made by `opensim import --users` tried with a viewer (login, inventory, default outfit, the numbers of the system folders)
 - [ ] `opensim import` tried on real grids; `opensim restore` of a backup on a new machine; the archives of the users (`opensim save oar` for every region, rotation)
 - [ ] libgdiplus on Linux: what the regions do with the 6.1 of the distributions, and what the packages should say
+- [ ] what w4os has and the suite lacks, first ones (see `W4OS-PARITY.md`): the SSRF of `Guide::read()` in the helpers (it takes any file or URL), the rules of the avatar names and the restricted names where an avatar is made, changing the password of an avatar
 - [ ] the helpers confirmed on the real sites (the 500, the search with a viewer, the offline messages)
 - [ ] the packaging scenario beyond the upgrade step, with the real `apt-package` (docker left)
 
@@ -41,6 +44,7 @@ The manager, as an app (steps 6 and 7 of its ARCHITECTURE.md, in this order, eac
 - the general editor of the `.ini` settings in the manager, the sections of the search database (places, events, classifieds), the tree of an inventory, finer rights of the members of a grid
 - SSL on the OpenSim servers, docker/podman installation in the setup, the zip packages, macOS (the clone, libgdiplus), display names, the OSSL and parcel naming options
 - the pages of a grid: their order, a summary for search engines, where they show
+- what w4os has and the suite lacks (`W4OS-PARITY.md`): the web assets server (and the picture of the profile), the new-users block, the avatar to choose at registration (models), the filters and the modal of the avatars list, the counts without models, accounts without an email and visitors, the dashboard of the manager, the Podex and PayPal settings
 
 ### 3.2 (more, later)
 
