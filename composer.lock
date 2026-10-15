@@ -201,7 +201,7 @@
             "dist": {
                 "type": "path",
                 "url": "../opensim-engine",
-                "reference": "0f0b7585fa4d196db58168bc5c636bc3c5984bd0"
+                "reference": "72c6aca4e7884bf47493facb65e08bab4359ca9f"
             },
             "require": {
                 "ext-curl": "*",
@@ -275,7 +275,7 @@
             "dist": {
                 "type": "path",
                 "url": "../opensim-helpers",
-                "reference": "201893f0eef42eacc02b8f1bf400dcc860433d02"
+                "reference": "9c363658ee3c88552f3f7f321676d9f5190e6ce4"
             },
             "require": {
                 "ext-curl": "*",
