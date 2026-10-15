@@ -122,7 +122,8 @@ Tests that are missing:
 
 The engine gives the data (the manager, the plugin and the CLI only show it):
 
-- [ ] all database access through `OSPDO` (PDO), never the `mysql` client
+- [x] all database access through `OSPDO` (PDO), never the `mysql` client
+    - [x] one `OSPDO`, the engine's (the helpers load it)
     - [x] replace the `mysql` client calls of `DatabaseService`
     - [x] backup export through PDO (`DatabaseDump`)
     - [x] `UserBan` through PDO
