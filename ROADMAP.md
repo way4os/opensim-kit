@@ -127,16 +127,16 @@ The engine gives the data (the manager, the plugin and the CLI only show it):
     - [x] replace the `mysql` client calls of `DatabaseService`
     - [x] backup export through PDO (`DatabaseDump`)
     - [x] `UserBan` through PDO
-- [ ] OpenSim databases the engine knows
-    - [ ] `robust`: in Robust DatabaseService (various grid-level services, includes the actuaal regions table)
-    - [ ] `assets`: in Robust AssetService (defaults to Robust DatabaseService)
-    - [ ] `profiles`: in Robust UserProfilesService (defaults to Robust DatabaseService)
-    - [ ] for each simulator: OpenSim DatabaseService (region details, the main regions table is in robust db; also includes land, terrain, prims) land is the source for parcels in admin UI
-    - [ ] OpenSim EstateConnectionString (per simulator; defaults to OpenSim DatabaseService; estate details)
-    - [ ] Economy (CURRENCY_DB_* in helpers, various settings, per grid or per simulator in OpenSim, depending on the currency module)
-    - [ ] Offline messages (OFFLINE_DB_* in helpers)
-- [ ] Helpers-only database the engine knows
-    - [ ] OpenSimSearchModule (SEARCH_DB_*), includes some seemingly redundant tables, but with other purposes
+- [x] OpenSim databases the engine knows (`Data\Database`)
+    - [x] `robust`: in Robust DatabaseService (various grid-level services, includes the actuaal regions table)
+    - [x] `assets`: in Robust AssetService (defaults to Robust DatabaseService)
+    - [x] `profiles`: in Robust UserProfilesService (defaults to Robust DatabaseService)
+    - [x] for each simulator: OpenSim DatabaseService (region details, the main regions table is in robust db; also includes land, terrain, prims) land is the source for parcels in admin UI
+    - [x] OpenSim EstateConnectionString (per simulator; defaults to OpenSim DatabaseService; estate details)
+    - [x] Economy (CURRENCY_DB_* in helpers, various settings, per grid or per simulator in OpenSim, depending on the currency module)
+    - [x] Offline messages (OFFLINE_DB_* in helpers)
+- [x] Helpers-only database the engine knows
+    - [x] OpenSimSearchModule (SEARCH_DB_*), includes some seemingly redundant tables, but with other purposes
         - `parcels` (land): show in search only, other grids' regions too;
         - `allparcels` (land): reduced columns, more records)
         - `regions`: mostly cached essential data for indexed regions
