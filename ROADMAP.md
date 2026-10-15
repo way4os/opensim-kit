@@ -22,13 +22,13 @@ Dates (2026): OSGrid's last public meeting 10-18 11:00 PST (announce something c
 
 - [ ] the state of the refactoring frozen as a coherent beta of the family (the Unreleased list below), with the container scenarios green (`setup`, `lifecycle`, `package`, `setupfile`, `wizardweb`)
 - [ ] the procedure to move a region from OSGrid, written and tried: the owner saves an OAR from their simulator, the operator adds the region (`opensim`), `opensim load oar`; see "full import procedure" and "the OAR of a region that belongs to a user who is not the owner of the grid"
-- [ ] what hal needs from the beta to restore its 5 simulators: `opensim import` of a simulator (config and data), `opensim restore` (to be told which of the two blocked)
+- [ ] hal: one simulator migrated per beta (Grand Place is back on beta.4; the others are tests): the problem met was probably config and compatibility, not investigated apart from the new installer. Some have an OAR, some only the database: **importing a simulator from its database without an OAR** is a case to support (`opensim import` of a simulator, `opensim restore`)
 
 ### 3.0.0 (stable; CLI, Debian packages, web app)
 
 The release gate, for everything that is hosted for others:
 
-- [ ] security for regions of other people: detection by frequency of asset creation (moved up from Less urgent), `opensim ban` (done), a decision on the trust given to assets coming from a simulator or an `iar` (the question of the services split stays open, it is decided before the work, not after)
+- [ ] security for regions of other people: detection by frequency of asset creation (moved up from Less urgent), `opensim ban` (done), a rule on what a simulator of a user may write in the grid; find the description of the exploit used against OSGrid (an `iar` load flooding random assets) and make sure at least one line of defence covers it; the assets in their own database, and the service apart (decided useful, the design comes before the work)
 - [ ] the accounts made by `opensim import --users` tried with a viewer (login, inventory, default outfit, the numbers of the system folders)
 - [ ] `opensim import` tried on real grids; `opensim restore` of a backup on a new machine; the archives of the users (`opensim save oar` for every region, rotation)
 - [ ] libgdiplus on Linux: what the regions do with the 6.1 of the distributions, and what the packages should say
@@ -36,7 +36,7 @@ The release gate, for everything that is hosted for others:
 - [ ] the helpers confirmed on the real sites (the 500, the search with a viewer, the offline messages)
 - [ ] the packaging scenario beyond the upgrade step, with the real `apt-package` (docker left)
 
-The manager, as an app (steps 6 and 7 of its ARCHITECTURE.md, in this order, each a slice that works alone): the agent and start, stop, restart, status; avatars (create, edit, bulk import); regions (add, load an OAR); simulators and grids (add, modify) over the fields and planners of the engine; the settings the models define; the limits before public use (simulator details to their owner, public regions only, personal data, the precautions of SECURITY.md). If the date presses, what is not done moves to 3.1 and the release goes without it.
+The manager, as an app (steps 6 and 7 of its ARCHITECTURE.md, in this order, each a slice that works alone): the agent and start, stop, restart, status; avatars (create, edit, bulk import); regions (add, load an OAR); simulators and grids (add, modify) over the fields and planners of the engine; the settings the models define; the limits before public use (simulator details to their owner, public regions only, personal data, the precautions of SECURITY.md). The manager is the place where the management interface is rethought, to be reapplied to w4os and to the CLI: it is nearly ready with the CLI and the helpers but does not have to ship with them. It can stay a beta for the author's own use and be released when mature, with 3.0.x or 3.1. 3.0.0 does not wait for it.
 
 ### 3.1 (useful, not needed for a first release)
 
