@@ -291,6 +291,8 @@ w4os plugin
 ### 3.2 (more, later)
 
 - [ ] display names
+- [ ] classifieds: handle hypergrid/centralized (might require an OpenSim module, as it does not seem to expose a way to query an external source)
+- [ ] offline messaging: handle hypergrid/centralized (part of the exchanges are only between sender simulator and viewer, not querying either sender home grid or recipient home grid for proper helpers handling)
 - [ ] centralized NPC chatbot (avoid full chat script baked into NPC image, uneditable)
 - [ ] AI integration: chatbot
 - [ ] AI integration: MCP
