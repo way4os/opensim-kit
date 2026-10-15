@@ -10,13 +10,13 @@ Dates (2026): OSGrid's last public meeting 10-18 11:00 PST (announce something c
 
 **What is needed first, and what it needs:**
 
-| Need | Needs |
-| --- | --- |
-| bulk import of avatars for the OSCC organisers | a stable release; the accounts tried with a viewer |
-| regions of OSGrid refugees on Speculoos | a beta advanced enough, and a written procedure |
-| the same on other grids | a stable release; security measures; able to take external regions |
-| the 5 crashed simulators of hal | a new stable beta |
-| 3.0 before OSCC | all of the above, plus the manager as an app |
+| Need                                           | Needs                                                              |
+| ---------------------------------------------- | ------------------------------------------------------------------ |
+| bulk import of avatars for the OSCC organisers | a stable release; the accounts tried with a viewer                 |
+| regions of OSGrid refugees on Speculoos        | a beta advanced enough, and a written procedure                    |
+| the same on other grids                        | a stable release; security measures; able to take external regions |
+| the 5 crashed simulators of hal                | a new stable beta                                                  |
+| 3.0 before OSCC                                | all of the above, plus the manager as an app                       |
 
 ### 3.0.0-beta.7 (target: before 10-18, for Speculoos and hal)
 
@@ -28,30 +28,96 @@ Dates (2026): OSGrid's last public meeting 10-18 11:00 PST (announce something c
 
 The release gate, for everything that is hosted for others:
 
-- [ ] security for regions of other people: detection by frequency of asset creation (moved up from Less urgent), `opensim ban` (done), a rule on what a simulator of a user may write in the grid; find the description of the exploit used against OSGrid (an `iar` load flooding random assets) and make sure at least one line of defence covers it; the assets in their own database, and the service apart (decided useful, the design comes before the work)
+- [x] `opensim ban` (done)
+- [ ] security for regions of other people: detection by frequency of asset creation (moved up from Less urgent),
+- [ ] a rule on what a simulator of a user may write in the grid;
+- [ ] find the description of the exploit used against OSGrid (an `iar` load flooding random assets) and make sure at least one line of defence covers it;
+- [ ] the assets in their own database
+- [ ] the assets service apart (decided useful, the design comes before the work)
 - [ ] the accounts made by `opensim import --users` tried with a viewer (login, inventory, default outfit, the numbers of the system folders)
-- [ ] `opensim import` tried on real grids; `opensim restore` of a backup on a new machine; the archives of the users (`opensim save oar` for every region, rotation)
+- [ ] `opensim import` tried on real grids
+- [ ] `opensim restore` of a backup on a new machine
+- [ ] the archives of the users (`opensim save oar` for every region, rotation)
 - [ ] libgdiplus on Linux: what the regions do with the 6.1 of the distributions, and what the packages should say
-- [ ] what w4os has and the suite lacks, for 3.0 (see `W4OS-PARITY.md`): the web assets server (and the picture of the profile), the avatar models (the list to choose from, the rule that makes a model, the copy into a new avatar), the SSRF of `Guide::read()` in the helpers, the rules of the avatar names and the restricted names where an avatar is made, changing the password of an avatar, the migration of the old `config.php`
+- [ ] what w4os has and the suite lacks, for 3.0 (see `W4OS-PARITY.md`):
+    - [ ] the web assets server (and the picture of the profile)
+    - [ ] the avatar models (the list to choose from, the copy into a new avatar)
+    - [ ] the SSRF of `Guide::read()` in the helpers
+    - [ ] the rules of the avatar names and the restricted names where an avatar is made
+    - [ ] changing the password of an avatar
+    - [?] the migration of the old `config.php` (??? not sure this is stil relevant with new engine)
 - [ ] the documentation of the engine API and the helpers, with the w4os bridge as its proof: what a new integration needs, in a page
 - [ ] selling the grid's services: the catalogue and the actions an order triggers in the engine (make a region, set its limits, suspend, restore), by hand at first
 - [ ] the helpers confirmed on the real sites (the 500, the search with a viewer, the offline messages)
 - [ ] the packaging scenario beyond the upgrade step, with the real `apt-package` (docker left)
 
-The manager, as an app (steps 6 and 7 of its ARCHITECTURE.md, in this order, each a slice that works alone): the agent and start, stop, restart, status; avatars (create, edit, bulk import); regions (add, load an OAR); simulators and grids (add, modify) over the fields and planners of the engine; the settings the models define; the limits before public use (simulator details to their owner, public regions only, personal data, the precautions of SECURITY.md). The manager is the place where the management interface is rethought, to be reapplied to w4os and to the CLI: it is nearly ready with the CLI and the helpers but does not have to ship with them. It can stay a beta for the author's own use and be released when mature, with 3.0.x or 3.1. 3.0.0 does not wait for it.
+What w4os has and the suite lacks (`W4OS-PARITY.md`):
+
+- [ ] new-users block,
+- [ ] filters ?? which ones
+- [ ] the modal ?? isn't this a pure wp feature?
+- [ ] last seen in lists of avatars, regions, simulators
+- [ ] count exclusions for stats (models, technical accounts)
+- [?] remote grids read through the console ???
+- [?] localization ??? always: done during development, why is this here?
+- [ ] payments/conditional adapter in engine
+    - [ ] restrict some actions of features based on conditions (payment, role...)
+    - [ ] usable by consumer apps like w4os or manager app
+    - [ ] calling the engine's actions when a payment comes in or stops
+
+W4os plugin update:
+
+- [ ] port all features to the included 3.0 engine and helpers, leave only to the plugin what truely belongs to WordPress integration/bridge
+- [ ] check if new version is still compliant with WP repository requirements, otherwise publish a last version with notice to new hosting
+
+OpenSim Manager implementation:
+
+- [ ] the agent and start, stop, restart, status
+- [ ] avatars (create, edit, bulk import)
+- [ ] regions (add, load an OAR)
+- [ ] simulators and grids (add, modify) over the fields and planners of the engine
+- [ ] the settings the models define
+- [ ] the limits before public use (simulator details to their owner, public regions only, personal data, the precautions of SECURITY.md).
+
+The manager is the place where the management interface is rethought, to be reapplied to w4os and to the CLI: it is nearly ready with the CLI and the helpers but does not have to ship with them. It can stay a beta for the author's own use and be released when mature, with 3.0.x or 3.1. 3.0.0 does not wait for it.
 
 ### 3.1 (useful, not needed for a first release)
 
-- the maps (navigable world map on the web), an avatar picker, the inventory of the user, items added to the shared library
-- the general editor of the `.ini` settings in the manager, the sections of the search database (places, events, classifieds), the tree of an inventory, finer rights of the members of a grid
-- SSL on the OpenSim servers, docker/podman installation in the setup, the zip packages, macOS (the clone, libgdiplus), display names, the OSSL and parcel naming options
-- the pages of a grid: their order, a summary for search engines, where they show
-- what w4os has and the suite lacks (`W4OS-PARITY.md`): the new-users block, the filters, the modal and the last seen of the avatars list, the counts without models, accounts without an email and visitors, the dashboard of the manager, remote grids read through the console, the languages
-- payments: one adapter (WooCommerce through the plugin first, the Laravel app next) calling the engine's actions when a payment comes in or stops; the Podex and PayPal settings only after an analysis (the Podex model trusts the grid owner, see the parity document)
+- [ ] world maps (navigable map on the web)
+- [ ] avatar picker
+- [ ] user inventory management (provided by engine, for UI), provided ready to display as a tree (folders, subfolders, items...)
+- [ ] shared library (pick folders from grid owners inventory and add to grid libary)
+- [?] general editor of the `.ini` settings in the manager (??? that's supposed to ship when the manager ships, which is above)
+- [ ] the sections of the search database (places, events, classifieds)
+- [ ] finer rights of the members of a grid
+- [ ] SSL management for the OpenSim servers,
+- [ ] docker/podman installation in the setup
+- [?] the zip packages (??? not related to a milestone, zip are built for any release)
+- [ ] macOS (the clone, libgdiplus)
+- [?] the OSSL and parcel naming options (??? I seriously don't know what this is about)
+
+OpenSim Manager:
+
+- [?] grid website pages: order, a summary for search engines, where they show
+- [ ] manager dashboard (grid info block, grid status block, new users block)
+
+w4os plugin:
+
+- [ ] implement or port new features above
 
 ### 3.2 (more, later)
 
-- the CMS (page builder, themes, what w4os covers), the central management of the NPC chatbot, the AI integration (chatbot, MCP), `opensim-flux`, currency modules (MoneyServer forks, PayPal)
+- [ ] display names
+- [ ] true CMS (page builder, themes, ...): a viable alternative to WordPress or similar frameworks, for a basic website, we don't try to compete with full-featured CMS'
+- [ ] centralized NPC chatbot (avoid full chat script baked into NPC image, uneditable)
+- [ ] AI integration (chatbot, MCP)
+- [ ] Profile stream, see `opensim-flux` project
+- [ ] additional currency modules (MoneyServer forks, PayPal)
+- [ ] Podex and PayPal settings after security review (PayPal module old, Podex model trusting the grid owner, see the parity document)
+
+w4os plugin:
+
+- [ ] implement or port new features above
 
 ## Fixes
 
