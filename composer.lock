@@ -201,7 +201,7 @@
             "dist": {
                 "type": "path",
                 "url": "../opensim-engine",
-                "reference": "2d6d78ab98a2458328106b756f17f170681bfb69"
+                "reference": "cec93817948b1bdc660c6ac6360e74fdf3b83a3c"
             },
             "require": {
                 "ext-curl": "*",
@@ -240,6 +240,7 @@
                     "OpenSim\\": "src/"
                 },
                 "classmap": [
+                    "class-database.php",
                     "class-health.php",
                     "legacy/"
                 ],
@@ -274,7 +275,7 @@
             "dist": {
                 "type": "path",
                 "url": "../opensim-helpers",
-                "reference": "f2189dcc6e0a7404d3406858e346759dc71a83c4"
+                "reference": "2591d977ba86a1cf85a0ad0e59255d7a7caa8e98"
             },
             "require": {
                 "ext-curl": "*",
