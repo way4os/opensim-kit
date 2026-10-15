@@ -126,7 +126,6 @@ The engine gives the data (the manager, the plugin and the CLI only show it):
     - [x] replace the `mysql` client calls of `DatabaseService`
     - [x] backup export through PDO (`DatabaseDump`)
     - [x] `UserBan` through PDO
-    - [ ] queries checked for sqlite3 and pgsql (mysql only supported until then, not by choice)
 - [ ] databases the engine knows
     - [ ] Robust services
     - [ ] assets
@@ -300,6 +299,7 @@ w4os plugin
 
 ### In the backlog, not in a milestone (decide where)
 
+- [ ] full sqlite3 and pgsql compatibility check (including OpenSim install and all queries review). This is theorically the case thanks to the use of PDO, but it must be tested systematicaly to lift the mysql dependency
 - [ ] parcel naming object in the library of the grid
     - the object is the script of `share/ossl-scripts` that names the parcel after the region
     - [ ] part of the library of the grid too: the original stays available to the users, a copy is rezzed in each new region
