@@ -127,13 +127,19 @@ The engine gives the data (the manager, the plugin and the CLI only show it):
     - [x] replace the `mysql` client calls of `DatabaseService`
     - [x] backup export through PDO (`DatabaseDump`)
     - [x] `UserBan` through PDO
-- [ ] databases the engine knows
-    - [ ] Robust services
-    - [ ] assets
-    - [ ] profiles
-    - [ ] region store of each simulator (parcels with their dwell, estates)
-    - [ ] search tables of OpenSimSearch (`parcels`: show in search only, other grids' regions too; `allparcels`: reduced columns, more records)
-    - [ ] economy
+- [ ] OpenSim databases the engine knows
+    - [ ] `robust`: in Robust DatabaseService (various grid-level services, includes the actuaal regions table)
+    - [ ] `assets`: in Robust AssetService (defaults to Robust DatabaseService)
+    - [ ] `profiles`: in Robust UserProfilesService (defaults to Robust DatabaseService)
+    - [ ] for each simulator: OpenSim DatabaseService (region details, the main regions table is in robust db; also includes land, terrain, prims) land is the source for parcels in admin UI
+    - [ ] OpenSim EstateConnectionString (per simulator; defaults to OpenSim DatabaseService; estate details)
+    - [ ] Economy (CURRENCY_DB_* in helpers, various settings, per grid or per simulator in OpenSim, depending on the currency module)
+    - [ ] Offline messages (OFFLINE_DB_* in helpers)
+- [ ] Helpers-only database the engine knows
+    - [ ] OpenSimSearchModule (SEARCH_DB_*), includes some seemingly redundant tables, but with other purposes
+        - `parcels` (land): show in search only, other grids' regions too;
+        - `allparcels` (land): reduced columns, more records)
+        - `regions`: mostly cached essential data for indexed regions
 - [ ] standard model contract: `OpenSimModelInterface`
     - [ ] properties: id, name, slug, uuid, uri
     - [ ] methods: detail, update, create, delete, enabled, enable, disable, owner, group, flags, lastSeen
@@ -141,9 +147,9 @@ The engine gives the data (the manager, the plugin and the CLI only show it):
     - [ ] writes through a channel (database, console, ini file), refused when unavailable
     - [ ] relations
         - [ ] grid: simulators, regions, places, avatars
-        - [ ] simulator: regions
+        - [ ] simulator: regions, places, current users
         - [ ] region: places
-        - [ ] avatar: places
+        - [ ] avatar: places, regions, grids (ownership)
 - [ ] `Collection` returned by every list
     - [ ] first, last, count, array, json, csv
     - [ ] total, columns, filters available, sort, search, pages
