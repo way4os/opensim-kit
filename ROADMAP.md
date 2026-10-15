@@ -124,13 +124,15 @@ The engine gives the data (the manager, the plugin and the CLI only show it):
 
 - [ ] all database access through `OSPDO` (PDO), never the `mysql` client
     - [ ] replace the `mysql` client calls of `DatabaseService`
+    - [ ] backup export through PDO (`BackupService`)
+    - [ ] `UserBan` through PDO
     - [ ] queries checked for sqlite3 and pgsql (mysql only supported until then, not by choice)
 - [ ] databases the engine knows
     - [ ] Robust services
     - [ ] assets
     - [ ] profiles
-    - [ ] region store of each simulator (parcels, estates)
-    - [ ] search index
+    - [ ] region store of each simulator (parcels with their dwell, estates)
+    - [ ] search tables of OpenSimSearch (`parcels`: show in search only, other grids' regions too; `allparcels`: reduced columns, more records)
     - [ ] economy
 - [ ] standard model contract: `OpenSimModelInterface`
     - [ ] properties: id, name, slug, uuid, uri
@@ -146,7 +148,7 @@ The engine gives the data (the manager, the plugin and the CLI only show it):
     - [ ] first, last, count, array, json, csv
     - [ ] total, columns, filters available, sort, search, pages
 - [ ] constants for flags: the bitwise value, named as in the OpenSim doc or code (and OSSL/LSL when it means the same)
-    - in the class, or global when used often (like `TPLINK_*`)
+    - in the model class (`Region::FALLBACK_REGION`); global only if a need shows up
     - false friends: the flags of `llGetRegionFlags()` are other flags
     - [ ] region: `DEFAULT_REGION` 1, `FALLBACK_REGION` 2, `REGION_ONLINE` 4, `NO_DIRECT_LOGIN` 8, `PERSISTENT` 16, `LOCKED_OUT` 32, `NO_MOVE` 64, `RESERVATION` 128, `AUTHENTICATE` 256, `HYPERLINK` 512, `DEFAULT_HGREGION` 1024 (opensimulator.org/wiki/Regions_(database_table))
     - [ ] remove the `RegionFlags` class
@@ -157,6 +159,9 @@ The engine gives the data (the manager, the plugin and the CLI only show it):
     - [ ] user
 - [ ] models: grid, simulator, region, parcel, avatar
     - [ ] parcel: bitmap of 4x4 m squares, which parcel holds x,y
+    - [ ] parcel: source is the `land` table of the simulators (lists of the admin interface, dwell)
+    - [ ] parcel: search goes through the API of `query.php` (same base as in-world), never its tables
+    - [ ] parcel: index of the parcels of all simulators, to list without asking each simulator (later)
     - [ ] region: is default, fallback, online
     - [ ] avatar: is god (level 200 and above)
 - [ ] legacy classes (`OpenSim_Avatar`, `OpenSim_Region`, `OpenSim_Service`) folded into the models, aliases in `legacy/`
