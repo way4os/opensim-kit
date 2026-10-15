@@ -15,7 +15,7 @@ describe('The home of an account', function () {
 
         expect($sql)->toStartWith('INSERT INTO GridUser (UserID, HomeRegionID, HomePosition, HomeLookAt) VALUES (');
         expect($sql)->toContain("'11111111-2222-3333-4444-555555555555', '607c44e9-3d01-45eb-a07e-937dc72dbadb'");
-        expect($sql)->toContain("'<128,128,0>', '<0,1,0>'");
+        expect($sql)->toContain("'<128,128,22>', '<0,1,0>'");
         expect($sql)->toContain('ON DUPLICATE KEY UPDATE HomeRegionID = VALUES(HomeRegionID)');
     });
 
