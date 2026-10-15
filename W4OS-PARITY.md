@@ -28,7 +28,7 @@ roles, menus, WooCommerce). State: ✓ done · ◐ partly · ✗ missing.
 | Destinations guide | H | ◐ `Guide::read()` takes any file or URL (w4os fixed an SSRF in `fb665fcf`) | 3.0 |
 | Avatar profile (page, block, mini profile) | H | ◐ no picture: needs the web assets | 3.0 |
 | **Web assets server** (`/assets/<uuid>.<format>`: in-world pictures on a site) | H | ✗ | **3.0** |
-| New users (block, dashboard widget) | H | ✗ trivial, whenever wanted | 3.1 |
+| New users (block, dashboard widget) | H | ✗ trivial | 3.0 |
 | Dashboard widgets (grid info, status, new users) | content H, shell W and M | M shows placeholders | 3.1 |
 | Activity feed, statuses, in-world feed tab (Flux) | `opensim-flux` | ✗ | 3.2 |
 | The shortcodes, blocks, widgets, Divi modules, avatar menu, localized pages | W | | |
@@ -42,8 +42,9 @@ roles, menus, WooCommerce). State: ✓ done · ◐ partly · ✗ missing.
 | Change or reset the password of an avatar | E | ✗ | 3.0 |
 | Accounts in bulk | K | ✓ (to try with a viewer) | 3.0 |
 | Sign in with avatar name and password | E `SignIn` | ✓ (the plugin should call it, not its own SQL) | |
-| Counts and lists that leave out models, accounts without email, visitors of other grids | E | ✗ | 3.1 |
-| Avatars list: filters, profile in a modal, last seen | M, E | ◐ sort, search, columns | 3.1, with the admin interface |
+| Counts that leave out models and technical accounts (no email); visitors of other grids counted apart | E | ✗ | 3.0 |
+| Avatars list: type (user, model, technical), active, online, last seen, created; search, sort. The profile modal is the interface's | E (data), M and W (display) | ◐ the manager reads the database itself | 3.0 |
+| Regions list: owner, simulator, presence, control, port, size, last seen; filters by owner and simulator | E | ◐ same | 3.0 |
 | Regions list; start, stop, create a region | E, K, M | ✓ in E and K; M in 3.0 | 3.0 |
 | User and avatar linked, several avatars for one user, sync by hand or cron, terms accepted at registration, roles | W (its users), M (its users) | each has its own | |
 
@@ -57,9 +58,10 @@ roles, menus, WooCommerce). State: ✓ done · ◐ partly · ✗ missing.
 | Currency: Podex, PayPal and their settings (messages, URLs) | H | ◐ code kept, no setting; analysis first (see below) | later |
 | Message of the day, splash page, texture from a URL (`textgen`), HYPEvents | H | ✓ | |
 | URLs and requirements check | H `health`, K `status` | ✓ | |
-| Installation wizard; migration of the old settings (2to3) | K; E and H | ✓ wizard; ◐ migration of the old `config.php` | 3.0 |
-| Connections: databases, credentials, read from the files or the console | E | ◐ files of the grid; remote grids by console | 3.1 |
-| Languages (cy, de, fr, it, nl, pt_BR) | all | ◐ helpers have all but nl, the manager de, en, fr, nl | 3.1 |
+| Installation wizard | K | ✓ | |
+| Migration of the settings of a 2.x install (WordPress options, `config.php`) | W, to the engine's settings | the helpers still read `config.php` | plugin update |
+| Connections: databases and credentials from the files, or through the console of Robust for a grid on another machine | E | ◐ files only | 3.0 (to confirm) |
+| Languages (cy, de, fr, it, nl, pt_BR): translations w4os has, carried for the strings that move | all | ◐ helpers: all but nl; manager: de, en, fr, nl | 3.0 |
 | Gudz Teleport Board | H | in no version yet | later |
 
 ## Money for the grid owner (new)
