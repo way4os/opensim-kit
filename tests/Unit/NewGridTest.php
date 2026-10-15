@@ -88,7 +88,7 @@ function grid_prepare(string $root, GridUiFake $ui, ?string $modify = null, ?arr
     }
 }
 
-describe('The questions about a new grid', function () {
+describe('questions about a new grid', function () {
     test('are three screens, the grid, its network, its database, with a plan made of what is proposed', function () {
         $root = grid_install();
         $ui = new GridUiFake(['Grid name' => 'Garden World', 'Base hostname' => 'garden.example.org', 'Public port' => '8012']);
@@ -149,7 +149,7 @@ describe('The questions about a new grid', function () {
     });
 });
 
-describe('The questions about a grid that exists', function () {
+describe('questions about a grid that exists', function () {
     test('propose its settings, and keep its nick', function () {
         $root = grid_install();
         mkdir("$root/etc/grids/old", 0o755, true);
@@ -235,7 +235,7 @@ describe('A setup file that answers the questions about a grid', function () {
     });
 });
 
-describe('The same questions in a browser', function () {
+describe('same questions in a browser', function () {
     afterEach(function () {
         require_once __DIR__ . '/web-browser-lib.php';
         webCleanUp();

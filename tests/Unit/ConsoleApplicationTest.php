@@ -25,7 +25,7 @@ function console_application(): Application
     return new Application($root, new Layout(['EtcRoot' => "$root/etc"]));
 }
 
-describe('The command line', function () {
+describe('command line', function () {
     test('names its command by the first argument that is not an option', function (array $argv, ?string $name) {
         expect(Application::commandName($argv))->toBe($name);
     })->with([
@@ -71,7 +71,7 @@ describe('The command line', function () {
     });
 });
 
-describe('The commands of the application', function () {
+describe('commands of the application', function () {
     test('are known by the application, and answer --help', function () {
         $app = console_application();
 
@@ -94,7 +94,7 @@ describe('The commands of the application', function () {
     });
 });
 
-describe('The system user', function () {
+describe('system user', function () {
     /** The application of an install whose instances belong to a user, and the commands it runs as that user. */
     function system_user_application(array &$ran, string $current, bool $root): Application
     {
@@ -141,7 +141,7 @@ describe('The system user', function () {
     });
 });
 
-describe('The command status', function () {
+describe('command status', function () {
     test('lists the enabled instances with what they use, then the summary', function () {
         $machine = new Machine();
         $machine->processes->add('dotnet OpenSim.dll -inifile=' . $machine->etc . '/opensim.d/alpha.ini', 'opensim', 1.5, 2.25, 100000);
@@ -166,7 +166,7 @@ describe('The command status', function () {
     });
 });
 
-describe('The commands start, stop and restart', function () {
+describe('commands start, stop and restart', function () {
     /** The application on a machine of fakes. */
     function machine_application(Machine $machine): Application
     {

@@ -94,7 +94,7 @@ function sim_install(array $grid = []): array
     return [$info, $profile, $root];
 }
 
-describe('The questions about a new simulator', function () {
+describe('questions about a new simulator', function () {
     test('are the simulator, its database, its estate and its first region, with a plan made of what is proposed', function () {
         [$grid, $profile] = sim_install();
         $ui = new SimUiFake(['Name of the new account' => 'Ann Poe', 'Password of the new account' => 'secret1']);

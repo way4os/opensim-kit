@@ -33,7 +33,7 @@ function wizardPost(WizardServer $server, string $cookie, array $post, array $he
 afterEach(fn() => webCleanUp());
 
 describe('who is let in', function () {
-    test('the address works once, it gives the browser a secret that is kept in a cookie', function () {
+    test('address works once, it gives the browser a secret that is kept in a cookie', function () {
         $mailbox = webMailbox();
         $mailbox->allow('good-token');
         $server = new WizardServer($mailbox, [WIZARD_HOST], 0, 0);
@@ -63,7 +63,7 @@ describe('who is let in', function () {
         expect($reply[0])->toBe(403);
     });
 
-    test('the answer of a form of the page is accepted as the browser sends it, with the origin of the page or none at all', function () {
+    test('answer of a form of the page is accepted as the browser sends it, with the origin of the page or none at all', function () {
         [$server, $mailbox, $cookie] = wizardServer();
         $id = $mailbox->publish(['kind' => 'text', 'label' => 'Name', 'value' => '']);
 
@@ -121,7 +121,7 @@ describe('a server open to the network', function () {
     });
 });
 
-describe('the navigation of the setup', function () {
+describe('navigation of the setup', function () {
     /** The page of a screen, and its navigation row. */
     $page = static function (array $screen, int $before = 0): array {
         [$server, $mailbox, $cookie] = wizardServer();
@@ -146,13 +146,13 @@ describe('the navigation of the setup', function () {
             ->and(substr_count($html, '<form'))->toBe(1);
     });
 
-    test('the home menu has no Back, only its Quit', function () use ($page) {
+    test('home menu has no Back, only its Quit', function () use ($page) {
         [, $nav] = $page(['kind' => 'choose', 'label' => 'OpenSim — setup', 'options' => ['add' => 'Add grid', 'quit' => 'Quit'], 'default' => 'add', 'hint' => null]);
 
         expect($nav)->toContain('value="quit"')->not->toContain('value="back"')->not->toContain('Cancel');
     });
 
-    test('the choice that is proposed stays a choice, whatever its key: "Finish setup" is the one to press', function () use ($page) {
+    test('choice that is proposed stays a choice, whatever its key: "Finish setup" is the one to press', function () use ($page) {
         [, $nav, $choices] = $page(['kind' => 'choose', 'label' => 'Setup', 'options' => ['quit' => 'Finish setup', 'more' => 'Continue setup'], 'default' => 'quit', 'hint' => null], 4);
 
         expect($choices)->toContain('value="quit" class="primary">Finish setup')->toContain('value="more"')
@@ -177,8 +177,8 @@ describe('the navigation of the setup', function () {
     });
 });
 
-describe('the screens', function () {
-    test('the page shows the screen, what was said before it, and escapes what comes from outside', function () {
+describe('screens', function () {
+    test('page shows the screen, what was said before it, and escapes what comes from outside', function () {
         [$server, $mailbox, $cookie] = wizardServer();
         $mailbox->say('note', "Plan <b>\n  Grid: " . "\u{E000}home\u{E001}");
         $mailbox->publish(['kind' => 'text', 'label' => 'Name <script>', 'value' => 'a"b']);
@@ -263,7 +263,7 @@ describe('the screens', function () {
         expect($mailbox->answered($id)['action'])->toBe('quit');
     });
 
-    test('the page that ends the setup is noted as seen', function () {
+    test('page that ends the setup is noted as seen', function () {
         [$server, $mailbox, $cookie] = wizardServer();
         $id = $mailbox->publish(['kind' => 'done', 'message' => 'All done']);
 

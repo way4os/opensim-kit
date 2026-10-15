@@ -184,7 +184,7 @@ describe('Hub grid', function () {
         ]);
     });
 
-    test('the simulators are a pool of their own', function () {
+    test('simulators are a pool of their own', function () {
         [$ui] = hub_run(['grid:alpha', 'sims', 'back', 'back', 'quit']);
 
         expect($ui->screens[2]['label'])->toBe('Simulators of alpha');

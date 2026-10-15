@@ -26,7 +26,7 @@ function profiles_machine(array $releases, string $extra = ''): array
     return [new PackagedProfiles($conf, "$root/cores"), $conf, $root];
 }
 
-describe('The profiles of the packaged releases', function () {
+describe('profiles of the packaged releases', function () {
     test('are one per release, with the locations of the install, the latest release being the default', function () {
         [$profiles, $conf, $root] = profiles_machine(['0.9.2.2' => 'OpenSim.exe', '0.9.3.0' => 'OpenSim.exe', 'unstable' => 'OpenSim.dll']);
 
@@ -88,7 +88,7 @@ describe('The profiles of the packaged releases', function () {
     });
 });
 
-describe('The modules enabled for an install', function () {
+describe('modules enabled for an install', function () {
     test('are set the first time, never again, not even when the administrator emptied them', function () {
         [$profiles, $conf] = profiles_machine([]);
 

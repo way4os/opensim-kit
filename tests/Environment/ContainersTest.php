@@ -34,7 +34,7 @@ function container_code(string $root, string $file): string
     ));
 }
 
-describe('the containers of the tests', function () use ($root) {
+describe('containers of the tests', function () use ($root) {
     test('every script that starts one loads the bootstrap of the tests, which exports CONTAINER_CONNECTION', function () use ($root) {
         $without = [];
         foreach (container_scripts($root) as $file) {
@@ -47,7 +47,7 @@ describe('the containers of the tests', function () use ($root) {
             ->and(file_get_contents("$root/tests/bootstrap.sh"))->toContain('export CONTAINER_CONNECTION');
     });
 
-    test('the bootstrap is plain bash: safe in strict mode, from anywhere, and what the caller set wins over the files', function () use ($root) {
+    test('bootstrap is plain bash: safe in strict mode, from anywhere, and what the caller set wins over the files', function () use ($root) {
         $run = static fn(string $env): array => (function () use ($root, $env): array {
             $out = [];
             exec("cd / && $env bash -c " . escapeshellarg("set -euo pipefail; source $root/tests/bootstrap.sh 2>/dev/null; echo \"[\${MEMORY:-}]\"") . ' 2>&1', $out, $status);

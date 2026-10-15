@@ -141,7 +141,7 @@ describe('opensim enable <grid> search', function () {
     });
 });
 
-describe('The web search and the profile page of a grid, with the in-world search and the profiles', function () {
+describe('web search and the profile page of a grid, with the in-world search and the profiles', function () {
     test('gives Robust the page of the web search at the address of the helpers, to both settings that say it', function () {
         [$home, $grid] = features_tree();
 

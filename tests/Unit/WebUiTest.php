@@ -54,7 +54,7 @@ describe('single questions', function () {
         expect(fn() => $ui->text('Alone'))->toThrow(RuntimeException::class);
     });
 
-    test('the answer is not kept once it is read', function () {
+    test('answer is not kept once it is read', function () {
         [$ui, $mailbox] = webSetup([['values' => ['value' => 'secret']]]);
         $ui->text('Name');
 
@@ -70,7 +70,7 @@ describe('forms', function () {
         ['key' => 'extra', 'label' => 'Extra', 'condition' => ['mode' => ['yes']], 'when' => static fn(array $v): bool => ($v['mode'] ?? '') === 'yes'],
     ];
 
-    test('the screen has the fields, without the password that is proposed', function () use ($fields) {
+    test('screen has the fields, without the password that is proposed', function () use ($fields) {
         [$ui, $mailbox] = webSetup([['values' => ['name' => 'Home', 'secret' => '', 'mode' => 'yes', 'extra' => 'more']]], $screens);
 
         $values = $ui->form($fields, 'Grid');
@@ -181,7 +181,7 @@ describe('what is said', function () {
             ->and($mailbox->progressLine())->toBe('');
     });
 
-    test('the work being done is a screen, and its result is returned', function () {
+    test('work being done is a screen, and its result is returned', function () {
         [$ui, $mailbox] = webSetup([]);
 
         $result = $ui->spin(static fn(): int => 42, 'Downloading');
@@ -191,7 +191,7 @@ describe('what is said', function () {
             ->and($mailbox->screen()['message'])->toBe('Downloading');
     });
 
-    test('the end of the setup is a screen', function () {
+    test('end of the setup is a screen', function () {
         [$ui, $mailbox] = webSetup([]);
         $ui->outro('All done');
 

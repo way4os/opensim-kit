@@ -16,7 +16,7 @@ function money_grid(): string
     return $dir;
 }
 
-describe('The MoneyServer.ini of a grid', function () {
+describe('MoneyServer.ini of a grid', function () {
     test('is made from the original of the MoneyServer, whole, with a key made at random where the MoneyServer reads it', function () {
         $original = MoneyServerConfig::original();
         $text = MoneyServerConfig::render(money_grid());

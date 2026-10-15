@@ -9,7 +9,7 @@ declare(strict_types=1);
 use OpenSimKit\Console\ConsoleReporter;
 use Symfony\Component\Console\Output\BufferedOutput;
 
-describe('The reporter of the command line', function () {
+describe('reporter of the command line', function () {
     test('says what is done as opensim: <message>, and the problems', function () {
         $output = new BufferedOutput();
         $reporter = new ConsoleReporter($output, false);

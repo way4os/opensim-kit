@@ -148,7 +148,7 @@ describe('opensim next location default', function () {
     });
 });
 
-describe('the center of a grid', function () {
+describe('center of a grid', function () {
     test('is the port twice, until the grid has its own', function () {
         $grid = new \OpenSim\Models\GridInfo();
         $grid->publicPort = 8012;

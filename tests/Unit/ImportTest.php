@@ -54,7 +54,7 @@ function import_tree(): string
     return "$root/bin/Robust.HG.ini";
 }
 
-describe('The plan of an imported Robust', function () {
+describe('plan of an imported Robust', function () {
     test('has what the setup asks, read from the original', function () {
         $path = import_tree();
         $plan = RobustImporter::plan(
@@ -91,7 +91,7 @@ describe('The plan of an imported Robust', function () {
     });
 });
 
-describe('The customizations of an imported Robust', function () {
+describe('customizations of an imported Robust', function () {
     test('are what differs from the defaults', function () {
         $original = [
             'Const' => ['PublicPort' => '8002', 'BaseHostname' => 'old.example.org', 'Mine' => 'x'],
@@ -254,7 +254,7 @@ describe('import grid config', function () {
     });
 });
 
-describe('The plan of an imported simulator', function () {
+describe('plan of an imported simulator', function () {
     /** The config of a simulator of the old way, with its database in an included file. */
     function import_sim_tree(string $architecture = 'config-include/GridHypergrid.ini'): string
     {

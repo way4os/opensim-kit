@@ -9,7 +9,7 @@ use OpenSim\Models\GridInfo;
 use OpenSim\Provisioning\DatabaseService;
 use OpenSim\Provisioning\GridAccounts;
 
-describe('The home of an account', function () {
+describe('home of an account', function () {
     test('is a row of GridUser', function () {
         $sql = GridAccounts::homeSql('11111111-2222-3333-4444-555555555555', '607c44e9-3d01-45eb-a07e-937dc72dbadb');
 

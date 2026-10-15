@@ -15,7 +15,7 @@ describe('where the setup is gone through', function () {
             ->and(SetupMode::resolve([], null))->toBe(SetupMode::TERMINAL);
     });
 
-    test('the instructions give the address, and the way to reach it from another machine', function () {
+    test('instructions give the address, and the way to reach it from another machine', function () {
         $text = SetupMode::instructions('http://127.0.0.1:8123/?t=abc', 8123, false, true);
 
         expect($text)->toContain('http://127.0.0.1:8123/?t=abc')
@@ -23,7 +23,7 @@ describe('where the setup is gone through', function () {
             ->and(SetupMode::instructions('http://127.0.0.1:8123/?t=abc', 8123, true, false))->not->toContain('ssh');
     });
 
-    test('the port is the one asked for, when it is a port a person may listen on', function () {
+    test('port is the one asked for, when it is a port a person may listen on', function () {
         expect(SetupMode::port(['--web', '--port=8123']))->toBe(8123)
             ->and(SetupMode::port(['--port', '8123', '--web']))->toBe(8123)
             ->and(SetupMode::port(['--web']))->toBeNull()
@@ -45,7 +45,7 @@ describe('where the web side listens and who may come', function () {
             ->toBe(['listen' => '0.0.0.0', 'allow' => ['203.0.113.7'], 'host' => '198.51.100.20', 'open' => true]);
     });
 
-    test('the options say otherwise: the machine only, other addresses, anyone, another name', function () use ($ssh) {
+    test('options say otherwise: the machine only, other addresses, anyone, another name', function () use ($ssh) {
         expect(SetupMode::network(['--listen', 'local'], $ssh)['open'])->toBeFalse()
             ->and(SetupMode::network(['--allow=192.0.2.1, 192.0.2.2'], $ssh)['allow'])->toBe(['192.0.2.1', '192.0.2.2'])
             ->and(SetupMode::network(['--allow=any'], $ssh)['allow'])->toBeNull()
@@ -64,7 +64,7 @@ describe('where the web side listens and who may come', function () {
             ->and(\OpenSimKit\Web\WizardServer::address('2001:DB8::1'))->toBe('2001:db8::1');
     });
 
-    test('the instructions of an open server say who can reach it, that it is not encrypted, and the firewall', function () {
+    test('instructions of an open server say who can reach it, that it is not encrypted, and the firewall', function () {
         $text = SetupMode::instructions('http://198.51.100.20:8123/?t=abc', 8123, false, true, true, ['203.0.113.7']);
 
         expect($text)->toContain('http://198.51.100.20:8123/?t=abc')->toContain('203.0.113.7')->toContain('not encrypted')->toContain('firewall')

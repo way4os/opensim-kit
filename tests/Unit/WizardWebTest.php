@@ -47,8 +47,8 @@ function wizardDriver(string $tmp, string $open = ''): array
     return [$process, $pipes];
 }
 
-describe('the setup in a browser, with the real web server', function () {
-    test('the questions go through the pages, the answers come back, the server stops at the end', function () {
+describe('setup in a browser, with the real web server', function () {
+    test('questions go through the pages, the answers come back, the server stops at the end', function () {
         [$process, $pipes] = wizardDriver(sys_get_temp_dir());
         $address = trim((string) fgets($pipes[1]));
         expect($address)->toStartWith('http://127.0.0.1:');

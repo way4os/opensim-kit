@@ -53,7 +53,7 @@ function runtime_probe(string $runtimes = ''): RuntimeProbe
     });
 }
 
-describe('The runtime of the core at the start of the setup', function () {
+describe('runtime of the core at the start of the setup', function () {
     test('is nothing to say when the machine has it, a newer one included', function () {
         $ui = new RuntimeUiFake();
         $installed = [];

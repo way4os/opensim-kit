@@ -170,7 +170,7 @@ final class ScreenUi implements UiInterface
     }
 }
 
-describe('the settings of the database asked again after a failure', function () {
+describe('settings of the database asked again after a failure', function () {
     $database = [
         ['key' => 'database_host', 'label' => 'Database host', 'default' => 'localhost'],
         ['key' => 'database_user', 'label' => 'Database user', 'default' => 'opensim'],
