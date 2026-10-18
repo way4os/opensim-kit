@@ -490,6 +490,7 @@ Installation:
     - Robust: `[Network] https_*` and `cert_path`, no converter (a `.p12` made with openssl)
     - [ ] base it on certbot, not on the certificate of Caddy (the `ExternalHostName` of a region is not always a site)
     - [ ] deploy hook: copy the PEM where `opensim` reads them (`/etc/letsencrypt` is root's), restart the instances (the conversion only happens at start)
+    - [ ] fully automated letsencrypt integration (through script or custom OpenSim module)
     - [ ] check: the `SSL/` folders are made in the working directory of the process, and the cores are read-only
     - [ ] try first on a public host with podman
     - [ ] section in the setup of a grid
