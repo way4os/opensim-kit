@@ -7,6 +7,9 @@
 
 db=testgrid_robust
 simdb=testgrid_sim1
+# The estates are the grid's when its Robust serves them (the database of Robust), else each simulator's
+estatedb=$simdb
+[[ -n "$(mysql -BN -e "SHOW TABLES FROM $db LIKE 'estate_settings'")" ]] && estatedb=$db
 sql() { mysql -BN "$db" -e "$1"; }
 zero=00000000-0000-0000-0000-000000000000
 visitor=77777777-6666-5555-4444-333333333333
@@ -18,7 +21,7 @@ banned=$(sql "SELECT PrincipalID FROM UserAccounts WHERE FirstName='Banned' AND 
 check "the account to ban exists" "[ -n '$banned' ]"
 sql "INSERT INTO GridUser (UserID, HomeRegionID, HomePosition, HomeLookAt, LastRegionID, LastPosition, LastLookAt, Online, Login, Logout) VALUES ('$visitor;http://other.example.org:8002/;Evil Visitor', '$zero', '<0,0,0>', '<0,0,0>', '$zero', '<0,0,0>', '<0,0,0>', 'false', '0', '0')"
 mysql -e "SET SESSION sql_mode=''; INSERT INTO $simdb.prims (UUID, OwnerID) VALUES ('$visitor', '$banned')"
-estates=$(mysql -BN -e "SELECT COUNT(*) FROM $simdb.estate_settings")
+estates=$(mysql -BN -e "SELECT COUNT(*) FROM $estatedb.estate_settings")
 
 rm -rf /tmp/ban && mkdir /tmp/ban && chown opensim /tmp/ban
 (cd /tmp/ban && runuser -u opensim -- opensim ban testgrid Banned.Person 'Evil.Visitor@other.example.org' >/tmp/ban.out 2>&1; echo "exit code: $?" >>/tmp/ban.out)
@@ -39,6 +42,6 @@ check "the account, its inventory, its objects and the visitor are gone" "[ \"\$
     [ \"\$(sql \"SELECT COUNT(*) FROM auth WHERE UUID='$banned'\")\" = 0 ] &&
     [ \"\$(sql \"SELECT COUNT(*) FROM GridUser WHERE UserID LIKE '$visitor%'\")\" = 0 ] &&
     [ \"\$(mysql -BN -e \"SELECT COUNT(*) FROM $simdb.prims WHERE OwnerID='$banned'\")\" = 0 ]"
-check "both are banned from the estates" "[ \"\$(mysql -BN -e \"SELECT COUNT(*) FROM $simdb.estateban WHERE bannedUUID IN ('$banned', '$visitor')\")\" -ge $((estates * 2)) ]"
+check "both are banned from the estates" "[ \"\$(mysql -BN -e \"SELECT COUNT(*) FROM $estatedb.estateban WHERE bannedUUID IN ('$banned', '$visitor')\")\" -ge $((estates * 2)) ]"
 (cd /tmp/ban && runuser -u opensim -- opensim ban testgrid "$banned" >/tmp/ban-again.out 2>&1)
 check "a second time, only what is left is asked: nothing to delete, nobody to ban twice" "grep -q '0 delete and 0 ban statements' /tmp/ban-again.out"

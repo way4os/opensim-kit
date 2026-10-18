@@ -228,6 +228,12 @@ check "the grid knows where the offline messages and the search index of its sim
     grep -qE '^\s*OfflineMessageURL = \"https://localhost/helpers/offline.php\"' $master && grep -qE '^\s*DATA_SRV_Testgrid = \"https://localhost/helpers/register.php\"' $master"
 check "the simulator runs with the master of its grid, and its own config does not repeat it" "ps -axww -o args | grep -q -- \"-inimaster=\$master\" &&
     ! grep -qE '^\\[(Architecture|OSSL|Search|Messaging|UserProfiles)\\]' /etc/opensim/grids/testgrid/sims/testgrid_sim1.ini && grep -q '^ConnectionString' /etc/opensim/grids/testgrid/sims/testgrid_sim1.ini"
+check "what Robust serves, its simulators use: the bakes, the groups, the estates" "robust=/etc/opensim/grids/testgrid/Robust.HG.ini &&
+    grep -qE '^\s*BakedTextureService' \$robust && grep -qE '^\s*GroupsServiceConnector' \$robust && grep -qE '^\s*HGGroupsServiceConnector' \$robust &&
+    grep -qE '^\s*EstateDataService' \$robust &&
+    grep -A1 '^\[XBakes\]' $master | grep -qE '^URL = .*PrivatePort' &&
+    grep -A8 '^\[Groups\]' $master | grep -qE '^ServicesConnectorModule = \"Groups HG Service Connector\"' &&
+    grep -qE '^\s*LocalServiceModule = .*EstateDataRemoteConnector' /etc/opensim/grids/testgrid/config-include/GridCommon.ini"
 check "the first region is the default region of the grid, and Robust says so" "grep -q '^Region_Sim1 = \"DefaultRegion, DefaultHGRegion, Persistent\"' /etc/opensim/grids/testgrid/Robust.HG.ini &&
     [ \"\$(mysql -BN -e \"SELECT (flags & 1 AND flags & 1024) FROM testgrid_robust.regions WHERE regionName='Sim1'\")\" = 1 ] &&
     curl -s -d 'METHOD=get_default_regions&SCOPEID=00000000-0000-0000-0000-000000000000' http://127.0.0.1:8003/grid | grep -q '>Sim1<'"
@@ -239,8 +245,10 @@ home_is_default() {
 check "the owner of the estate has the default region as home" "home_is_default Test Owner"
 check "the simulator has its own database, its config is enabled" "mysql -e 'SELECT 1' testgrid_sim1 >/dev/null 2>&1 &&
     [ -L /etc/opensim/opensim.d/testgrid_sim1.ini ] && [ -f /etc/opensim/grids/testgrid/sims/testgrid_sim1/regions/Sim1.ini ]"
-check "the estate belongs to the account made in the grid" "[ -n \"\$(mysql -BN -e \"SELECT PrincipalID FROM testgrid_robust.UserAccounts WHERE FirstName='Test' AND LastName='Owner'\")\" ] &&
-    [ \"\$(mysql -BN -e 'SELECT EstateOwner FROM testgrid_sim1.estate_settings LIMIT 1')\" = \"\$(mysql -BN -e \"SELECT PrincipalID FROM testgrid_robust.UserAccounts WHERE FirstName='Test' AND LastName='Owner'\")\" ]"
+check "the estates are the grid's, and the estate belongs to the account made in the grid" "grep -q '^ *EstateDataService' /etc/opensim/grids/testgrid/Robust.HG.ini &&
+    [ -z \"\$(mysql -BN -e \"SHOW TABLES FROM testgrid_sim1 LIKE 'estate_settings'\")\" ] &&
+    [ -n \"\$(mysql -BN -e \"SELECT PrincipalID FROM testgrid_robust.UserAccounts WHERE FirstName='Test' AND LastName='Owner'\")\" ] &&
+    [ \"\$(mysql -BN -e 'SELECT EstateOwner FROM testgrid_robust.estate_settings LIMIT 1')\" = \"\$(mysql -BN -e \"SELECT PrincipalID FROM testgrid_robust.UserAccounts WHERE FirstName='Test' AND LastName='Owner'\")\" ]"
 # OpenSimulator keeps MD5(MD5(password):salt): the password typed in the
 # console of Robust, with its space, caret and backslash, is the one given
 owner_salt=$(mysql -BN -e "SELECT a.passwordSalt FROM testgrid_robust.auth a JOIN testgrid_robust.UserAccounts u ON u.PrincipalID = a.UUID WHERE u.FirstName='Test' AND u.LastName='Owner'")
