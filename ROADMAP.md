@@ -34,6 +34,20 @@ Dates (2026):
 | the 5 crashed simulators of hal                | a new stable beta                                                  |
 | 3.0 before OSCC                                | all of the above (the manager can stay a beta)                     |
 
+### Rules, from now on (not waiting for a release)
+
+The whole ecosystem speaks standards, no part is left out (the helpers included), and no format is made for the need of the day:
+
+- [ ] the engine: OpenAPI contracts, JSON:API resources, RFC 9457 errors, PSR-7 messages (with PSR-15 and PSR-17), PSR-4 autoloading
+    - [ ] one layer of use cases; the command line, the HTTP API and the PHP library are adapters of it
+    - [ ] the OpenAPI document is the contract, checked against the code by tests
+    - [ ] what the core of OpenSimulator and the viewers call (`query.php`, `register.php`, `offline.php`, `currency.php`, `landtool.php`, `get_grid_info`...) keeps the format they expect: described in the contract as endpoints of their own, not reshaped
+    - [ ] to bring to it first: `Collection::json()`, the errors of the helpers, the fields of the setup, the line protocol of `ScriptUi` (the questions of the setup become a resource of the API)
+    - [ ] the root `class-*.php` files and `legacy/` out of the classmap, into PSR-4
+- [ ] the helpers, the web setup and the mini website: a light framework, easy for a beginner to read (Slim 4 or like)
+- [ ] the layouts: every HTML object is coded with classes of a CSS system (Bootstrap or Tailwind), no style written in place
+- [ ] installable as composer libraries, Debian packages, Homebrew formulas, or from a clone
+
 ### 3.0.0-beta.7 (target: before 10-18, for Speculoos and hal)
 
 Bugs (found in use; no beta goes out with them):
@@ -109,7 +123,7 @@ The beta:
         - [ ] first what to set up
             - [ ] a grid
             - [ ] a simulator that joins a grid that exists (OSGrid, Speculoos...)
-            - [ ] standalone (not offered until it works: the engine has no standalone yet)
+            - [ ] standalone: one simulator with its own services, no grid (simpler than joining one)
         - [ ] then the basics: name of the grid, grid URL, grid owner, password, email (a simulator: the URL of the grid it joins, its owner account there)
         - [ ] then the options, each with its default
             - [ ] Hypergrid (yes)
@@ -290,15 +304,6 @@ Kit, setup and configuration:
     - options: helpers (mails, no limit) / V2 module with the Robust service (no mails, 25 messages) / both
 - [ ] old global names of the engine as aliases (`legacy/`), helpers and w4os on the new names
 - [ ] test the clone mode of `setup.sh`
-
-The engine speaks standard formats, not small ones of its own made for the need of the day:
-
-- [ ] the API is described by OpenAPI contracts
-- [ ] the resources (models, collections, pages, filters) are JSON:API documents
-- [ ] the errors are problem details (RFC 9457)
-- [ ] in PHP, the HTTP messages are PSR-7
-- [ ] what to bring to it first: `Collection::json()`, the errors of the helpers, the questions of the setup (fields), the line protocol of `ScriptUi`
-- PSR-4 (autoloading) and PSR-12 (style) are another subject
 
 The engine gives the data (the manager, the plugin and the CLI only show it):
 
