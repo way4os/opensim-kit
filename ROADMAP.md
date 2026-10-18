@@ -56,7 +56,10 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
             - [x] a region has its file in its simulator (enabled while it ends in `.ini`) and its row in the grid (`Region`): one model, `Region::configured()` lists the files
         - [ ] one class per concept, whatever the source it is read from (the grid, the config, the search tables)
             - [x] `Region`
-            - [ ] `Simulator`: the config of a simulator and the instance that runs it are one class
+            - [x] `Simulator`: the config of a simulator and the instance that runs it are one class (ports, console, database and estate are asked of it, by the planners and the backups)
+            - [x] `detail()` on `Grid` and `Simulator`, as `Region` has it
+            - [ ] the planner of a grid reads its current settings from `Grid`, as the planner of a simulator does from `Simulator`
+            - [ ] `Grid` and `Simulator` follow the contract of the models (`OpenSimModelInterface`), `Grid::all()` gives a `Collection`
             - [x] `Grid`: `GridInfo` goes into it, whatever the source (its folder, a plan, a description, what it says at `get_grid_info`)
                 - [ ] the other sources give the same properties: the xmlrpc calls of the hypergrid, the tables of OpenSimSearch, the console, the database
                 - [ ] the helpers read a grid through `Grid`, not through their own functions

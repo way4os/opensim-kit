@@ -2,7 +2,6 @@
 
 namespace OpenSimKit\Setup;
 
-use OpenSim\Config\InstanceSettings;
 use OpenSim\Provisioning\Slug;
 use OpenSimKit\System\Elevated;
 use OpenSimKit\Ui\FieldForm;
@@ -246,7 +245,7 @@ final class NewSimulator
             false,
             $pool,
             '',
-            static fn(string $instance): int => (int) (InstanceSettings::of("{$grid->directory()}/sims/$instance.ini")['httpPort'] ?? 0),
+            static fn(string $instance): int => (int) (new Simulator(Environment::forProfile($profile), "{$grid->directory()}/sims/$instance.ini"))->httpPort(),
         );
         $answers = $this->regionAnswers($planner, $grid);
 
@@ -389,7 +388,7 @@ final class NewSimulator
 
             return null;
         }
-        $plan->httpPort = (int) (InstanceSettings::of($plan->iniPath())['httpPort'] ?? 0);
+        $plan->httpPort = (int) $grid->simulator($plan->slug)?->httpPort();
         // The address the regions of this simulator already announce
         foreach (glob("{$plan->regionsDir()}/*.ini") ?: [] as $file) {
             if (preg_match('/^\s*ExternalHostName\s*=\s*(\S+)/m', GridFileService::read($file), $m)) {
