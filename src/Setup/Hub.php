@@ -2,6 +2,7 @@
 
 namespace OpenSimKit\Setup;
 
+use OpenSim\Config\GridConfig;
 use OpenSim\Provisioning\Slug;
 use OpenSimKit\System\Elevated;
 use OpenSimKit\Ui\Back;
@@ -260,7 +261,7 @@ final class Hub
             // The grid is its regions: the simulators are the pool of servers that provide them
             $options = [];
             foreach ($simulators as $slug) {
-                foreach (Region::inDirectory("$etcRoot/grids/$nick/sims/$slug/regions") as $region) {
+                foreach (Region::inDirectory(GridConfig::simulatorsDirectory("$etcRoot/grids/$nick") . "/$slug/regions") as $region) {
                     $name = $region->name();
                     $options["region:$slug:$name"] =
                         $this->ui->entity($name) .
@@ -366,7 +367,7 @@ final class Hub
         while (true) {
             $etcRoot = (new InstallConfig())->profile()['EtcRoot'] ?? '';
             $enabled = $this->grid($etcRoot, $nick)?->simulator($slug)?->isEnabled() ?? false;
-            $regions = Region::inDirectory("$etcRoot/grids/$nick/sims/$slug/regions");
+            $regions = Region::inDirectory(GridConfig::simulatorsDirectory("$etcRoot/grids/$nick") . "/$slug/regions");
 
             $options = [];
             foreach ($regions as $region) {
@@ -374,7 +375,7 @@ final class Hub
             }
             // In this simulator: not to be mistaken for the one of the grid, which asks where the region goes
             $options['addregion'] = sprintf(_('Add region in %s'), $this->simulatorName($nick, $slug));
-            $options['reconfigure'] = _('Configure sim');
+            $options['reconfigure'] = _('Configure simulator');
             $options['toggle'] = $enabled ? 'Disable this simulator' : 'Enable this simulator';
             $options['back'] = _('Back');
             $options['quit'] = _('Quit');
@@ -395,9 +396,9 @@ final class Hub
                     $this->guard(fn() => (new NewSimulator($this->ui))->addRegion($nick, $this->simulatorName($nick, $slug)));
                     break;
                 case $choice === 'toggle':
-                    $done = $this->act($enabled ? 'sim-disable' : 'sim-enable', [
+                    $done = $this->act($enabled ? 'simulator-disable' : 'simulator-enable', [
                         'slug' => $slug,
-                        'ini' => "$etcRoot/grids/$nick/sims/$slug.ini",
+                        'ini' => GridConfig::simulatorsDirectory("$etcRoot/grids/$nick") . "/$slug.ini",
                     ]);
                     if ($done) {
                         $this->ui->note(($enabled ? 'Disabled' : 'Enabled') . " $slug.");
@@ -417,7 +418,7 @@ final class Hub
         while (true) {
             $etcRoot = (new InstallConfig())->profile()['EtcRoot'] ?? '';
             $region = null;
-            foreach (Region::inDirectory("$etcRoot/grids/$nick/sims/$slug/regions") as $candidate) {
+            foreach (Region::inDirectory(GridConfig::simulatorsDirectory("$etcRoot/grids/$nick") . "/$slug/regions") as $candidate) {
                 $candidate->name() === $name && $region = $candidate;
             }
             if ($region === null) {
@@ -467,14 +468,14 @@ final class Hub
     /** The name of a simulator as it was given, else (its config has no mention of it) as its instance name tells it. */
     private function simulatorTitle(string $etcRoot, string $nick, string $slug): string
     {
-        return SimulatorConfig::readName("$etcRoot/grids/$nick/sims/$slug.ini") ?? $this->simulatorName($nick, $slug);
+        return SimulatorConfig::readName(GridConfig::simulatorsDirectory("$etcRoot/grids/$nick") . "/$slug.ini") ?? $this->simulatorName($nick, $slug);
     }
 
     /** The name of a simulator from the name of its instance: what follows the grid nick. */
     private function simulatorName(string $nick, string $slug): string
     {
         $etcRoot = (new InstallConfig())->profile()['EtcRoot'] ?? '';
-        if (($name = SimulatorConfig::readName("$etcRoot/grids/$nick/sims/$slug.ini")) !== null) {
+        if (($name = SimulatorConfig::readName(GridConfig::simulatorsDirectory("$etcRoot/grids/$nick") . "/$slug.ini")) !== null) {
             return $name;
         }
         return Slug::simulatorOf($slug, $nick);

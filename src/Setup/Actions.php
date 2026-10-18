@@ -41,10 +41,10 @@ final class Actions
 
                 return $grid?->isEnabled() !== true ||
                     $this->no('Cannot disable the grid (permission).');
-            case 'sim-enable':
+            case 'simulator-enable':
                 return (new Simulator($environment, $args['ini']))->enable() ||
                     $this->no('Cannot enable the simulator (no config).');
-            case 'sim-disable':
+            case 'simulator-disable':
                 $simulator = new Simulator($environment, $args['ini']);
                 $simulator->disable();
 

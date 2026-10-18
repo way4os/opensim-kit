@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSimKit\Setup\Import;
 
+use OpenSim\Config\GridConfig;
 use OpenSim\Config\ConfigReader;
 use OpenSim\Models\Grid;
 use OpenSim\Provisioning\Import\RobustImporter;
@@ -218,7 +219,7 @@ final class ImportSettings
         );
         $this->say($report);
         if (!$apply) {
-            $this->say("\nNothing was written: --apply writes the simulator {$plan->slug} in {$plan->gridDir}/sims/.\n");
+            $this->say("\nNothing was written: --apply writes the simulator {$plan->slug} in " . GridConfig::simulatorsDirectory($plan->gridDir) . "/.\n");
 
             return 0;
         }
@@ -227,7 +228,7 @@ final class ImportSettings
             if (!Elevated::needed($profile)) {
                 (new NewSimulator(new QuietUi()))->apply($plan, $profile);
             } else {
-                Elevated::run(new QuietUi(), '--apply-sim', ['plan' => $plan->toArray(), 'profile' => $profile], $profile['SystemUser']);
+                Elevated::run(new QuietUi(), '--apply-simulator', ['plan' => $plan->toArray(), 'profile' => $profile], $profile['SystemUser']);
             }
         } catch (SetupFailedException) {
             throw new ImportFailure('the simulator could not be written');
@@ -236,13 +237,13 @@ final class ImportSettings
         $done = $this->act($profile, 'inject-config', [
             'path' => $plan->iniPath(),
             'customizations' => $customizations,
-            'report_path' => "{$plan->gridDir}/sims/{$plan->slug}.import-report.txt",
+            'report_path' => GridConfig::simulatorsDirectory($plan->gridDir) . "/{$plan->slug}.import-report.txt",
             'report' => $report,
         ]);
         if (!$copied || !$done) {
             throw new ImportFailure('the simulator is written, but its regions or its settings could not be added');
         }
-        $this->say("\nWritten: {$plan->iniPath()}\nRegions: {$plan->regionsDir()}\nReport:  {$plan->gridDir}/sims/{$plan->slug}.import-report.txt\nCompare it with the original, then: opensim enable {$plan->slug}\n");
+        $this->say("\nWritten: {$plan->iniPath()}\nRegions: {$plan->regionsDir()}\nReport:  " . GridConfig::simulatorsDirectory($plan->gridDir) . "/{$plan->slug}.import-report.txt\nCompare it with the original, then: opensim enable {$plan->slug}\n");
 
         return 0;
     }

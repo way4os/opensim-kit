@@ -2,6 +2,7 @@
 
 namespace OpenSimKit\Setup;
 
+use OpenSim\Config\GridConfig;
 use OpenSim\Provisioning\Slug;
 use OpenSimKit\Ui\EditConfig;
 use OpenSimKit\Ui\PresetUi;
@@ -193,7 +194,7 @@ final class SetupRunner
     private function simulatorName(array $made): string
     {
         $etcRoot = (string) ((new InstallConfig())->profile()['EtcRoot'] ?? '');
-        if (($name = SimulatorConfig::readName("$etcRoot/grids/{$made[0]}/sims/{$made[1]}.ini")) !== null) {
+        if (($name = SimulatorConfig::readName(GridConfig::simulatorsDirectory("$etcRoot/grids/{$made[0]}") . "/{$made[1]}.ini")) !== null) {
             return $name;
         }
         return Slug::simulatorOf($made[1], $made[0]);

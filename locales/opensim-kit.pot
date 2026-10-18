@@ -983,7 +983,7 @@ msgid "Add region in %s"
 msgstr ""
 
 #: install/src/Hub.php:395
-msgid "Configure sim"
+msgid "Configure simulator"
 msgstr ""
 
 #: install/src/Hub.php:445

@@ -2,6 +2,7 @@
 
 namespace OpenSimKit\Setup;
 
+use OpenSim\Config\GridConfig;
 use OpenSim\Provisioning\Slug;
 use OpenSimKit\System\Elevated;
 use OpenSimKit\Ui\FieldForm;
@@ -201,7 +202,7 @@ final class NewSimulator
         }
         Elevated::run(
             $this->ui,
-            '--apply-sim',
+            '--apply-simulator',
             ['plan' => $plan->toArray(), 'profile' => $profile],
             $profile['SystemUser'],
         );
@@ -244,17 +245,17 @@ final class NewSimulator
             false,
             $pool,
             '',
-            static fn(string $instance): int => (int) (new Simulator(InstallConfig::environmentOf($profile), "{$grid->directory()}/sims/$instance.ini"))->httpPort(),
+            static fn(string $instance): int => (int) (new Simulator(InstallConfig::environmentOf($profile), GridConfig::simulatorsDirectory($grid->directory()) . "/$instance.ini"))->httpPort(),
         );
         $answers = $this->regionAnswers($planner, $grid);
 
-        if (($answers['sim'] ?? '+') === '+') {
+        if (($answers['simulator'] ?? '+') === '+') {
             $plan = $this->gather($grid, $profile, $database, null, $answers);
 
             return $plan === null ? null : $this->complete($plan, $grid, $profile, false);
         }
 
-        $slug = $answers['sim'];
+        $slug = $answers['simulator'];
         $plan = $this->regionPlan($grid, $this->simulatorNameOf($grid, $slug));
         if ($plan === null) {
             return null;
@@ -301,7 +302,7 @@ final class NewSimulator
     /** A simulator of the pool as the person sees it: its name and the regions it has */
     private function simulatorTitle(Grid $grid, string $slug): string
     {
-        $regions = array_map(static fn(Region $region): string => $region->name(), Region::inDirectory("{$grid->directory()}/sims/$slug/regions"));
+        $regions = array_map(static fn(Region $region): string => $region->name(), Region::inDirectory(GridConfig::simulatorsDirectory($grid->directory()) . "/$slug/regions"));
 
         return $this->simulatorNameOf($grid, $slug) . ($regions !== [] ? ' (' . implode(', ', $regions) . ')' : '');
     }
@@ -594,7 +595,7 @@ final class NewSimulator
         $answers = FieldForm::ask($this->ui, $fields->group('simulator'), $planner->resolve($given), _('Simulator'), [], $derived);
         $name = $planner->resolve($answers + $given)['name'];
         $planner = $planner->forSimulator($name);
-        $iniPath = "{$grid->directory()}/sims/" . $planner->resolve($answers + $given)['slug'] . '.ini';
+        $iniPath = GridConfig::simulatorsDirectory($grid->directory()) . '/' . $planner->resolve($answers + $given)['slug'] . '.ini';
         if ($simulatorName === null && is_file($iniPath)) {
             $action = $this->ui->choose(
                 sprintf(_("Simulator '%s' is already configured (%s)."), $name, $iniPath),

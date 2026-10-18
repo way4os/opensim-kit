@@ -35,7 +35,7 @@ try {
         // another user, which sends the plan on the standard input
         $data = json_decode((string) stream_get_contents(STDIN), true, 512, JSON_THROW_ON_ERROR);
         (new NewGrid(new PromptsUi()))->apply(GridPlan::fromArray($data['plan']), $data['profile']);
-    } elseif (($argv[1] ?? '') === '--apply-sim') {
+    } elseif (($argv[1] ?? '') === '--apply-simulator') {
         // The same for a simulator
         $data = json_decode((string) stream_get_contents(STDIN), true, 512, JSON_THROW_ON_ERROR);
         (new NewSimulator(new PromptsUi()))->apply(SimulatorPlan::fromArray($data['plan']), $data['profile']);
