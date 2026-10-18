@@ -8,6 +8,7 @@ use OpenSimKit\Ui\QuietUi;
 use OpenSim\Models\Grid;
 use OpenSim\Provisioning\DatabaseService;
 use OpenSim\Provisioning\GridAccounts;
+use OpenSim\Testing\EnvironmentFake;
 
 describe('home of an account', function () {
     test('is a row of GridUser', function () {
@@ -21,7 +22,7 @@ describe('home of an account', function () {
 
     test('is not written for a wrong name', function () {
         $accounts = new GridAccounts(new DatabaseService(new QuietUi()), new QuietUi());
-        $grid = Grid::described([]);
+        $grid = Grid::described(EnvironmentFake::with(), []);
 
         expect($accounts->setHome($grid, "Bad'; DROP TABLE x", '607c44e9-3d01-45eb-a07e-937dc72dbadb'))->toBeFalse();
         expect($accounts->setHome($grid, 'Jane Doe', "x'; DROP TABLE x"))->toBeFalse();

@@ -10,7 +10,6 @@ use OpenSim\Provisioning\Import\RobustImporter;
 use OpenSim\Provisioning\Import\SimulatorImporter;
 use OpenSim\Exceptions\SetupFailedException;
 use OpenSim\Provisioning\SimulatorConfig;
-use OpenSim\Runtime\Environment;
 use OpenSimKit\Setup\Actions;
 use OpenSimKit\Setup\InstallConfig;
 use OpenSimKit\Setup\NewGrid;
@@ -102,7 +101,7 @@ final class ImportSettings
         if ($core === '' || !is_dir("$core/bin")) {
             throw new ImportFailure('choose the core the grid will run with: --core DIR (the folder that has bin/)', 2);
         }
-        $plan = RobustImporter::plan($raw, $path, $profile, $options['nick'] ?: null, $core);
+        $plan = RobustImporter::plan($raw, $path, InstallConfig::environmentOf($profile), $options['nick'] ?: null, $core);
         if (is_string($plan)) {
             throw new ImportFailure($plan, 2);
         }
@@ -174,7 +173,7 @@ final class ImportSettings
      */
     private function simulator(array $raw, string $path, array $profile, array $options, bool $apply): int
     {
-        $grid = $options['grid'] === '' ? null : Grid::find(Environment::forProfile($profile), $options['grid']);
+        $grid = $options['grid'] === '' ? null : Grid::find(InstallConfig::environmentOf($profile), $options['grid']);
         if ($grid === null) {
             throw new ImportFailure('the grid of the simulator is one the kit knows (opensim setup, or opensim import for its Robust config): opensim import <grid> FILE', 2);
         }
@@ -184,7 +183,7 @@ final class ImportSettings
         if ($core === '' || !is_dir("$core/bin")) {
             throw new ImportFailure('choose the core the simulator will run with: --core DIR (the folder that has bin/)', 2);
         }
-        $plan = SimulatorImporter::plan($raw, $path, $grid, $profile, $options['name'] ?: null, $core);
+        $plan = SimulatorImporter::plan($raw, $path, $grid, $options['name'] ?: null, $core);
         if (is_string($plan)) {
             throw new ImportFailure($plan, 2);
         }

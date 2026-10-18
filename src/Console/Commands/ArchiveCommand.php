@@ -48,13 +48,13 @@ abstract class ArchiveCommand extends ScriptCommand
 
             return 2;
         }
-        $layout = $this->engine($out)->layout;
-        if ($layout->etcRoot() === '') {
+        $environment = $this->engine($out);
+        if ($environment->layout->etcRoot() === '') {
             self::say($err, "$verb: no install found\n");
 
             return 1;
         }
-        [$code, $file] = ArchiveRunner::system($layout->all())->run($verb, $args);
+        [$code, $file] = ArchiveRunner::system($environment)->run($verb, $args);
         if ($file !== null) {
             self::say($out, "$file\n");
         }

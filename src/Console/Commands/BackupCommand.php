@@ -65,14 +65,14 @@ final class BackupCommand extends ScriptCommand
             }
         }
 
-        $profile = $this->engine($out)->layout->all();
-        if (($profile['EtcRoot'] ?? '') === '') {
+        $environment = $this->engine($out);
+        if ($environment->layout->etcRoot() === '') {
             self::say($err, "backup: no install found\n");
 
             return 1;
         }
         try {
-            $files = (new BackupService($profile, DatabaseDump::write(...), static function (string $message) use ($err): void {
+            $files = (new BackupService($environment, DatabaseDump::write(...), static function (string $message) use ($err): void {
                 self::say($err, $message . "\n");
             }))->run($refs, $options);
         } catch (\InvalidArgumentException $e) {

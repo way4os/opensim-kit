@@ -19,7 +19,6 @@ use OpenSim\Exceptions\SetupFailedException;
 use OpenSim\Provisioning\SimulatorPlan;
 use OpenSim\Provisioning\SimulatorPlanner;
 use OpenSim\Provisioning\UiInterface;
-use OpenSim\Runtime\Environment;
 
 /**
  * Create (or reconfigure) one simulator of a grid, with its first region.
@@ -121,7 +120,7 @@ final class NewSimulator
             $this->showPlan($plan);
         }
         // A simulator already linked may run, with users in it: restarting it warns them, and takes two minutes
-        $simulator = new Simulator(Environment::forProfile($profile), $plan->iniPath());
+        $simulator = new Simulator(InstallConfig::environmentOf($profile), $plan->iniPath());
         $wasEnabled = $simulator->isEnabled();
         $running = $wasEnabled && InstanceConsoleService::running($simulator->link());
         // A simulator without a region waits at its first start for the answers of a region to create, on a console nobody
@@ -222,7 +221,7 @@ final class NewSimulator
         }
         $database = new DatabaseService($this->ui);
         $pool = [];
-        foreach (Grid::at(Environment::forProfile($profile), $grid->directory())->simulatorNames() as $slug) {
+        foreach (Grid::at(InstallConfig::environmentOf($profile), $grid->directory())->simulatorNames() as $slug) {
             $pool[$slug] = $this->simulatorTitle($grid, $slug);
         }
 
@@ -245,7 +244,7 @@ final class NewSimulator
             false,
             $pool,
             '',
-            static fn(string $instance): int => (int) (new Simulator(Environment::forProfile($profile), "{$grid->directory()}/sims/$instance.ini"))->httpPort(),
+            static fn(string $instance): int => (int) (new Simulator(InstallConfig::environmentOf($profile), "{$grid->directory()}/sims/$instance.ini"))->httpPort(),
         );
         $answers = $this->regionAnswers($planner, $grid);
 
@@ -457,7 +456,7 @@ final class NewSimulator
     /** The writing itself, done by SimulatorProvisioner. */
     public function apply(SimulatorPlan $plan, array $profile): void
     {
-        (new \OpenSim\Provisioning\SimulatorProvisioner($this->ui))->apply($plan, $profile);
+        (new \OpenSim\Provisioning\SimulatorProvisioner($this->ui))->apply($plan, InstallConfig::environmentOf($profile));
     }
 
 
@@ -486,9 +485,9 @@ final class NewSimulator
             $known = [];
             foreach (glob("$etcRoot/grids/*", GLOB_ONLYDIR) ?: [] as $dir) {
                 $name = basename($dir);
-                if (Grid::find(Environment::forProfile($profile), $name)?->robustIni() !== null) {
+                if (Grid::find(InstallConfig::environmentOf($profile), $name)?->robustIni() !== null) {
                     $known[$name] = $name;
-                } elseif ((Grid::find(Environment::forProfile(['EtcRoot' => $etcRoot]), $name)?->isRemote() ?? false)) {
+                } elseif ((Grid::find(InstallConfig::environmentOf(['EtcRoot' => $etcRoot]), $name)?->isRemote() ?? false)) {
                     $known[$name] = "$name (Robust on another machine)";
                 }
             }
@@ -502,7 +501,7 @@ final class NewSimulator
             }
         }
 
-        $grid = Grid::find(Environment::forProfile($profile), $nick);
+        $grid = Grid::find(InstallConfig::environmentOf($profile), $nick);
         if ($grid === null) {
             $this->ui->error(sprintf(_("Grid '%s' is not known here."), $nick));
         }
@@ -517,7 +516,7 @@ final class NewSimulator
      */
     private function remoteGrid(array $profile): ?Grid
     {
-        $planner = RemoteGridPlanner::forMachine($profile);
+        $planner = RemoteGridPlanner::forMachine(InstallConfig::environmentOf($profile));
         $preset = '';
         $presets = $planner->presets();
         if ($presets !== []) {
@@ -567,7 +566,7 @@ final class NewSimulator
         }
         $given = $values['simulator'] ?? [];
         // A simulator made for a region is named after it, as the first of a grid is
-        $planner = SimulatorPlanner::forGrid($grid, $profile, $database, $this->ui, $simulatorName, $region['name'] ?? ($values['region']['name'] ?? null));
+        $planner = SimulatorPlanner::forGrid($grid, $database, $this->ui, $simulatorName, $region['name'] ?? ($values['region']['name'] ?? null));
         if ($planner->cores() === []) {
             $this->ui->error(_('No OpenSim core found.'));
 

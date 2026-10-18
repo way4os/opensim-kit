@@ -3,6 +3,8 @@
 namespace OpenSimKit\Setup;
 
 use OpenSim\Config\ConfigReader;
+use OpenSim\Config\Layout;
+use OpenSim\Runtime\Environment;
 
 /**
  * Reader for the single opensim.conf (phase 2 only needs the default profile;
@@ -102,6 +104,12 @@ final class InstallConfig
         $section = $name !== null && isset($ini[$name]) ? $ini[$name] : [];
 
         return array_merge($defaults, $section);
+    }
+
+    /** The environment of an install described by its settings (the ones `profile()` gives). */
+    public static function environmentOf(array $profile): Environment
+    {
+        return Environment::system(new Layout($profile));
     }
 
     /**

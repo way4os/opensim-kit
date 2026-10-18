@@ -63,7 +63,7 @@ final class StartSetup
                 [
                     'key' => 'login',
                     'label' => _('Grid URL'),
-                    'default' => 'http://' . GridPlanner::defaultHost() . ':' . GridPlanner::defaultPublicPort(),
+                    'default' => 'http://' . GridPlanner::defaultHost() . ':' . GridPlanner::defaultPublicPort(InstallConfig::environmentOf((new InstallConfig())->profile())),
                     'hint' => _('host:port, the address the viewers log in to'),
                     'validate' => self::validLogin(...),
                 ],
@@ -118,7 +118,7 @@ final class StartSetup
     private function options(): array
     {
         $profile = (new InstallConfig())->profile();
-        $proposed = GridPlanner::forMachine($profile)->resolve();
+        $proposed = GridPlanner::forMachine(InstallConfig::environmentOf($profile))->resolve();
         $fields = new FieldSet(array_values(array_filter(
             Grid::fields(),
             static fn(array $field): bool => in_array($field['name'], self::OPTIONS, true),

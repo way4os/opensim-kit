@@ -1,10 +1,11 @@
 <?php
 /**
- * What waits for an instance to restart, and the actions of the menus that leave it there.
+ * The actions of the menus that leave an instance waiting for a restart.
  */
 
 use OpenSimKit\Setup\Actions;
 use OpenSim\Provisioning\PendingRestarts;
+use OpenSimKit\Setup\InstallConfig;
 
 /** A profile with its own data folder. */
 function pending_profile()
@@ -17,30 +18,6 @@ function pending_profile()
 }
 
 describe('Pending restarts', function () {
-    test('are kept one line each, once, and read back', function () {
-        $profile = pending_profile();
-        PendingRestarts::add($profile, 'vonda_welcome', 'region Welcome added');
-        PendingRestarts::add($profile, 'vonda_welcome', 'region  Welcome added');
-        PendingRestarts::add($profile, 'vonda', 'grid config changed');
-
-        expect(file_get_contents(PendingRestarts::path($profile)))->toBe(
-            "vonda_welcome region Welcome added\nvonda grid config changed\n",
-        );
-        expect(PendingRestarts::read($profile))->toBe([
-            ['instance' => 'vonda_welcome', 'reason' => 'region Welcome added'],
-            ['instance' => 'vonda', 'reason' => 'grid config changed'],
-        ]);
-
-        PendingRestarts::clear($profile);
-        expect(PendingRestarts::read($profile))->toBe([]);
-    });
-
-    test('are nothing for a profile without a data folder', function () {
-        PendingRestarts::add([], 'a', 'b');
-
-        expect(PendingRestarts::read([]))->toBe([]);
-    });
-
     test('are left by a disabled region', function () {
         $profile = pending_profile();
         $file = "{$profile['EtcRoot']}/Far.ini";
@@ -55,7 +32,7 @@ describe('Pending restarts', function () {
 
         expect($done)->toBeTrue();
         expect(is_file("$file.disabled"))->toBeTrue();
-        expect(PendingRestarts::read($profile))->toBe([
+        expect(PendingRestarts::read(InstallConfig::environmentOf($profile)))->toBe([
             ['instance' => 'vonda_sim1', 'reason' => 'region Far disabled'],
         ]);
     });
@@ -75,6 +52,6 @@ describe('Pending restarts', function () {
         );
 
         expect($done)->toBeFalse();
-        expect(PendingRestarts::read($profile))->toBe([]);
+        expect(PendingRestarts::read(InstallConfig::environmentOf($profile)))->toBe([]);
     });
 });

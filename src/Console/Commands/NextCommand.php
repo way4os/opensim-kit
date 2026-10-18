@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace OpenSimKit\Console\Commands;
 
-use OpenSim\Runtime\Environment;
 use OpenSimKit\Ui\QuietUi;
 use OpenSim\Models\Grid;
 use OpenSim\Network\Ports;
@@ -62,7 +61,7 @@ final class NextCommand extends ScriptCommand
             }
         }
         $number = static fn(?string $value, int $default): int => $value === null ? $default : (ctype_digit($value) ? (int) $value : -1);
-        $profile = $this->engine($out)->layout->all();
+        $environment = $this->engine($out);
 
         if ($what === 'port') {
             $min = $number($words[0] ?? null, 9010);
@@ -72,8 +71,8 @@ final class NextCommand extends ScriptCommand
             }
             // What is taken is what the config files of this machine say, what listens here, and the ports of the regions the
             // grids of this machine know, the ones of other machines too
-            $known = (new GridRegistry(new DatabaseService(new QuietUi())))->knownPorts($profile);
-            self::say($out, implode("\n", Ports::nextFree($min, $count, array_merge(array_map('intval', $exclude), $known))) . "\n");
+            $known = (new GridRegistry(new DatabaseService(new QuietUi())))->knownPorts($environment);
+            self::say($out, implode("\n", (new Ports($environment))->nextFree($min, $count, array_merge(array_map('intval', $exclude), $known))) . "\n");
 
             return self::ok();
         }
@@ -84,7 +83,7 @@ final class NextCommand extends ScriptCommand
         if ($nick === '' || $wish === null || $count < 1 || count($words) > 3) {
             return $this->usage($err, 'a grid, then a place as x,y and a number');
         }
-        $grid = Grid::find(Environment::forProfile($profile), $nick);
+        $grid = Grid::find($environment, $nick);
         if ($grid === null) {
             self::say($err, "next: no grid named '$nick'\n");
 

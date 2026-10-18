@@ -14,7 +14,6 @@ use OpenSim\Provisioning\PendingRestarts;
 use OpenSim\Exceptions\SetupFailedException;
 use OpenSim\Provisioning\SimulatorConfig;
 use OpenSim\Provisioning\UiInterface;
-use OpenSim\Runtime\Environment;
 
 /**
  * Setup hub: screens one level deeper each time, from the home to a region:
@@ -50,7 +49,7 @@ final class Hub
             $options = ['core' => 'OpenSim core ' . ($cores !== [] ? "[$activeCore]" : '(install)')];
             foreach ($grids as $nick) {
                 $name = $this->ui->entity($nick);
-                $options["grid:$nick"] = (Grid::find(Environment::forProfile(['EtcRoot' => $etcRoot]), $nick)?->isRemote() ?? false)
+                $options["grid:$nick"] = (Grid::find(InstallConfig::environmentOf(['EtcRoot' => $etcRoot]), $nick)?->isRemote() ?? false)
                     ? "$name (Robust on another machine)"
                     : $name . ($this->grid($etcRoot, $nick)?->isEnabled() ? '' : ' [disabled]');
             }
@@ -108,7 +107,7 @@ final class Hub
     {
         $profile = (new InstallConfig())->profile();
         $etcRoot = $profile['EtcRoot'] ?? '';
-        $pending = PendingRestarts::read($profile);
+        $pending = PendingRestarts::read(InstallConfig::environmentOf($profile));
         if ($pending === []) {
             return;
         }
@@ -124,7 +123,7 @@ final class Hub
             $this->ui->note(
                 sprintf(
                     _('They stay listed in %s: the setup offers them again next time.'),
-                    PendingRestarts::path($profile),
+                    PendingRestarts::path(InstallConfig::environmentOf($profile)),
                 ),
             );
 
@@ -232,7 +231,7 @@ final class Hub
     private function ready(string $nick, string $slug): bool
     {
         $profile = (new InstallConfig())->profile();
-        $grid = Grid::find(Environment::forProfile($profile), $nick);
+        $grid = Grid::find(InstallConfig::environmentOf($profile), $nick);
         $this->ui->note(
             sprintf(
                 _('Your grid %s is ready, nothing more is needed.'),
@@ -254,7 +253,7 @@ final class Hub
     {
         while (true) {
             $etcRoot = (new InstallConfig())->profile()['EtcRoot'] ?? '';
-            $remote = (Grid::find(Environment::forProfile(['EtcRoot' => $etcRoot]), $nick)?->isRemote() ?? false);
+            $remote = (Grid::find(InstallConfig::environmentOf(['EtcRoot' => $etcRoot]), $nick)?->isRemote() ?? false);
             $enabled = $this->grid($etcRoot, $nick)?->isEnabled() ?? false;
             $simulators = $this->simulators($etcRoot, $nick);
 
@@ -496,7 +495,7 @@ final class Hub
     /** The grid of this nick under EtcRoot, null when there is none. */
     private function grid(string $etcRoot, string $nick): ?Grid
     {
-        return $etcRoot === '' ? null : Grid::find(Environment::forProfile(['EtcRoot' => $etcRoot]), $nick);
+        return $etcRoot === '' ? null : Grid::find(InstallConfig::environmentOf(['EtcRoot' => $etcRoot]), $nick);
     }
 
     /** @return list<string> */

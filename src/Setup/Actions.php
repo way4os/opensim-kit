@@ -29,7 +29,7 @@ final class Actions
      */
     public function perform(string $op, array $args, array $profile): bool
     {
-        $environment = Environment::forProfile($profile);
+        $environment = InstallConfig::environmentOf($profile);
 
         switch ($op) {
             case 'grid-enable':
@@ -62,14 +62,14 @@ final class Actions
                     );
                 }
                 PendingRestarts::add(
-                    $profile,
+                    $environment,
                     $args['instance'],
                     "region {$args['name']} " . ($op === 'region-enable' ? 'enabled' : 'disabled'),
                 );
 
                 return true;
             case 'restart':
-                return $this->restart($profile, (bool) ($args['warn'] ?? false));
+                return $this->restart($environment, (bool) ($args['warn'] ?? false));
             case 'copy-regions':
                 // The region files of an imported simulator: copied, the original ones are not touched
                 @mkdir((string) $args['to'], 0o755, true);
@@ -113,14 +113,12 @@ final class Actions
     /**
      * Restart the instances waiting for it: the grids first (the simulators register in them),
      * then each simulator, stopped, its regions' parcels named, started again when it was running.
-     *
-     * @param array<string,mixed> $profile
      */
-    private function restart(array $profile, bool $warn): bool
+    private function restart(Environment $environment, bool $warn): bool
     {
-        $etcRoot = (string) ($profile['EtcRoot'] ?? '');
+        $etcRoot = $environment->layout->etcRoot();
         $opensim = dirname(__DIR__, 2) . '/bin/opensim';
-        $instances = array_values(array_unique(array_column(PendingRestarts::read($profile), 'instance')));
+        $instances = array_values(array_unique(array_column(PendingRestarts::read($environment), 'instance')));
         usort(
             $instances,
             static fn(string $a, string $b): int => is_file("$etcRoot/robust.d/$b.ini") <=>
@@ -144,7 +142,7 @@ final class Actions
             }
         }
         if ($ok) {
-            PendingRestarts::clear($profile);
+            PendingRestarts::clear($environment);
         }
 
         return $ok;

@@ -11,7 +11,7 @@ use OpenSim\Models\Grid;
 use OpenSim\Provisioning\GridPlan;
 use OpenSim\Models\Region;
 use OpenSim\Provisioning\UiInterface;
-use OpenSim\Runtime\Environment;
+use OpenSimKit\Setup\InstallConfig;
 use OpenSimKit\Setup\NewSimulator;
 
 /** A user who accepts what is proposed, and answers the questions whose label contains the start of a key. */
@@ -87,7 +87,7 @@ function sim_install(array $grid = []): array
     $plan->dbHost = 'db.example.org';
     $plan->dbUser = 'gridaccount';
     $plan->dbPass = 'gridpass';
-    $info = Grid::planned(Environment::forProfile($profile), $plan)->with($grid);
+    $info = Grid::planned(InstallConfig::environmentOf($profile), $plan)->with($grid);
 
     return [$info, $profile, $root];
 }

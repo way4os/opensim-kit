@@ -186,7 +186,7 @@ final class NewGrid
     /** The writing itself, done by GridProvisioner. */
     public function apply(GridPlan $plan, array $profile): void
     {
-        (new \OpenSim\Provisioning\GridProvisioner($this->ui))->apply($plan, $profile);
+        (new \OpenSim\Provisioning\GridProvisioner($this->ui))->apply($plan, InstallConfig::environmentOf($profile));
     }
 
 
@@ -199,7 +199,7 @@ final class NewGrid
     {
         $etcRoot = $profile['EtcRoot'];
         $given = $values ?? [];
-        $planner = GridPlanner::forMachine($profile, $modifyNick);
+        $planner = GridPlanner::forMachine(InstallConfig::environmentOf($profile), $modifyNick);
         if ($planner->cores() === []) {
             $this->ui->error(sprintf(_('No OpenSim core found under %s.'), $profile['CoreRoot'] ?? ''));
 

@@ -7,9 +7,9 @@ namespace OpenSimKit\Console\Commands;
 use OpenSim\Archives\Instances;
 use OpenSim\Interfaces\Enablable;
 use OpenSim\Models\Grid;
+use OpenSim\Runtime\Environment;
 use OpenSim\Provisioning\Features;
 use OpenSim\Provisioning\Slug;
-use OpenSim\Runtime\Environment;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -56,18 +56,17 @@ abstract class ToggleCommand extends EngineCommand
 
             return 2;
         }
-        $layout = $this->engine($output)->layout;
-        $profile = $layout->all();
-        $etc = $layout->etcRoot();
+        $environment = $this->engine($output);
+        $etc = $environment->layout->etcRoot();
 
         // A feature of a grid: the grid, then the word of the feature
         if (isset($names[1]) && Features::isFeature($names[1])) {
-            return $this->feature($names, $profile, $etc, $output, $error);
+            return $this->feature($names, $environment, $etc, $output, $error);
         }
 
         // The grids and the simulators the setup made, by the name of their instance
         $instances = [];
-        foreach (Grid::all($this->engine($output)) as $grid) {
+        foreach (Grid::all($environment) as $grid) {
             if ($grid->robustIni() !== null) {
                 $instances[Slug::snake($grid->nick())] = ['kind' => 'grid', 'model' => $grid];
             }
@@ -130,9 +129,8 @@ abstract class ToggleCommand extends EngineCommand
      * A feature of a grid.
      *
      * @param list<string> $names the grid, the feature, its options
-     * @param array<string,string> $profile
      */
-    private function feature(array $names, array $profile, string $etc, OutputInterface $output, OutputInterface $error): int
+    private function feature(array $names, Environment $environment, string $etc, OutputInterface $output, OutputInterface $error): int
     {
         $verb = $this->verb();
         $nick = null;
@@ -141,7 +139,7 @@ abstract class ToggleCommand extends EngineCommand
                 $nick = $candidate;
             }
         }
-        $grid = $nick === null ? null : Grid::find(Environment::forProfile($profile), $nick);
+        $grid = $nick === null ? null : Grid::find($environment, $nick);
         if ($grid === null) {
             $error->writeln("$verb: no grid called {$names[0]}", OutputInterface::OUTPUT_RAW);
 
@@ -162,7 +160,7 @@ abstract class ToggleCommand extends EngineCommand
             $options['prefix'] = $more[0];
         }
 
-        $features = new Features($grid, $profile);
+        $features = new Features($grid);
         $result = $verb === 'enable' ? $features->enable($feature, $options) : $features->disable($feature);
         if ($result['error'] !== null) {
             $error->writeln("$verb: {$result['error']}", OutputInterface::OUTPUT_RAW);
