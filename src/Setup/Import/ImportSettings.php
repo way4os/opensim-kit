@@ -8,7 +8,7 @@ use OpenSim\Config\ConfigReader;
 use OpenSim\Models\GridInfo;
 use OpenSim\Provisioning\Import\RobustImporter;
 use OpenSim\Provisioning\Import\SimImporter;
-use OpenSim\Provisioning\SetupFailedException;
+use OpenSim\Exceptions\SetupFailedException;
 use OpenSim\Provisioning\SimConfig;
 use OpenSimKit\Setup\Actions;
 use OpenSimKit\Setup\InstallConfig;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSimKit\Setup\Import;
 
-use OpenSim\Provisioning\SetupFailedException;
+use OpenSim\Exceptions\SetupFailedException;
 use OpenSim\Provisioning\SetupFile;
 use OpenSimKit\Setup\SetupRunner;
 use OpenSimKit\Ui\PromptsUi;

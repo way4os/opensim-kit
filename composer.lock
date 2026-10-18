@@ -201,7 +201,7 @@
             "dist": {
                 "type": "path",
                 "url": "../opensim-engine",
-                "reference": "04e52cd0c300e4f608e64273f4bad37ab12a1160"
+                "reference": "0c0fb5e7fd2b72d80f94e3c66fb1860ea05a291d"
             },
             "require": {
                 "ext-curl": "*",

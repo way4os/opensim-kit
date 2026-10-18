@@ -2,7 +2,7 @@
 
 namespace OpenSimKit\System;
 
-use OpenSim\Provisioning\SetupFailedException;
+use OpenSim\Exceptions\SetupFailedException;
 use OpenSim\Provisioning\UiInterface;
 use OpenSimKit\Ui\Captured;
 

@@ -1,6 +1,6 @@
 <?php
 
-use OpenSim\Provisioning\SetupFailedException;
+use OpenSim\Exceptions\SetupFailedException;
 use OpenSimKit\Setup\NewSim;
 
 // Runs the simulator wizard of the installed kit with scripted answers, for

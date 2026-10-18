@@ -9,14 +9,14 @@ use OpenSim\Config\GridFileService;
 use OpenSim\Console\InstanceConsoleService;
 use OpenSim\Models\GridInfo;
 use OpenSim\Models\GridState;
-use OpenSim\Models\RegionState;
+use OpenSim\Models\Region;
 use OpenSim\Models\SimState;
 use OpenSim\Models\Simulator;
 use OpenSim\Provisioning\DatabaseService;
 use OpenSim\Provisioning\LocationFinder;
 use OpenSim\Provisioning\RegionPlanner;
 use OpenSim\Provisioning\RemoteGridPlanner;
-use OpenSim\Provisioning\SetupFailedException;
+use OpenSim\Exceptions\SetupFailedException;
 use OpenSim\Provisioning\SimPlan;
 use OpenSim\Provisioning\SimPlanner;
 use OpenSim\Provisioning\UiInterface;
@@ -302,7 +302,7 @@ final class NewSim
     /** A simulator of the pool as the person sees it: its name and the regions it has */
     private function simTitle(GridInfo $grid, string $slug): string
     {
-        $regions = array_keys(RegionState::list("{$grid->dir}/sims/$slug/regions"));
+        $regions = array_map(static fn(Region $region): string => $region->name(), Region::inDirectory("{$grid->dir}/sims/$slug/regions"));
 
         return $this->simNameOf($grid, $slug) . ($regions !== [] ? ' (' . implode(', ', $regions) . ')' : '');
     }
@@ -413,18 +413,20 @@ final class NewSim
         if ($plan === null) {
             return;
         }
-        $region = RegionState::list($plan->regionsDir())[$regionName] ?? null;
-        if ($region === null || !$region['enabled']) {
+        $region = null;
+        foreach (Region::inDirectory($plan->regionsDir()) as $candidate) {
+            $candidate->name() === $regionName && $region = $candidate;
+        }
+        if ($region === null || !$region->isEnabled()) {
             $this->ui->warn(sprintf(_("Region '%s' is disabled or unknown: enable it first."), $regionName));
 
             return;
         }
-        $current = RegionState::values($region['file']);
 
         $plan->regionName = $regionName;
-        $plan->regionUuid = $current['RegionUUID'] ?? RegionPlanner::uuid();
-        $plan->regionSize = (int) ($current['SizeX'] ?? 256);
-        $plan->externalHost = $current['ExternalHostName'] ?? $plan->externalHost;
+        $plan->regionUuid = $region->uuid() ?? RegionPlanner::uuid();
+        $plan->regionSize = $region->width();
+        $plan->externalHost = $region->externalHost() ?? $plan->externalHost;
         $plan->overwriteRegion = true;
         $plan->start = false;
 

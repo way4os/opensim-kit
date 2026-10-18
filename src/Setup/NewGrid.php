@@ -9,7 +9,7 @@ use OpenSim\Models\Grid;
 use OpenSim\Provisioning\DatabaseService;
 use OpenSim\Provisioning\GridPlan;
 use OpenSim\Provisioning\GridPlanner;
-use OpenSim\Provisioning\SetupFailedException;
+use OpenSim\Exceptions\SetupFailedException;
 use OpenSim\Provisioning\UiInterface;
 
 /**

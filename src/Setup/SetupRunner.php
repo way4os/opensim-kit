@@ -8,7 +8,7 @@ use OpenSim\Models\GridInfo;
 use OpenSim\Provisioning\AccountImporter;
 use OpenSim\Provisioning\AccountList;
 use OpenSim\Provisioning\DatabaseService;
-use OpenSim\Provisioning\SetupFailedException;
+use OpenSim\Exceptions\SetupFailedException;
 use OpenSim\Provisioning\SetupFile;
 use OpenSim\Provisioning\SimConfig;
 use OpenSim\Provisioning\UiInterface;

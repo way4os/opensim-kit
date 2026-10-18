@@ -1,6 +1,6 @@
 <?php
 
-use OpenSim\Provisioning\SetupFailedException;
+use OpenSim\Exceptions\SetupFailedException;
 use OpenSim\Runtime\ShellService;
 use OpenSimKit\Setup\Actions;
 use OpenSimKit\Setup\Hub;

@@ -9,10 +9,10 @@ use OpenSimKit\Ui\Quit;
 use OpenSim\Console\InstanceConsoleService;
 use OpenSim\Models\GridInfo;
 use OpenSim\Models\GridState;
-use OpenSim\Models\RegionState;
+use OpenSim\Models\Region;
 use OpenSim\Models\SimState;
 use OpenSim\Provisioning\PendingRestarts;
-use OpenSim\Provisioning\SetupFailedException;
+use OpenSim\Exceptions\SetupFailedException;
 use OpenSim\Provisioning\SimConfig;
 use OpenSim\Provisioning\UiInterface;
 
@@ -261,13 +261,14 @@ final class Hub
             // The grid is its regions: the simulators are the pool of servers that provide them
             $options = [];
             foreach ($sims as $slug) {
-                foreach (RegionState::list("$etcRoot/grids/$nick/sims/$slug/regions") as $name => $region) {
+                foreach (Region::inDirectory("$etcRoot/grids/$nick/sims/$slug/regions") as $region) {
+                    $name = $region->name();
                     $options["region:$slug:$name"] =
                         $this->ui->entity($name) .
                         ' [' .
                         $this->simName($nick, $slug) .
                         ']' .
-                        ($region['enabled'] ? '' : ' [disabled]');
+                        ($region->isEnabled() ? '' : ' [disabled]');
                 }
             }
             $options['addregion'] = _('Add region');
@@ -366,11 +367,11 @@ final class Hub
         while (true) {
             $etcRoot = (new InstallConfig())->profile()['EtcRoot'] ?? '';
             $enabled = SimState::isEnabled($etcRoot, $slug);
-            $regions = RegionState::list("$etcRoot/grids/$nick/sims/$slug/regions");
+            $regions = Region::inDirectory("$etcRoot/grids/$nick/sims/$slug/regions");
 
             $options = [];
-            foreach ($regions as $name => $region) {
-                $options["region:$name"] = $this->ui->entity($name) . ($region['enabled'] ? '' : ' [disabled]');
+            foreach ($regions as $region) {
+                $options['region:' . $region->name()] = $this->ui->entity($region->name()) . ($region->isEnabled() ? '' : ' [disabled]');
             }
             // In this simulator: not to be mistaken for the one of the grid, which asks where the region goes
             $options['addregion'] = sprintf(_('Add region in %s'), $this->simName($nick, $slug));
@@ -416,7 +417,10 @@ final class Hub
     {
         while (true) {
             $etcRoot = (new InstallConfig())->profile()['EtcRoot'] ?? '';
-            $region = RegionState::list("$etcRoot/grids/$nick/sims/$slug/regions")[$name] ?? null;
+            $region = null;
+            foreach (Region::inDirectory("$etcRoot/grids/$nick/sims/$slug/regions") as $candidate) {
+                $candidate->name() === $name && $region = $candidate;
+            }
             if ($region === null) {
                 return false;
             }
@@ -425,7 +429,7 @@ final class Hub
                 'Region: ' . $this->ui->entity($name),
                 [
                     'reconfigure' => _('Reconfigure'),
-                    'toggle' => $region['enabled'] ? 'Disable this region' : 'Enable this region',
+                    'toggle' => $region->isEnabled() ? 'Disable this region' : 'Enable this region',
                     'back' => _('Back'),
                     'quit' => _('Quit'),
                 ],
@@ -439,15 +443,15 @@ final class Hub
                     );
                     break;
                 case 'toggle':
-                    $done = $this->act($region['enabled'] ? 'region-disable' : 'region-enable', [
-                        'file' => $region['file'],
+                    $done = $this->act($region->isEnabled() ? 'region-disable' : 'region-enable', [
+                        'file' => $region->file(),
                         'name' => $name,
                         'instance' => $slug,
                     ]);
                     if ($done) {
                         $this->ui->note(
                             sprintf(
-                                $region['enabled']
+                                $region->isEnabled()
                                     ? _('Disabled %s: the simulator takes it into account when it restarts.')
                                     : _('Enabled %s: the simulator takes it into account when it restarts.'),
                                 $name,

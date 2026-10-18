@@ -4,7 +4,8 @@ namespace OpenSimKit\Setup;
 
 use OpenSim\Console\InstanceConsoleService;
 use OpenSim\Models\GridState;
-use OpenSim\Models\RegionState;
+use OpenSim\Models\Region;
+use OpenSim\Exceptions\ChannelUnavailable;
 use OpenSim\Models\SimState;
 use OpenSim\Provisioning\Import\RobustImporter;
 use OpenSim\Provisioning\PendingRestarts;
@@ -48,9 +49,11 @@ final class Actions
                     $this->no('Cannot disable the simulator (permission).');
             case 'region-enable':
             case 'region-disable':
-                $moved =
-                    $op === 'region-enable' ? RegionState::enable($args['file']) : RegionState::disable($args['file']);
-                if ($moved === null) {
+                try {
+                    foreach (Region::inFile($args['file']) as $region) {
+                        $op === 'region-enable' ? $region->enable() : $region->disable();
+                    }
+                } catch (ChannelUnavailable) {
                     return $this->no(
                         'Cannot change the region (permission, or a region of that name is there already).',
                     );

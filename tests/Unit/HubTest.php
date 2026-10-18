@@ -251,32 +251,6 @@ describe('Hub simulator and region', function () {
     });
 });
 
-describe('RegionState', function () {
-    test('reads what a region file holds', function () {
-        [, $etc] = hub_tree();
-        file_put_contents(
-            "$etc/Far.ini",
-            "[Far]\nRegionUUID = 607c44e9-3d01-45eb-a07e-937dc72dbadb\nLocation = 1200,1200\nSizeX = 512\nInternalPort = 8015\nExternalHostName = \"play.example.org\"\n",
-        );
-
-        expect(\OpenSim\Models\RegionState::values("$etc/Far.ini"))->toBe([
-            'RegionUUID' => '607c44e9-3d01-45eb-a07e-937dc72dbadb',
-            'Location' => '1200,1200',
-            'SizeX' => '512',
-            'InternalPort' => '8015',
-            'ExternalHostName' => 'play.example.org',
-        ]);
-    });
-
-    test('does not enable a region over one of the same name', function () {
-        [, $etc] = hub_tree();
-        $regions = "$etc/grids/alpha/sims/alpha_sim1/regions";
-        file_put_contents("$regions/Far.ini", "[Far]\n");
-
-        expect(\OpenSim\Models\RegionState::enable("$regions/Far.ini.disabled"))->toBeNull();
-    });
-});
-
 describe('GridRegistry region names', function () {
     test('are all the regions, without the case', function () {
         [, $etc] = hub_tree();
