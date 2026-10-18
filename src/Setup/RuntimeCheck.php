@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSimKit\Setup;
 
-use OpenSim\Models\Core;
+use OpenSim\Runtime\Core;
 use OpenSim\Provisioning\UiInterface;
 use OpenSim\Runtime\DotnetInstaller;
 use OpenSim\Runtime\RuntimeProbe;
