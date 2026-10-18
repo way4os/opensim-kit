@@ -83,6 +83,11 @@ Kit:
     - [ ] its routes follow the URLs of the Robust ini (`/welcome`, `/search`, `/guide`...), even without handling `/*`
 - [ ] `opensim start --verbose` or `--show-command`: show the command actually run, for a manual intervention in case of issues
     - a region created without a user needs a manual start to fix its owner and estate
+- [ ] a simulator of a grid joined by a preset (OSGrid) cannot be configured: the folder of a preset has the structure of the folder of a grid, and takes what it takes
+    - [ ] everything that applies to all the simulators of a preset is set in the preset (OpenSim.ini, config-include, OSSL, the options of the setup)
+    - [ ] the simulators of a preset have a master, made like the one of a grid from the OpenSim.ini of the preset: a change there is taken at the next start of each
+    - [ ] `opensim enable|disable <grid> <feature>` on such a grid edits the files of the preset, not each simulator's
+    - [ ] the presets of the kit are the base (read-only), the ones of the machine are the administrator's
 - [ ] port mapping does not work from a local network
     - [ ] not included or enabled in the package as is
     - [ ] works from a local network (more work)
@@ -97,20 +102,24 @@ Helpers:
 The beta:
 
 - [ ] state of the refactoring frozen as a coherent beta of the family (the Unreleased list below)
-    - [ ] `setup.sh` is back as the install wizard (bash): the PHP forms are too heavy to drive from a shell script
+    - [ ] `opensim setup` is intuitive and says nothing superfluous: the same questions whoever shows them (the terminal, `setup.sh`)
+        - [ ] first what to set up
+            - [ ] a grid
+            - [ ] a simulator that joins a grid that exists (OSGrid, Speculoos...)
+            - [ ] standalone (not offered until it works: the engine has no standalone yet)
+        - [ ] then the basics: name of the grid, grid URL, grid owner, password, email (a simulator: the URL of the grid it joins, its owner account there)
+        - [ ] then the options, each with its default
+            - [ ] Hypergrid (yes)
+            - [ ] search: internal (the helpers), shared (2do.directory) or none (internal)
+            - [ ] currency: BetaGridLikeMoneyModule or Gloebit (BetaGridLikeMoneyModule)
+            - [ ] more OSSL for parcel owners: NPC, animations, drawing... (no)
+            - [ ] web: server (Caddy, Apache, nginx) and site (the helpers only, or the mini website) (the helpers only)
+        - [ ] then quick setup (the defaults for the rest) or advanced config (every question, the answers proposed)
         - the engine knows how to configure: it provides the questions and processes the answers (one source of truth, also for w4os, mini-web, the manager)
-        - the script only knows how to show a question and send the answer back
-        - [x] the engine gives each question and takes the answer: `opensim setup --frontend DIR` (`ScriptUi`, two pipes, one line each)
-        - [x] the script shows them: `dialog` when it is there, plain prompts otherwise (`libexec/setup-frontend.sh`)
-        - [ ] the same with the interfaces `dpkg` uses (debconf frontends), if `dialog` is not enough
-        - [ ] the scenario of packages that goes through the setup with the script (`wizardscript-grid-scenario.sh`, written, not run)
-        - [ ] the script asks which options to enable (see the options above), installs what they need and calls the engine
-        - [ ] from scratch to live grid with basic/default features
-    - [ ] `opensim setup`: the same wizard in the terminal, from the CLI
-    - [ ] `opensim setup --web`: open wizard in a secured temporary website for web setup
-        - [ ] the page is served over HTTPS (some browsers refuse forms over plain HTTP, the passwords must not cross the network in clear)
-        - self-signed is fine for this temporary step
-        - options: the server of the Symfony CLI, or Caddy `tls internal` in front of `php -S`
+        - `setup.sh` shows the questions with `dialog` or plain prompts (`libexec/setup-frontend.sh`), the engine gives them through two pipes (internal: nothing to explain to the person)
+        - [ ] the scenario of packages that goes through the setup with the script (`wizardscript-grid-scenario.sh`)
+        - [ ] the options are ini files merged or included (see above), the same whoever asks
+    - parked: the setup in the browser (`opensim setup --web`), it comes back later and changes
     - [ ] `opensim import <setup file> --apply` full setup from YAML file, with no questions
     - [ ] `lifecycle` start / stop / restart / status of instances
     - [ ] `package`: release as .deb on apt repo and as ready to use .zip (no composer install required)
@@ -269,12 +278,24 @@ Kit, setup and configuration:
 - [ ] `screen` is not a dependency (to review with the whole setup)
     - without it the consoles are the REST ones only (the default anyway)
     - today `Installer` requires it and `setup.sh` installs it
+- [ ] standalone: one simulator with its own services (no Robust), made by the setup like a grid
+    - [ ] the architecture of the core for it (`StandaloneHypergrid.ini`), its database, its accounts, its estate
+    - [ ] the helpers and the options as for a grid
 - [ ] offline messages on a grid without helpers
     - the setup writes no `[Messaging]`
     - the `OfflineIMService` of Robust, which the V2 module needs, is not enabled
     - options: helpers (mails, no limit) / V2 module with the Robust service (no mails, 25 messages) / both
 - [ ] old global names of the engine as aliases (`legacy/`), helpers and w4os on the new names
 - [ ] test the clone mode of `setup.sh`
+
+The engine speaks standard formats, not small ones of its own made for the need of the day:
+
+- [ ] the API is described by OpenAPI contracts
+- [ ] the resources (models, collections, pages, filters) are JSON:API documents
+- [ ] the errors are problem details (RFC 9457)
+- [ ] in PHP, the HTTP messages are PSR-7
+- [ ] what to bring to it first: `Collection::json()`, the errors of the helpers, the questions of the setup (fields), the line protocol of `ScriptUi`
+- PSR-4 (autoloading) and PSR-12 (style) are another subject
 
 The engine gives the data (the manager, the plugin and the CLI only show it):
 
