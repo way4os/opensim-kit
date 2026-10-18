@@ -69,7 +69,8 @@ final class BanCommand extends ScriptCommand
             return $fail(sprintf(_('Cannot write in %s'), $output));
         }
 
-        [$robust, $others] = UserBan::databases($grid);
+        $databases = UserBan::databases($grid);
+        $robust = ($databases['of'])('UserAccounts');
         if ($robust === null) {
             return $fail(sprintf(_('No database in the Robust config of %s'), $grid->nick()));
         }
@@ -78,7 +79,7 @@ final class BanCommand extends ScriptCommand
             return $fail(sprintf(_('Cannot read the database %s of %s (%s@%s)'), $robust->database, $grid->nick(), $robust->user, $robust->source));
         }
 
-        $plan = (UserBan::with($database))->plan($words, $robust, $others);
+        $plan = (UserBan::with($database))->plan($words, $databases['of'], $databases['simulators'], $databases['estates']);
         foreach ($plan->problems as $problem) {
             self::say($err, "ban: $problem\n");
         }

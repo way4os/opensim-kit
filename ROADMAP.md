@@ -59,8 +59,14 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
             - [x] `Simulator`: the config of a simulator and the instance that runs it are one class (ports, console, database and estate are asked of it, by the planners and the backups)
             - [x] `detail()` on `Grid` and `Simulator`, as `Region` has it
             - [x] a Robust tells what its own config says (names, ports, console, database, services, roles of regions), as a simulator does: the grid and the planner of a grid ask it
+            - [x] each database is asked as itself: the one the service has in its section, else `[DatabaseService]`, as the core chooses it (checked against its source: the estates of Robust, the mute list...)
+                - [x] the accounts, the registry of regions, the backups, the bans and the rows of the simulators ask the database of their service
+                - [x] the regions of the search engine are read in the database of the search (`regionsregister` when it shares the one of Robust)
+                - [ ] the account import writes the tables of four services (accounts, authentication, inventory, users): refused when they are not in one database; to write service by service, with no transaction across databases
+                - [ ] the helpers, the plugin and the currency functions choose their databases through the same registry (`CURRENCY_DB_*`, `db_for()`)
             - [ ] a grid has services, not a Robust: login, assets, inventory, profiles, groups, offline messages...
-                - [ ] each service has a provider: an instance of this machine (several Robust when the services are split) or an external address
+                - [ ] short term: two asset servers, the key to secure a grid open to the hypergrid
+                - [ ] each service has a provider, here or elsewhere, and a grid mixes them (Robust, search and simulators on several servers: Speculoos runs on five or six)
                 - [ ] `Grid::services()`, and `Grid::serves()` answered by the providers; the Robust that gives the identity of the grid (login, gatekeeper, economy, search) is not the only one
                 - [ ] the database of a service comes from `Database` (Robust, Assets, Profiles, Offline...), not from one connection string: `Grid::databaseHost()` and the others assume a single Robust
                 - [ ] the address of an external service is read where the simulators read it (`GridServerURI`, `AssetServerURI`... of their config) and in what the grid announces
