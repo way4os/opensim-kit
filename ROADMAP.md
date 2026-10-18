@@ -50,14 +50,19 @@ Kit:
         - the package scenario checks it and passes: find the build or the path (quick setup, web, import) that left it out
     - [ ] `FallbackRegion` for the first region (the fix added it)
     - [ ] no `127.0.0.1` in `CertHostIp` and `RobustCertHostIp`
-    - connectors of Robust: all those of the services the helpers provide are enabled, and all those of the hypergrid when it is enabled
-        - [x] helpers: `OfflineIMServiceConnector`, `GroupsServiceConnector`, `UserProfilesServiceConnector`
-        - [x] hypergrid: `HGGroupsServiceConnector`
-        - [ ] groups on the simulators: `[Groups]` (module V2, service connector local or HG), the Robust side is done
-        - [ ] [?] `BakedTextureService`, `EstateDataService`: neither helpers nor hypergrid, the fix enabled them
+    - connectors of Robust: a connector is served only with its counterpart in the simulators (the grid layer), in a grid the setup makes
+        - [x] bakes: `BakedTextureService` and `[XBakes] URL`, by default
+        - [x] estates: `EstateDataService` and `EstateDataRemoteConnector` (GridCommon.ini), the estates are the grid's, in its database
+        - [x] groups: `GroupsServiceConnector` (with the helpers or a hypergrid) and `[Groups]` V2
+        - [x] hypergrid groups: `HGGroupsServiceConnector` and the HG service connector of `[Groups]`
+        - [x] profiles: `UserProfilesServiceConnector` and `[UserProfiles]`
+        - [ ] estates of a grid that exists: move the estates of the simulators to the grid (until then the grid keeps them where they are)
+        - [ ] [?] offline messages: the simulators use the service of the helpers; `OfflineIMServiceConnector` goes with the module V2 (one or the other)
+        - [ ] the package scenario run with all this (the machine of the containers was not reachable)
     - [ ] map tiles: `GenerateMaptiles`, `MapImageModule`, `MaptileRefresh`, `TextureOnMapTile`, `DrawPrimOnMapTile`, `TexturePrims`
+        - [ ] `MapImageModule = "Warp3DImageModule"` by default: it crashed on watta.world, find why (libgdiplus 6.1 of the distribution?) with a scenario that makes a tile
     - [ ] `OutboundDisallowForUserScripts` blocks the calls of the scripts to the local network (the helpers of the grid, the other machines of the operator)
-    - [ ] `AllowOSFunctions = true` (the `osslEnable.ini` of the setup does not enable OSSL)
+    - [x] `AllowOSFunctions = true` in the `osslEnable.ini` of the grid (the setup made for Watta was older)
     - [ ] [?] `RegionType` in the region files (`Mainland`, `Private`...)
     - [x] a grid whose files do not say its name is named by the words of its nick ("Watta World"), not "Watta_world"
         - [ ] [?] find where the name was lost: a first install with the packages of the repository whose conf had no `GridName`?
@@ -95,8 +100,10 @@ The beta:
     - [ ] `setup.sh` is back as the install wizard (bash): the PHP forms are too heavy to drive from a shell script
         - the engine knows how to configure: it provides the questions and processes the answers (one source of truth, also for w4os, mini-web, the manager)
         - the script only knows how to show a question and send the answer back
-        - [ ] the engine gives each question as data and takes the answer (a protocol the script speaks, no PHP form handled by bash)
-        - [ ] the script shows them with the tools made for it: our `yesno` and `readvar`, `dialog`, the interfaces `dpkg` uses
+        - [x] the engine gives each question and takes the answer: `opensim setup --frontend DIR` (`ScriptUi`, two pipes, one line each)
+        - [x] the script shows them: `dialog` when it is there, plain prompts otherwise (`libexec/setup-frontend.sh`)
+        - [ ] the same with the interfaces `dpkg` uses (debconf frontends), if `dialog` is not enough
+        - [ ] the scenario of packages that goes through the setup with the script (`wizardscript-grid-scenario.sh`, written, not run)
         - [ ] the script asks which options to enable (see the options above), installs what they need and calls the engine
         - [ ] from scratch to live grid with basic/default features
     - [ ] `opensim setup`: the same wizard in the terminal, from the CLI
