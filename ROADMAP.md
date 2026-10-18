@@ -1,5 +1,19 @@
 # Roadmap
 
+## Critical bugs
+
+- popular place block must query grid's search url, not try to fetch results by itself : search service could be external, it's even the recommended setup ! (2do directory)
+- popular places block is missing all the details and layout that were present in w4os block, which was given as reference
+- the viewer doesn't handle hop:// links (paradoxal, they are recognized by the regular browser to send the proper link to the viewer, but not recognized from inside firestorm), links in viewer pages must use TPLINK_HG form
+- A regular restart rewrites admin custom settings. `opensim start|restart` **CAN NOT** rewrite te config. It can only happen after an install or upgrade, and **with confirmation** (like usually in debian/ubuntu).
+- Hypergrid setup is incomplete, some manual fixes were needed in the config to get it working properly. They must be implemented in the kit.
+- Some 127.0.0.1 are left in the config, unusable beyond tests
+- Default ossl config disallow a lot of very common usages, i.e. for NPC and animated object, an optional, more flexible config, must be available
+- Options like OpenSimSearch and Gloebit must come with a specific ini file to merge with config
+- Caddy config is not compatible with an existing website. Only the tiny website must provide a fully handled website, the caddy config must be provided as a snippet, updatable, to allow flexible routes according to opensim config. E.g. allow handling /welcome, /search, /guide (the exact urls given in Robust ini), even if not handling /*.
+- there must be a way to see the commands. E.g. `opensim start --verbose` or `--show-command` should show the command actually executed, to allow manual intervention is case of issues. If a region is created without user, a manual start is needed to fix owner and estate.
+- portmapping does not work from local network, it would require more work to ensure proper usage, it cannot be included or enabled in the package as is.
+
 ## Milestones
 
 - A release goes out when its list is done and tested
