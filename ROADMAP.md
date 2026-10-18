@@ -43,7 +43,13 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
     - [ ] the OpenAPI document is the contract, checked against the code by tests
     - [ ] what the core of OpenSimulator and the viewers call (`query.php`, `register.php`, `offline.php`, `currency.php`, `landtool.php`, `get_grid_info`...) keeps the format they expect: described in the contract as endpoints of their own, not reshaped
     - [ ] to bring to it first: `Collection::json()`, the errors of the helpers, the fields of the setup, the line protocol of `ScriptUi` (the questions of the setup become a resource of the API)
-    - [ ] the root `class-*.php` files and `legacy/` out of the classmap, into PSR-4
+    - the engine is cleaned first, as a library on its own; its consumers (the helpers, the kit, the manager) are put in order after
+        - [x] the classes and functions of the WordPress plugin that nothing here uses are gone (the plugin has its own copy of the engine)
+        - [ ] `OSPDO` and `OpenSim_Health` (root files) into PSR-4 namespaces, the helpers follow
+        - [ ] the `legacy/` aliases (`OpenSim_Config`, `OpenSim_Oar`) go, the helpers use `GridConfig` and `ConfigReader`
+        - [ ] the global functions of `includes/` (`osDie`, `osXmlDie`, `osXmlResponse`, `currency_*`, `opensim_*`...) become namespaced code in `src/`, their errors problem details (RFC 9457)
+        - [ ] what is the toolset's (`Provisioning`, `Console`, `Runtime`, `Archives`, `Testing`) and what is the library's (`Config`, `Data`, `Models`, `SignIn`, `Network`): decide where to cut, then the dependencies of each
+        - [ ] the autoload is `psr-4` only, no `classmap` of root files, no `files` of functions
 - [ ] the helpers, the web setup and the mini website: a light framework, easy for a beginner to read (Slim 4 or like)
 - [ ] the layouts: every HTML object is coded with classes of a CSS system (Bootstrap or Tailwind), no style written in place
 - [ ] installable as composer libraries, Debian packages, Homebrew formulas, or from a clone
@@ -211,6 +217,7 @@ Services isolation, to reduce the attack surface (analysis first: security, perf
     - [ ] what the two grids share (map, users) and what they keep apart (assets, inventory)
     - [ ] how the services of each grid are told apart (ports, Robust instances, databases)
     - [ ] what a visitor of the public grid can reach of the main one
+    - the core has a setting for it: `[HGInventoryAccessModule] CheckSeparateAssets` and `RegionHGAssetServerURI` (GridCommon.ini): grids share user services, inventory included, and keep the assets of the regions apart from those of the users (transfer between the two in the manner of the hypergrid)
 - [ ] authentication of the private port
     - [ ] how the protocol works (it seems to be one user/key pair for the grid, not one per authorized party)
         - Robust: `[Network] AuthType = "BasicHttpAuthentication"`, `HttpAuthUsername`, `HttpAuthPassword`; a service section can say `AuthType = "None"`
