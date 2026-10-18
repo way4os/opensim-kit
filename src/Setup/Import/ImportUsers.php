@@ -94,7 +94,7 @@ final class ImportUsers
             throw new ImportFailure('nothing to make' . ($list['errors'] === [] ? '' : ': every line has a problem'), 2);
         }
 
-        $done = AccountImporter::forDatabase(new DatabaseService(new QuietUi()))->run($grid, $list['accounts'], $flags['apply'], $flags['keep-going']);
+        $done = AccountImporter::forModels()->run($grid, $list['accounts'], $flags['apply'], $flags['keep-going']);
         if ($done['error'] !== null) {
             throw new ImportFailure($done['error']);
         }

@@ -211,7 +211,7 @@ final class SetupRunner
             return;
         }
 
-        $done = AccountImporter::forDatabase(new DatabaseService($this->ui))->run($grid, $list['accounts'], true, true);
+        $done = AccountImporter::forModels()->run($grid, $list['accounts'], true, true);
         if ($done['error'] !== null) {
             $this->ui->error($done['error']);
 
