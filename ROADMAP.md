@@ -49,7 +49,11 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
         - [ ] the `legacy/` aliases (`OpenSim_Config`, `OpenSim_Oar`) go, the helpers use `GridConfig` and `ConfigReader`
         - [ ] the global functions of `includes/` (`osDie`, `osXmlDie`, `osXmlResponse`, `currency_*`, `opensim_*`...) become namespaced code in `src/`, their errors problem details (RFC 9457)
         - [ ] what is the toolset's (`Provisioning`, `Console`, `Runtime`, `Archives`, `Testing`) and what is the library's (`Config`, `Data`, `Models`, `SignIn`, `Network`): decide where to cut, then the dependencies of each
-        - [ ] the autoload is `psr-4` only, no `classmap` of root files, no `files` of functions
+        - [ ] the autoload is `psr-4` and `files` for what has to be global (`_()`, the xmlrpc polyfill, the constants), no `classmap` of root files
+        - [ ] a pseudo cron in the engine: the mechanics only, the consumers say what to schedule (the helpers: the parser of the events...)
+            - [ ] tasks with a name and an interval, run when due by whoever comes first: a request (after the answer is sent: `dontWait()` today is the rudimentary form), or a real cron through the command line
+            - [ ] a task never runs twice at once (a lock), and a task that fails is told, not retried in a loop
+            - [ ] the last run and the next of each task are known (a file or the database), for the health page
     - the addresses follow the Robust config, not the other way round
         - `currency.php` and `landtool.php` are the `economy` address of `[GridInfoService]` (the helper URI) plus a name the viewers fix: only the prefix changes
         - `register.php`, `offline.php`, `query.php` are old habits, the default: the grid can say others in its `Robust.HG.ini`, and the helpers serve the addresses it says
