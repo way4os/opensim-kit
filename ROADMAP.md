@@ -73,7 +73,7 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
                 - [ ] `Grid::services()`, and `Grid::serves()` answered by the providers; the Robust that gives the identity of the grid (login, gatekeeper, economy, search) is not the only one
                 - [ ] the database of a service comes from `Database` (Robust, Assets, Profiles, Offline...), not from one connection string: `Grid::databaseHost()` and the others assume a single Robust
                 - [ ] the address of an external service is read where the simulators read it (`GridServerURI`, `AssetServerURI`... of their config) and in what the grid announces
-            - [ ] `Grid` and `Simulator` follow the contract of the models (`OpenSimModelInterface`), `Grid::all()` gives a `Collection`
+            - [x] every model follows the contract (`ModelInterface`), lists with `all()` and finds with `find()`, the process being its own: `OpenSimModelInterface` for the ones read in the databases of a grid (given its config), `InstalledModelInterface` for the ones of the machine (given its environment): `Grid`, `Simulator`, `Robust`; `Grid::all()` gives a `Collection`
             - [x] `Grid`: `GridInfo` goes into it, whatever the source (its folder, a plan, a description, what it says at `get_grid_info`)
                 - [ ] the other sources give the same properties: the xmlrpc calls of the hypergrid, the tables of OpenSimSearch, the console, the database
                 - [ ] the helpers read a grid through `Grid`, not through their own functions

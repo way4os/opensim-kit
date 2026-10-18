@@ -49,7 +49,7 @@ final class BanCommand extends ScriptCommand
         }
 
         $environment = $this->engine($err);
-        $grids = array_values(array_filter(Grid::all($environment), static fn(Grid $grid): bool => !$grid->isRemote()));
+        $grids = array_values(array_filter(Grid::all($environment)->items(), static fn(Grid $grid): bool => !$grid->isRemote()));
         $nicks = array_map(static fn(Grid $grid): string => $grid->nick(), $grids);
         $grid = null;
         if ($words !== [] && in_array($words[0], $nicks, true)) {
