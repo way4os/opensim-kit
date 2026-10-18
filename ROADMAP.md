@@ -57,7 +57,9 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
         - [ ] one class per concept, whatever the source it is read from (the grid, the config, the search tables)
             - [x] `Region`
             - [ ] `Simulator`: the config of a simulator and the instance that runs it are one class
-            - [ ] `Grid`: `GridInfo` goes into it (what it describes, how it is read from its files and from the grid it points to)
+            - [x] `Grid`: `GridInfo` goes into it, whatever the source (its folder, a plan, a description, what it says at `get_grid_info`)
+                - [ ] the other sources give the same properties: the xmlrpc calls of the hypergrid, the tables of OpenSimSearch, the console, the database
+                - [ ] the helpers read a grid through `Grid`, not through their own functions
             - [ ] `Models` holds models only (`Instance`, `Robust`, `Core` and the plans go where they belong)
             - [ ] `Estate`: the model that is missing (its settings, managers, users, groups, regions, ban list), read from the estate database wherever the grid keeps it
             - [ ] the bans leave `Moderation` (`BanPlan`, `BannedUser`, `UserBan`)

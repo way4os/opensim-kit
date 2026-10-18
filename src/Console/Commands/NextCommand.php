@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace OpenSimKit\Console\Commands;
 
+use OpenSim\Runtime\Environment;
 use OpenSimKit\Ui\QuietUi;
-use OpenSim\Models\GridInfo;
+use OpenSim\Models\Grid;
 use OpenSim\Network\Ports;
 use OpenSim\Provisioning\DatabaseService;
 use OpenSim\Provisioning\GridRegistry;
@@ -83,7 +84,7 @@ final class NextCommand extends ScriptCommand
         if ($nick === '' || $wish === null || $count < 1 || count($words) > 3) {
             return $this->usage($err, 'a grid, then a place as x,y and a number');
         }
-        $grid = GridInfo::load($profile, $nick);
+        $grid = Grid::find(Environment::forProfile($profile), $nick);
         if ($grid === null) {
             self::say($err, "next: no grid named '$nick'\n");
 
@@ -104,7 +105,7 @@ final class NextCommand extends ScriptCommand
             LocationFinder::take($known, $x, $y);
         }
         if ($unreachable) {
-            self::say($err, "next: the grid does not answer at {$grid->baseHostname}:{$grid->privatePort}, its regions are not all known here\n");
+            self::say($err, "next: the grid does not answer at {$grid->baseHostname()}:{$grid->privatePort()}, its regions are not all known here\n");
         }
 
         return self::ok();

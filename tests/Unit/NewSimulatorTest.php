@@ -7,10 +7,11 @@ declare(strict_types=1);
  * from the answers. The grid is only planned (nothing of it is made, its database is not read), the user is a script.
  */
 
-use OpenSim\Models\GridInfo;
+use OpenSim\Models\Grid;
 use OpenSim\Provisioning\GridPlan;
 use OpenSim\Models\Region;
 use OpenSim\Provisioning\UiInterface;
+use OpenSim\Runtime\Environment;
 use OpenSimKit\Setup\NewSimulator;
 
 /** A user who accepts what is proposed, and answers the questions whose label contains the start of a key. */
@@ -86,10 +87,7 @@ function sim_install(array $grid = []): array
     $plan->dbHost = 'db.example.org';
     $plan->dbUser = 'gridaccount';
     $plan->dbPass = 'gridpass';
-    $info = GridInfo::fromPlan($plan);
-    foreach ($grid as $property => $value) {
-        $info->$property = $value;
-    }
+    $info = Grid::planned(Environment::forProfile($profile), $plan)->with($grid);
 
     return [$info, $profile, $root];
 }
@@ -150,7 +148,7 @@ describe('questions about a new simulator', function () {
     });
 
     test('ask for the owner of the estate when the accounts of the grid cannot be read, who has to exist', function () {
-        [$grid, $profile] = sim_install(['planned' => false, 'dbName' => 'nowhere', 'dbHost' => '127.0.0.1:1']);
+        [$grid, $profile] = sim_install(['planned' => false, 'databaseName' => 'nowhere', 'databaseHost' => '127.0.0.1:1']);
         $ui = new SimUiFake(['Estate owner' => 'Far Away']);
 
         $plan = (new NewSimulator($ui))->prepare($grid, $profile);
@@ -171,8 +169,8 @@ describe('questions about a new simulator', function () {
 
     test('abandon a simulator that exists when the person says so, and modify it when they do not', function () {
         [$grid, $profile] = sim_install();
-        mkdir("{$grid->dir}/sims", 0o755, true);
-        file_put_contents("{$grid->dir}/sims/garden_welcome.ini", "[Network]\nhttp_listener_port = 9050\n[Estates]\nDefaultEstateName = \"Old Estate\"\nDefaultEstateOwnerName = \"Jane Doe\"\n");
+        mkdir("{$grid->directory()}/sims", 0o755, true);
+        file_put_contents("{$grid->directory()}/sims/garden_welcome.ini", "[Network]\nhttp_listener_port = 9050\n[Estates]\nDefaultEstateName = \"Old Estate\"\nDefaultEstateOwnerName = \"Jane Doe\"\n");
 
         $ui = new SimUiFake(['is already configured' => 'abandon', 'Simulator name' => 'Welcome']);
         expect((new NewSimulator($ui))->prepare($grid, $profile))->toBeNull()->and($ui->notes)->toContain('Left unchanged.');
@@ -215,7 +213,7 @@ describe('A setup file that answers the questions about a simulator', function (
     });
 
     test('has the owner of the file as the owner when the grid has the account, and no account to make', function () {
-        [$grid, $profile] = sim_install(['planned' => false, 'dbName' => 'nowhere', 'dbHost' => '127.0.0.1:1']);
+        [$grid, $profile] = sim_install(['planned' => false, 'databaseName' => 'nowhere', 'databaseHost' => '127.0.0.1:1']);
         $ui = new SimUiFake();
 
         $plan = (new NewSimulator($ui))->prepare($grid, $profile, null, sim_values());

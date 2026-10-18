@@ -214,7 +214,7 @@ describe('simulator that joins a grid by a preset', function () {
         ]);
 
         expect($grid)->not->toBeNull();
-        expect([$grid->remote, $grid->nick, $grid->name, $grid->baseHostname, $grid->publicPort, $grid->preset])->toBe([
+        expect([$grid->isRemote(), $grid->nick(), $grid->name(), $grid->baseHostname(), $grid->publicPort(), $grid->preset()])->toBe([
             true,
             'osgrid',
             'OSGrid',

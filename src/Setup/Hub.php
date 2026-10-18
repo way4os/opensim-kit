@@ -2,13 +2,13 @@
 
 namespace OpenSimKit\Setup;
 
+use OpenSim\Provisioning\Slug;
 use OpenSimKit\System\Elevated;
 use OpenSimKit\Ui\Back;
 use OpenSimKit\Ui\EditConfig;
 use OpenSimKit\Ui\Quit;
 use OpenSim\Console\InstanceConsoleService;
 use OpenSim\Models\Grid;
-use OpenSim\Models\GridInfo;
 use OpenSim\Models\Region;
 use OpenSim\Provisioning\PendingRestarts;
 use OpenSim\Exceptions\SetupFailedException;
@@ -50,7 +50,7 @@ final class Hub
             $options = ['core' => 'OpenSim core ' . ($cores !== [] ? "[$activeCore]" : '(install)')];
             foreach ($grids as $nick) {
                 $name = $this->ui->entity($nick);
-                $options["grid:$nick"] = GridInfo::isRemote($etcRoot, $nick)
+                $options["grid:$nick"] = (Grid::find(Environment::forProfile(['EtcRoot' => $etcRoot]), $nick)?->isRemote() ?? false)
                     ? "$name (Robust on another machine)"
                     : $name . ($this->grid($etcRoot, $nick)?->isEnabled() ? '' : ' [disabled]');
             }
@@ -232,14 +232,14 @@ final class Hub
     private function ready(string $nick, string $slug): bool
     {
         $profile = (new InstallConfig())->profile();
-        $grid = GridInfo::load($profile, $nick);
+        $grid = Grid::find(Environment::forProfile($profile), $nick);
         $this->ui->note(
             sprintf(
                 _('Your grid %s is ready, nothing more is needed.'),
-                $this->ui->entity($grid !== null && $grid->name !== '' ? $grid->name : $nick),
+                $this->ui->entity($grid !== null && $grid->name() !== '' ? $grid->name() : $nick),
             ) .
-                ($grid !== null && !$grid->remote
-                    ? "\n" . sprintf(_('Login URI: %s'), "http://{$grid->baseHostname}:{$grid->publicPort}")
+                ($grid !== null && !$grid->isRemote()
+                    ? "\n" . sprintf(_('Login URI: %s'), "http://{$grid->baseHostname()}:{$grid->publicPort()}")
                     : '') .
                 "\n" .
                 _('You can finish now, or continue to add regions and simulators and change settings.'),
@@ -254,7 +254,7 @@ final class Hub
     {
         while (true) {
             $etcRoot = (new InstallConfig())->profile()['EtcRoot'] ?? '';
-            $remote = GridInfo::isRemote($etcRoot, $nick);
+            $remote = (Grid::find(Environment::forProfile(['EtcRoot' => $etcRoot]), $nick)?->isRemote() ?? false);
             $enabled = $this->grid($etcRoot, $nick)?->isEnabled() ?? false;
             $simulators = $this->simulators($etcRoot, $nick);
 
@@ -478,7 +478,7 @@ final class Hub
         if (($name = SimulatorConfig::readName("$etcRoot/grids/$nick/sims/$slug.ini")) !== null) {
             return $name;
         }
-        $prefix = GridInfo::instanceName($nick) . '_';
+        $prefix = Slug::slug($nick) . '_';
 
         return str_starts_with($slug, $prefix) ? substr($slug, strlen($prefix)) : $slug;
     }

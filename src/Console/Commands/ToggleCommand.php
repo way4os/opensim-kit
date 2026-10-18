@@ -7,8 +7,9 @@ namespace OpenSimKit\Console\Commands;
 use OpenSim\Archives\Instances;
 use OpenSim\Interfaces\Enablable;
 use OpenSim\Models\Grid;
-use OpenSim\Models\GridInfo;
 use OpenSim\Provisioning\Features;
+use OpenSim\Provisioning\Slug;
+use OpenSim\Runtime\Environment;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -68,7 +69,7 @@ abstract class ToggleCommand extends EngineCommand
         $instances = [];
         foreach (Grid::all($this->engine($output)) as $grid) {
             if ($grid->robustIni() !== null) {
-                $instances[GridInfo::instanceName($grid->nick())] = ['kind' => 'grid', 'model' => $grid];
+                $instances[Slug::slug($grid->nick())] = ['kind' => 'grid', 'model' => $grid];
             }
             foreach ($grid->simulators() as $simulator) {
                 $instances[basename($simulator->ini(), '.ini')] = ['kind' => 'simulator', 'model' => $simulator];
@@ -78,7 +79,7 @@ abstract class ToggleCommand extends EngineCommand
         $enable = $verb === 'enable';
         $failed = false;
         foreach ($names as $name) {
-            $instance = $instances[GridInfo::instanceName($name)] ?? null;
+            $instance = $instances[Slug::slug($name)] ?? null;
             if ($instance === null) {
                 $error->writeln(
                     "$verb: no grid or simulator called $name" . ($instances === [] ? '' : ' (known: ' . implode(', ', array_keys($instances)) . ')'),
@@ -140,7 +141,7 @@ abstract class ToggleCommand extends EngineCommand
                 $nick = $candidate;
             }
         }
-        $grid = $nick === null ? null : GridInfo::load($profile, $nick);
+        $grid = $nick === null ? null : Grid::find(Environment::forProfile($profile), $nick);
         if ($grid === null) {
             $error->writeln("$verb: no grid called {$names[0]}", OutputInterface::OUTPUT_RAW);
 
@@ -173,14 +174,14 @@ abstract class ToggleCommand extends EngineCommand
         $touched = $result['simulators'];
         if ($touched === [] && !$result['grid'] && !$result['robust']) {
             $output->writeln(
-                "nothing to change: $what is already $state for {$grid->nick}" . ($features->simulators() === [] ? ' (the grid has no simulator on this machine)' : ''),
+                "nothing to change: $what is already $state for {$grid->nick()}" . ($features->simulators() === [] ? ' (the grid has no simulator on this machine)' : ''),
                 OutputInterface::OUTPUT_RAW,
             );
         } else {
             // What the simulators and Robust read at their start; the OpenSim.ini of the grid is read by the helpers each time
             $restart = $touched;
             if ($result['robust']) {
-                array_unshift($restart, GridInfo::instanceName($grid->nick));
+                array_unshift($restart, Slug::slug($grid->nick()));
             }
             $parts = array_filter([
                 $touched === [] ? null : count($touched) . ' simulator' . (count($touched) === 1 ? '' : 's'),
@@ -189,7 +190,7 @@ abstract class ToggleCommand extends EngineCommand
             ]);
             $changed = count($parts) > 1 ? implode(', ', array_slice($parts, 0, -1)) . ' and ' . end($parts) : (string) reset($parts);
             $output->writeln(
-                "$what $state for {$grid->nick}: $changed changed" . ($restart === [] ? '' : ', restart to apply: opensim restart ' . implode(' ', $restart)),
+                "$what $state for {$grid->nick()}: $changed changed" . ($restart === [] ? '' : ', restart to apply: opensim restart ' . implode(' ', $restart)),
                 OutputInterface::OUTPUT_RAW,
             );
         }

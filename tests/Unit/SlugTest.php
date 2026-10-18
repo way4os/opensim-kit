@@ -1,7 +1,7 @@
 <?php
 
 
-use OpenSim\Models\GridInfo;
+use OpenSim\Models\Grid;
 use OpenSim\Provisioning\Slug;
 
 test('keeps the words apart, in snake_case', function (string $name, string $slug) {
@@ -20,8 +20,8 @@ test('keeps the words apart, in snake_case', function (string $name, string $slu
 ]);
 
 test('gives the instances the same names', function () {
-    expect(GridInfo::instanceName('The Rapist_Sim 1'))
+    expect(Slug::slug('The Rapist_Sim 1'))
         ->toBe('the_rapist_sim_1')
-        ->and(GridInfo::instanceName('testgrid_sim1'))
+        ->and(Slug::slug('testgrid_sim1'))
         ->toBe('testgrid_sim1');
 });

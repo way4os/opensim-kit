@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace OpenSimKit\Setup\Import;
 
 use OpenSim\Config\ConfigReader;
-use OpenSim\Models\GridInfo;
+use OpenSim\Models\Grid;
 use OpenSim\Provisioning\Import\RobustImporter;
 use OpenSim\Provisioning\Import\SimulatorImporter;
 use OpenSim\Exceptions\SetupFailedException;
 use OpenSim\Provisioning\SimulatorConfig;
+use OpenSim\Runtime\Environment;
 use OpenSimKit\Setup\Actions;
 use OpenSimKit\Setup\InstallConfig;
 use OpenSimKit\Setup\NewGrid;
@@ -173,13 +174,13 @@ final class ImportSettings
      */
     private function simulator(array $raw, string $path, array $profile, array $options, bool $apply): int
     {
-        $grid = $options['grid'] === '' ? null : GridInfo::load($profile, $options['grid']);
+        $grid = $options['grid'] === '' ? null : Grid::find(Environment::forProfile($profile), $options['grid']);
         if ($grid === null) {
             throw new ImportFailure('the grid of the simulator is one the kit knows (opensim setup, or opensim import for its Robust config): opensim import <grid> FILE', 2);
         }
         $core = $options['core'] !== ''
             ? rtrim($options['core'], '/')
-            : ($grid->coreDirectory !== '' ? $grid->coreDirectory : (string) ($profile['CoreDirectory'] ?? ''));
+            : ($grid->coreDirectory() !== '' ? $grid->coreDirectory() : (string) ($profile['CoreDirectory'] ?? ''));
         if ($core === '' || !is_dir("$core/bin")) {
             throw new ImportFailure('choose the core the simulator will run with: --core DIR (the folder that has bin/)', 2);
         }
@@ -208,7 +209,7 @@ final class ImportSettings
         );
         $report = self::report(
             [
-                "Simulator {$plan->simulatorName} ({$plan->slug}) of the grid {$grid->nick}, imported from $path",
+                "Simulator {$plan->simulatorName} ({$plan->slug}) of the grid {$grid->nick()}, imported from $path",
                 "Core: $core",
                 "Database: {$plan->dbName} @ {$plan->dbHost} (user {$plan->dbUser}), kept as it is",
                 "HTTP port: {$plan->httpPort}" . ($plan->consoleMode === 'rest' ? ", console {$plan->consolePort}" : ''),

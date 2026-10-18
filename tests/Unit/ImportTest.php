@@ -5,7 +5,7 @@
  */
 
 use OpenSim\Config\ConfigReader;
-use OpenSim\Models\GridInfo;
+use OpenSim\Models\Grid;
 use OpenSim\Provisioning\GridPlan;
 use OpenSim\Provisioning\Import\RobustImporter;
 use OpenSim\Provisioning\Import\SimulatorImporter;
@@ -280,13 +280,14 @@ describe('plan of an imported simulator', function () {
 
     test('has what the setup asks', function () {
         $path = import_sim_tree();
-        $grid = new GridInfo();
-        $grid->nick = 'oldworld';
-        $grid->name = 'Old World';
-        $grid->dir = '/etc/opensim/grids/oldworld';
-        $grid->baseHostname = 'old.example.org';
-        $grid->dataDirectory = '/var/lib/opensim/oldworld';
-        $grid->cacheDirectory = '/var/cache/opensim/oldworld';
+        $grid = Grid::described([
+            'nick' => 'oldworld',
+            'name' => 'Old World',
+            'directory' => '/etc/opensim/grids/oldworld',
+            'baseHostname' => 'old.example.org',
+            'dataDirectory' => '/var/lib/opensim/oldworld',
+            'cacheDirectory' => '/var/cache/opensim/oldworld',
+        ]);
 
         $plan = SimulatorImporter::plan(ConfigReader::load($path, [], false, true), $path, $grid, [], null, '/core');
 
@@ -308,7 +309,7 @@ describe('plan of an imported simulator', function () {
     test('is refused for a standalone sim', function () {
         $path = import_sim_tree('config-include/StandaloneHypergrid.ini');
 
-        $plan = SimulatorImporter::plan(ConfigReader::load($path, [], false, true), $path, new GridInfo(), [], null, '/core');
+        $plan = SimulatorImporter::plan(ConfigReader::load($path, [], false, true), $path, Grid::described([]), [], null, '/core');
 
         expect($plan)->toBeString();
         expect($plan)->toContain('standalone');

@@ -2,9 +2,11 @@
 
 namespace OpenSimKit\Setup;
 
+use OpenSim\Provisioning\Slug;
+use OpenSim\Runtime\Environment;
 use OpenSimKit\Ui\EditConfig;
 use OpenSimKit\Ui\PresetUi;
-use OpenSim\Models\GridInfo;
+use OpenSim\Models\Grid;
 use OpenSim\Provisioning\AccountImporter;
 use OpenSim\Provisioning\AccountList;
 use OpenSim\Provisioning\DatabaseService;
@@ -44,7 +46,7 @@ final class SetupRunner
 
         // The first simulator is planned for the grid as it will be: its ports, its database, its first region
         $simulatorUi = new PresetUi($this->ui, SetupFile::simulatorPrompts($data, 0), self::ASK);
-        $simulatorPlan = (new NewSimulator($simulatorUi))->prepare(GridInfo::fromPlan($gridPlan), $profile, null, self::simulatorValues($data, 0));
+        $simulatorPlan = (new NewSimulator($simulatorUi))->prepare(Grid::planned(Environment::forProfile($profile), $gridPlan), $profile, null, self::simulatorValues($data, 0));
         if ($simulatorPlan === null) {
             return null;
         }
@@ -63,7 +65,7 @@ final class SetupRunner
         }
 
         $nick = (new NewGrid($gridUi))->complete($gridPlan, $profile, true);
-        $grid = $nick === null ? null : GridInfo::load($profile, $nick);
+        $grid = $nick === null ? null : Grid::find(Environment::forProfile($profile), $nick);
 
         return $grid === null ? null : (new NewSimulator($simulatorUi))->complete($simulatorPlan, $grid, $profile, true);
     }
@@ -195,7 +197,7 @@ final class SetupRunner
         if (($name = SimulatorConfig::readName("$etcRoot/grids/{$made[0]}/sims/{$made[1]}.ini")) !== null) {
             return $name;
         }
-        $prefix = GridInfo::instanceName($made[0]) . '_';
+        $prefix = Slug::slug($made[0]) . '_';
 
         return str_starts_with($made[1], $prefix) ? substr($made[1], strlen($prefix)) : $made[1];
     }
@@ -203,9 +205,9 @@ final class SetupRunner
     /** @param list<array<string,mixed>> $users */
     private function users(array $profile, string $nick, array $users, string $resultFile): void
     {
-        $grid = GridInfo::load($profile, $nick);
+        $grid = Grid::find(Environment::forProfile($profile), $nick);
         $list = AccountList::parse((string) json_encode(['accounts' => $users]), 'json');
-        if ($grid === null || $grid->remote || $list['accounts'] === []) {
+        if ($grid === null || $grid->isRemote() || $list['accounts'] === []) {
             $this->ui->warn(_('The accounts of the list were not made: no grid of this machine to make them in.'));
 
             return;

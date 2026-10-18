@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace OpenSimKit\Console\Commands;
 
 use OpenSim\Config\GridFileService;
-use OpenSim\Models\GridInfo;
+use OpenSim\Models\Grid;
 use OpenSim\Network\InstancePorts;
+use OpenSim\Provisioning\Slug;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -37,7 +38,7 @@ final class PortsCommand extends ScriptCommand
             } elseif (str_starts_with($arg, '--private-address=')) {
                 $address = substr($arg, strlen('--private-address='));
             } else {
-                $names[] = GridInfo::instanceName($arg);
+                $names[] = Slug::slug($arg);
             }
         }
 
@@ -45,7 +46,7 @@ final class PortsCommand extends ScriptCommand
         $instances = [];
         foreach (['robust' => 'robust.d', 'opensim' => 'opensim.d'] as $type => $folder) {
             foreach (glob("$etc/$folder/*.ini") ?: [] as $ini) {
-                $name = GridInfo::instanceName(basename($ini, '.ini'));
+                $name = Slug::slug(basename($ini, '.ini'));
                 if ($names === [] || in_array($name, $names, true)) {
                     $instances[] = [$name, $type, $ini];
                 }

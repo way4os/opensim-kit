@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace OpenSimKit\Setup\Import;
 
-use OpenSim\Models\GridInfo;
+use OpenSim\Models\Grid;
 use OpenSim\Provisioning\AccountImporter;
 use OpenSim\Provisioning\AccountList;
 use OpenSim\Provisioning\DatabaseService;
+use OpenSim\Runtime\Environment;
 use OpenSimKit\Setup\InstallConfig;
 use OpenSimKit\Ui\QuietUi;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -76,8 +77,8 @@ final class ImportUsers
         if ($options['grid'] === '' && count($grids) === 1) {
             $options['grid'] = $grids[0];
         }
-        $grid = $options['grid'] === '' ? null : GridInfo::load($profile, $options['grid']);
-        if ($grid === null || $grid->remote || $grid->dbName === '') {
+        $grid = $options['grid'] === '' ? null : Grid::find(Environment::forProfile($profile), $options['grid']);
+        if ($grid === null || $grid->isRemote() || $grid->databaseName() === '') {
             throw new ImportFailure(
                 $options['grid'] === ''
                     ? 'say which grid: opensim import <grid> FILE ... (' . implode(', ', $grids) . ')'

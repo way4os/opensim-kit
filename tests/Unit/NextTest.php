@@ -150,11 +150,9 @@ describe('opensim next location default', function () {
 
 describe('center of a grid', function () {
     test('is the port twice, until the grid has its own', function () {
-        $grid = new \OpenSim\Models\GridInfo();
-        $grid->publicPort = 8012;
+        $grid = \OpenSim\Models\Grid::described(['publicPort' => 8012]);
         expect($grid->centerPlace())->toBe([8012, 8012]);
 
-        $grid->center = '1000,1020';
-        expect($grid->centerPlace())->toBe([1000, 1020]);
+        expect($grid->with(['center' => '1000,1020'])->centerPlace())->toBe([1000, 1020]);
     });
 });

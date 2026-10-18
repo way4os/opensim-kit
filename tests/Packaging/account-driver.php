@@ -1,7 +1,8 @@
 <?php
 
+use OpenSim\Runtime\Environment;
 use OpenSimKit\Setup\InstallConfig;
-use OpenSim\Models\GridInfo;
+use OpenSim\Models\Grid;
 use OpenSim\Provisioning\DatabaseService;
 use OpenSim\Provisioning\GridAccounts;
 
@@ -12,7 +13,7 @@ require '/usr/share/opensim-tools/bootstrap.php';
 require __DIR__ . '/ScriptedUi.php';
 
 $ui = new ScriptedUi([]);
-$grid = GridInfo::load((new InstallConfig())->profile(), getenv('TEST_GRID') ?: 'testgrid');
+$grid = Grid::find(Environment::forProfile((new InstallConfig())->profile()), getenv('TEST_GRID') ?: 'testgrid');
 if ($grid === null) {
     echo "grid not found\n";
     exit(1);

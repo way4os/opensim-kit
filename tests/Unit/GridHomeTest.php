@@ -5,7 +5,7 @@
  */
 
 use OpenSimKit\Ui\QuietUi;
-use OpenSim\Models\GridInfo;
+use OpenSim\Models\Grid;
 use OpenSim\Provisioning\DatabaseService;
 use OpenSim\Provisioning\GridAccounts;
 
@@ -21,7 +21,7 @@ describe('home of an account', function () {
 
     test('is not written for a wrong name', function () {
         $accounts = new GridAccounts(new DatabaseService(new QuietUi()), new QuietUi());
-        $grid = new GridInfo();
+        $grid = Grid::described([]);
 
         expect($accounts->setHome($grid, "Bad'; DROP TABLE x", '607c44e9-3d01-45eb-a07e-937dc72dbadb'))->toBeFalse();
         expect($accounts->setHome($grid, 'Jane Doe', "x'; DROP TABLE x"))->toBeFalse();
