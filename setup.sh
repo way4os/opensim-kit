@@ -12,13 +12,8 @@
 # From the web it installs the packages of the Magiiic repository (opensim-kit and what it needs, the .NET runtime
 # included). From a clone it runs the tools of the clone: its PHP libraries come from composer.
 #
-# The questions of the setup are asked by this script (libexec/setup-frontend.sh: dialog when it is there, plain prompts
-# otherwise): `opensim setup` decides what to ask and what to do of the answers, this script only shows them.
-#
 # Options:  -y, --yes   do not ask before installing
 #           --no-setup  prepare the machine, do not start `opensim setup`
-#           --terminal  let `opensim setup` ask the questions itself, in the terminal
-#           --web       let `opensim setup` ask them in a page of the browser
 # Environment: OPENSIM_KIT_DEBS=folder  install the packages (*.deb) of that folder instead of the Magiiic repository
 
 set -euo pipefail
@@ -31,12 +26,10 @@ TOOL_PACKAGES=(ca-certificates curl git unzip screen sudo default-mysql-client)
 
 ASSUME_YES=
 RUN_SETUP=yes
-SETUP_ARGS=()
 for argument in "$@"; do
     case "$argument" in
     -y | --yes) ASSUME_YES=yes ;;
     --no-setup) RUN_SETUP= ;;
-    --terminal | --web) SETUP_ARGS+=("$argument") ;;
     -h | --help)
         sed -n '2,/^$/p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
         exit 0
@@ -89,17 +82,17 @@ start_setup() { # the library of the questions, then the command to run, which g
         exit 0
     fi
     say "Starting the setup..."
-    # The questions are asked here, unless the setup is asked to ask them itself or nobody has a keyboard to answer
-    if ((${#SETUP_ARGS[@]} == 0)) && [[ -r "$frontend" ]] && (: </dev/tty) 2>/dev/null; then
+    # The questions are shown here (dialog or plain prompts), unless nobody has a keyboard to answer
+    if [[ -r "$frontend" ]] && (: </dev/tty) 2>/dev/null; then
         # shellcheck source=libexec/setup-frontend.sh
         source "$frontend"
         frontend_run "$@" || status=$?
         exit "$status"
     fi
     if [[ ! -t 0 && -r /dev/tty ]]; then
-        exec "$@" "${SETUP_ARGS[@]+"${SETUP_ARGS[@]}"}" </dev/tty
+        exec "$@" </dev/tty
     fi
-    exec "$@" "${SETUP_ARGS[@]+"${SETUP_ARGS[@]}"}"
+    exec "$@"
 }
 
 install_packages() {

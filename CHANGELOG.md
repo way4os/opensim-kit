@@ -2,7 +2,7 @@
 
 ### Unreleased
 
-- new: `setup.sh` asks the questions itself, `opensim setup --frontend` gives them
+- update: `setup.sh` shows the questions of the setup with `dialog`, or with plain prompts
 - fix: a hypergrid tells its gatekeeper, the scripts of a simulator see the grid host
 - fix: a new grid serves bakes, estates, groups and profiles, its simulators use them
 - fix: `helpers.ini` of old setups becomes `Helpers.ini` (a case clash on macOS)

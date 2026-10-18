@@ -58,7 +58,7 @@ sudo opensim install-dotnet
 
 ### In the terminal or in your browser
 
-`setup.sh` asks the questions itself (with `dialog` when it is installed, plain prompts otherwise; `OPENSIM_SETUP_UI=plain` forces them), and `opensim setup` is what decides them: `./setup.sh --terminal` and `./setup.sh --web` let it ask them. `opensim setup` alone asks where you want to go through it, or you say it: `opensim setup --terminal`, `opensim setup --web`. With `--web` the setup starts a small web server (`php -S`) on a free port (`--port N` to choose it), gives an address and opens it when there is a browser in front of you. The address works once; the server stops when the setup ends (or with Ctrl-C in the terminal). The questions are the same as in the terminal.
+`opensim setup` asks where you want to go through it, or you say it: `opensim setup --terminal`, `opensim setup --web`. With `--web` the setup starts a small web server (`php -S`) on a free port (`--port N` to choose it), gives an address and opens it when there is a browser in front of you. The address works once; the server stops when the setup ends (or with Ctrl-C in the terminal). The questions are the same as in the terminal.
 
 On the machine itself, the server answers to this machine only. Over SSH, your browser is somewhere else, so it answers to the address you connected from and nothing else, and the address it gives is the one you connected to: nothing to tunnel.
 
