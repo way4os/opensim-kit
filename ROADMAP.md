@@ -59,6 +59,13 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
             - [ ] `Simulator`: the config of a simulator and the instance that runs it are one class
             - [ ] `Grid`: `GridInfo` goes into it (what it describes, how it is read from its files and from the grid it points to)
             - [ ] `Models` holds models only (`Instance`, `Robust`, `Core` and the plans go where they belong)
+            - [ ] `Estate`: the model that is missing (its settings, managers, users, groups, regions, ban list), read from the estate database wherever the grid keeps it
+            - [ ] the bans leave `Moderation` (`BanPlan`, `BannedUser`, `UserBan`)
+                - [ ] the ban list belongs to the estate, the access list to the parcel
+                - [ ] who is banned is an `Avatar`, local or foreign
+                - [ ] a ban on the whole grid is a ban in every estate of the grid
+                - [ ] deleting what a user left in the databases is the avatar's, the statements stay for the administrator to review
+            - [ ] `Simulator` and not `Sim` in what the user types or has already written: `--sims`, `opensim import sim`, the `sim` field of the region form
         - [ ] a pseudo cron in the engine: the mechanics only, the consumers say what to schedule (the helpers: the parser of the events...)
             - [ ] tasks with a name and an interval, run when due by whoever comes first: a request (after the answer is sent: `dontWait()` today is the rudimentary form), or a real cron through the command line
             - [ ] a task never runs twice at once (a lock), and a task that fails is told, not retried in a loop
