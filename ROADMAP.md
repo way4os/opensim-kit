@@ -476,6 +476,7 @@ w4os plugin:
         - [ ] a service in the helpers and a module of our own
         - [ ] the same API, so that their module works with ours
 - [ ] classifieds: handle hypergrid/centralized (might require an OpenSim module, as it does not seem to expose a way to query an external source)
+- [ ] Mega board: combine Teleport Board, 2d Events and Advertising/Communication, implement 2do Board server-side rendering on specific linked prims/faces for each
 - [ ] offline messaging: handle hypergrid/centralized (part of the exchanges are only between sender simulator and viewer, not querying either sender home grid or recipient home grid for proper helpers handling)
 - [ ] centralized NPC chatbot (avoid full chat script baked into NPC image, uneditable)
 - [ ] AI integration: chatbot
