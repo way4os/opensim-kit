@@ -10,7 +10,11 @@
 # Usage, from the repository root:
 #   tests/Packaging/distro-pest [base image]
 #   tests/Packaging/distro-pest docker.io/library/ubuntu:24.04    # default: Debian 12
-# PROJECTS="opensim-engine" tests/Packaging/distro-pest           # only some of the projects
+# PROJECTS="opensim-rest-php opensim-engine" RUN=opensim-engine tests/Packaging/distro-pest   # the trees sent, the suites run
+# PEST_ARGS="--filter=EstateTest" RUN=opensim-engine tests/Packaging/distro-pest              # only some tests
+#   PROJECTS  the trees sent to the container (the libraries a project needs by path included)
+#   RUN       the projects whose suite is run (default: PROJECTS)
+#   PEST_ARGS what is given to pest
 # The PHP minimum of the projects is the one of Debian 12, so this is the test
 # that the minimum and the dependencies of the packages are the real ones.
 
@@ -23,6 +27,7 @@ source tests/bootstrap.sh
 source vendor/bin/bash-helpers
 
 PROJECTS=${PROJECTS:-"opensim-rest-php opensim-engine opensim-helpers $(basename "$PWD")"}
+RUN=${RUN:-$PROJECTS}
 image=opensim-kit-pest-$(basename "$BASE" | tr ':.' '--')
 # The mirror of the distribution does not always answer from the machine of the containers: the image is made again after a pause
 for attempt in 1 2 3 4; do
@@ -39,16 +44,16 @@ for p in $PROJECTS; do
     done
 done
 
-COPYFILE_DISABLE=1 tar -C "$(dirname "$PWD")" "${excludes[@]}" -cf - $PROJECTS | podman run --rm -i --memory=2g -e PROJECTS="$PROJECTS" "$image" bash -c '
+COPYFILE_DISABLE=1 tar -C "$(dirname "$PWD")" "${excludes[@]}" -cf - $PROJECTS | podman run --rm -i --memory=2g -e RUN="$RUN" -e PEST_ARGS="${PEST_ARGS:-}" "$image" bash -c '
 set -e
 mkdir /work
 tar --warning=no-unknown-keyword -C /work -xf -
 php -v | head -1
 status=0
-for p in $PROJECTS; do
+for p in $RUN; do
     echo "== $p"
     # One run: what it says, then its status
-    (cd "/work/$p" && php vendor/bin/pest >/tmp/pest.out 2>&1) || status=1
+    (cd "/work/$p" && php vendor/bin/pest $PEST_ARGS >/tmp/pest.out 2>&1) || status=1
     grep -E "Tests:|Duration|⨯" /tmp/pest.out || true
     # No result at all: the suite did not even start
     grep -q "Tests:" /tmp/pest.out || tail -20 /tmp/pest.out

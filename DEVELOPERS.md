@@ -140,6 +140,12 @@ The files of `tests/Packaging` end with their kind of use, and no two files of t
 
 `tests/Packaging/distro-pest` runs the Pest suites of the kit and of its libraries with the PHP of a distribution and only the extensions the packages depend on (`tests/Packaging/distro-pest docker.io/library/ubuntu:24.04` for another one): this is what checks that the PHP minimum and the dependencies of the packages are the real ones. `tests/Packaging/container-image` checks the container image.
 
+To run only what a change needs, on the machine that has the CPU (`CONTAINER_CONNECTION` of `tests/.env`), and not on the one you work on: `PROJECTS` are the trees sent (a project and the libraries it needs by path), `RUN` the projects whose suite runs, `PEST_ARGS` what is given to pest.
+
+```bash
+PROJECTS="opensim-rest-php opensim-engine" RUN=opensim-engine PEST_ARGS="--filter=EstateTest" tests/Packaging/distro-pest
+```
+
 ## References
 
 - http://opensimulator.org
