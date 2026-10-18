@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace OpenSimKit\Console\Commands;
 
+use OpenSim\Config\GridConfig;
+use OpenSim\Data\Connections;
 use OpenSim\Models\Grid;
-use OpenSim\Moderation\UserBan;
-use OpenSim\Provisioning\DatabaseService;
-use OpenSimKit\Ui\QuietUi;
+use OpenSimKit\Console\BanPlan;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -15,10 +15,10 @@ use Symfony\Component\Console\Output\OutputInterface;
  *
  *   opensim ban [GRID] NAME|UUID... [--output DIR]
  *
- * Users are found by name ("First Last", First.Last, First.Last@grid for a visitor of another grid) or UUID in the database
- * of the grid. Nothing is changed: the statements are written in ban.cleanup (accounts, inventory, assets and objects) and
- * ban.ban (estate ban lists), with the users found (ban.users) and their hypergrid traveling data (ban.hg_traveling_data),
- * for the administrator of the databases to review and run, with the simulators stopped.
+ * Users are found by name ("First Last", First.Last, First.Last@grid for a visitor of another grid) or UUID in the databases of
+ * the grid. Nothing is changed: the statements are written in ban.cleanup (what they left, each thing in the database of its
+ * service) and ban.ban (the ban list of every estate), with the users found (ban.users) and their hypergrid traveling data
+ * (ban.hg_traveling_data), for the administrator of the databases to review and run, with the simulators stopped.
  */
 final class BanCommand extends ScriptCommand
 {
@@ -69,17 +69,15 @@ final class BanCommand extends ScriptCommand
             return $fail(sprintf(_('Cannot write in %s'), $output));
         }
 
-        $databases = UserBan::databases($grid);
-        $robust = ($databases['of'])('UserAccounts');
-        if ($robust === null) {
+        $config = GridConfig::fromFolder($grid->directory());
+        if (Connections::key($config, 'UserAccountService') === null) {
             return $fail(sprintf(_('No database in the Robust config of %s'), $grid->nick()));
         }
-        $database = new DatabaseService(new QuietUi());
-        if ($database->query($robust, 'SELECT 1') === null) {
-            return $fail(sprintf(_('Cannot read the database %s of %s (%s@%s)'), $robust->database, $grid->nick(), $robust->user, $robust->source));
+        if (Connections::pdo($config, 'UserAccountService') === null) {
+            return $fail(sprintf(_('Cannot read the database of the accounts of %s: %s'), $grid->nick(), Connections::reason($config, 'UserAccountService') ?? '?'));
         }
 
-        $plan = (UserBan::with($database))->plan($words, $databases['of'], $databases['simulators'], $databases['estates']);
+        $plan = BanPlan::make($config, $words);
         foreach ($plan->problems as $problem) {
             self::say($err, "ban: $problem\n");
         }

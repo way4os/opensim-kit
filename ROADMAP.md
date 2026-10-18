@@ -79,12 +79,12 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
                 - [ ] the helpers read a grid through `Grid`, not through their own functions
             - [ ] `Models` holds models only (`Instance`, `Robust`, `Core` and the plans go where they belong)
             - [x] `Estate`: its settings, managers, users, groups, regions and ban list, read from the estate database wherever the grid keeps it (the grid's, or each simulator's); a region knows its estate
-            - [ ] the bans leave `Moderation` (`BanPlan`, `BannedUser`, `UserBan`)
+            - [x] the bans leave `Moderation` (`BanPlan`, `BannedUser`, `UserBan` are gone: the command makes its files from the models)
                 - [x] the ban list belongs to the estate (`Estate::bans()`, `isBanned()`, `banSql()`, `ban()`, `unban()`), the access list to the parcel
-                - [ ] who is banned is an `Avatar`, local or foreign
-                - [ ] a ban on the whole grid is a ban in every estate of the grid
+                - [x] who is banned is an `Avatar`, local or foreign (`Avatar::lookup()`, `visitor()`, `unknown()`)
+                - [x] a ban on the whole grid is a ban in every estate of the grid (`Grid::estates()`)
                 - [ ] the core has a slot for a ban list of the whole grid (`BansService` in `[GatekeeperService]`, interface `IBansService`, no implementation shipped): a later option
-                - [ ] deleting what a user left in the databases is the avatar's, the statements stay for the administrator to review
+                - [x] deleting what a user left in the databases is the avatar's (`leftovers()`, `purgeSql()`, each thing in the database of its service), the statements stay for the administrator to review
             - [ ] `Simulator` and not `Sim` in what the user types or has already written: `--sims`, `opensim import sim`, the `sim` field of the region form
         - [ ] a pseudo cron in the engine: the mechanics only, the consumers say what to schedule (the helpers: the parser of the events...)
             - [ ] tasks with a name and an interval, run when due by whoever comes first: a request (after the answer is sent: `dontWait()` today is the rudimentary form), or a real cron through the command line

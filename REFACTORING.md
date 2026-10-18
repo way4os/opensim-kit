@@ -238,7 +238,7 @@ green, then the next one.
 7. **Legacy names** of the engine in `legacy/`, the helpers on the new names. To do.
 8. **Bash removed.** Done: `libexec/opensim-legacy`, `newgrid`, `newsim`, `newregion`, `banuser`, `install-dotnet`, `os-helpers`,
    `load-helpers`, `venv-setup` and `install/install.sh` are gone (`opensim ban`, `opensim install-dotnet`: engine
-   `OpenSim\Moderation`, `OpenSim\Runtime\DotnetInstaller`). `setup.sh` at the root is the only script a user runs: it prepares the
+   models `Avatar` and `Estate`, `OpenSim\Runtime\DotnetInstaller`). `setup.sh` at the root is the only script a user runs: it prepares the
    machine and starts `opensim setup`. The postinst scripts call `libexec/update-profiles.php` (`PackagedProfiles`).
 
 ## Decisions (2026-10-11)
