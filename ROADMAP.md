@@ -58,7 +58,12 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
             - [x] `Region`
             - [x] `Simulator`: the config of a simulator and the instance that runs it are one class (ports, console, database and estate are asked of it, by the planners and the backups)
             - [x] `detail()` on `Grid` and `Simulator`, as `Region` has it
-            - [ ] the planner of a grid reads its current settings from `Grid`, as the planner of a simulator does from `Simulator`
+            - [x] a Robust tells what its own config says (names, ports, console, database, services, roles of regions), as a simulator does: the grid and the planner of a grid ask it
+            - [ ] a grid has services, not a Robust: login, assets, inventory, profiles, groups, offline messages...
+                - [ ] each service has a provider: an instance of this machine (several Robust when the services are split) or an external address
+                - [ ] `Grid::services()`, and `Grid::serves()` answered by the providers; the Robust that gives the identity of the grid (login, gatekeeper, economy, search) is not the only one
+                - [ ] the database of a service comes from `Database` (Robust, Assets, Profiles, Offline...), not from one connection string: `Grid::databaseHost()` and the others assume a single Robust
+                - [ ] the address of an external service is read where the simulators read it (`GridServerURI`, `AssetServerURI`... of their config) and in what the grid announces
             - [ ] `Grid` and `Simulator` follow the contract of the models (`OpenSimModelInterface`), `Grid::all()` gives a `Collection`
             - [x] `Grid`: `GridInfo` goes into it, whatever the source (its folder, a plan, a description, what it says at `get_grid_info`)
                 - [ ] the other sources give the same properties: the xmlrpc calls of the hypergrid, the tables of OpenSimSearch, the console, the database
