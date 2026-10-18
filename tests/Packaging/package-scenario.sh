@@ -458,7 +458,9 @@ check "its console is in its config, on the port x4 of its block" "grep -q '^con
 check "it has no screen session, and it runs" "! runuser -u opensim -- screen -ls | grep -q testgrid_rest && pgrep -f 'OpenSim.dll -inifile=/etc/opensim/opensim.d/testgrid_rest.ini' >/dev/null"
 opensim ports >/tmp/ports-rest.out 2>&1
 check "opensim ports lists its console, and its block" "grep -qE '9010 +tcp +public' /tmp/ports-rest.out && grep -qE '9014 +tcp +console' /tmp/ports-rest.out && grep -qE '9011 +udp +public' /tmp/ports-rest.out"
-check "a command reaches its console through the port" "opensim command testgrid_rest 'show info' | grep -q 'Version: OpenSim'"
+# The console answers a moment after the region is online: asked again for half a minute, and what it said is kept when it never does
+wait_check 30 "a command reaches its console through the port" "opensim command testgrid_rest 'show info' >/tmp/rest-command.out 2>&1; grep -q 'Version: OpenSim' /tmp/rest-command.out"
+grep -q 'Version: OpenSim' /tmp/rest-command.out 2>/dev/null || { [[ -f /tmp/rest-command.out ]] && dump /tmp/rest-command.out 20; }
 rest_user=$(sed -nE 's/^ConsoleUser = "([a-z]+)"/\1/p' /etc/opensim/grids/testgrid/sims/testgrid_rest.ini)
 check "a wrong password is refused" "! OPENSIM_REST_PASSWORD=wrong php /usr/share/opensim-tools/vendor/magicoli/opensim-rest-php/opensim-rest-cli.php --url http://127.0.0.1:9014 --user $rest_user -- 'show info' >/dev/null 2>&1"
 opensim stop now testgrid_rest >/tmp/rest-stop.out 2>&1
