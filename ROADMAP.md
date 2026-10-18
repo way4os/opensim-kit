@@ -84,10 +84,13 @@ Kit:
 - [ ] `opensim start --verbose` or `--show-command`: show the command actually run, for a manual intervention in case of issues
     - a region created without a user needs a manual start to fix its owner and estate
 - [ ] a simulator of a grid joined by a preset (OSGrid) cannot be configured: the folder of a preset has the structure of the folder of a grid, and takes what it takes
-    - [ ] everything that applies to all the simulators of a preset is set in the preset (OpenSim.ini, config-include, OSSL, the options of the setup)
-    - [ ] the simulators of a preset have a master, made like the one of a grid from the OpenSim.ini of the preset: a change there is taken at the next start of each
-    - [ ] `opensim enable|disable <grid> <feature>` on such a grid edits the files of the preset, not each simulator's
-    - [ ] the presets of the kit are the base (read-only), the ones of the machine are the administrator's
+    - [x] everything that applies to all the simulators of a preset is set in the preset: its OpenSim.ini, config-include and OSSL are read by the master
+    - [x] the simulators of a preset have a master, made like the one of a grid from the OpenSim.ini of the preset: a change there is taken at the next start of each
+    - [x] `opensim enable|disable <grid> <feature>` on such a grid edits the OpenSim.ini of the preset, not each simulator's
+    - [ ] the simulators made before keep their whole config until their next `opensim setup` (it gives them the master): move them with a command
+    - [ ] the options of the setup (search, currency, OSSL...) for a simulator that joins a grid
+    - [ ] try with a real simulator on OSGrid (only the unit tests cover it)
+    - [ ] the presets of the kit are the base (read-only), the ones of the machine are the administrator's: say it in the documentation
 - [ ] port mapping does not work from a local network
     - [ ] not included or enabled in the package as is
     - [ ] works from a local network (more work)
