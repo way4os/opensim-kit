@@ -62,7 +62,10 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
             - [x] each database is asked as itself: the one the service has in its section, else `[DatabaseService]`, as the core chooses it (checked against its source: the estates of Robust, the mute list...)
                 - [x] the accounts, the registry of regions, the backups, the bans and the rows of the simulators ask the database of their service
                 - [x] the regions of the search engine are read in the database of the search (`regionsregister` when it shares the one of Robust)
-                - [ ] the account import writes the tables of four services (accounts, authentication, inventory, users): refused when they are not in one database; to write service by service, with no transaction across databases
+                - [ ] the account import asks the engine for both ends: `Avatar::all()` on the source server (a temporary config of its databases) gives the accounts, `Avatar::create()` makes them on the new one
+                    - [ ] `Avatar::create()` writes each table in the database of its service (accounts, authentication, inventory, users) or goes through the console of Robust; no transaction across databases
+                    - [ ] a list file (CSV, JSON) is another source of accounts for the same creation
+                    - [ ] until then the list import is refused when these tables are not in one database
                 - [ ] the helpers, the plugin and the currency functions choose their databases through the same registry (`CURRENCY_DB_*`, `db_for()`)
             - [ ] a grid has services, not a Robust: login, assets, inventory, profiles, groups, offline messages...
                 - [ ] short term: two asset servers, the key to secure a grid open to the hypergrid
@@ -75,9 +78,9 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
                 - [ ] the other sources give the same properties: the xmlrpc calls of the hypergrid, the tables of OpenSimSearch, the console, the database
                 - [ ] the helpers read a grid through `Grid`, not through their own functions
             - [ ] `Models` holds models only (`Instance`, `Robust`, `Core` and the plans go where they belong)
-            - [ ] `Estate`: the model that is missing (its settings, managers, users, groups, regions, ban list), read from the estate database wherever the grid keeps it
+            - [x] `Estate`: its settings, managers, users, groups, regions and ban list, read from the estate database wherever the grid keeps it (the grid's, or each simulator's); a region knows its estate
             - [ ] the bans leave `Moderation` (`BanPlan`, `BannedUser`, `UserBan`)
-                - [ ] the ban list belongs to the estate, the access list to the parcel
+                - [x] the ban list belongs to the estate (`Estate::bans()`, `isBanned()`, `banSql()`, `ban()`, `unban()`), the access list to the parcel
                 - [ ] who is banned is an `Avatar`, local or foreign
                 - [ ] a ban on the whole grid is a ban in every estate of the grid
                 - [ ] the core has a slot for a ban list of the whole grid (`BansService` in `[GatekeeperService]`, interface `IBansService`, no implementation shipped): a later option
