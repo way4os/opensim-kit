@@ -64,6 +64,7 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
                 - [ ] the ban list belongs to the estate, the access list to the parcel
                 - [ ] who is banned is an `Avatar`, local or foreign
                 - [ ] a ban on the whole grid is a ban in every estate of the grid
+                - [ ] the core has a slot for a ban list of the whole grid (`BansService` in `[GatekeeperService]`, interface `IBansService`, no implementation shipped): a later option
                 - [ ] deleting what a user left in the databases is the avatar's, the statements stay for the administrator to review
             - [ ] `Simulator` and not `Sim` in what the user types or has already written: `--sims`, `opensim import sim`, the `sim` field of the region form
         - [ ] a pseudo cron in the engine: the mechanics only, the consumers say what to schedule (the helpers: the parser of the events...)
