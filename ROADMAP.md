@@ -38,9 +38,21 @@ Dates (2026):
 
 The whole ecosystem speaks standards, no part is left out (the helpers included), and no format is made for the need of the day:
 
+- [ ] services belong to the grid, served by controllers
+    - [x] `Service` model: `Grid::services()`, `Simulator::service('profile')` (its own config, else its grid's)
+    - [x] a Robust is a controller (`RobustController`), so is a simulator (`OpenSimController`); `Grid::robusts()` lists the Robust instances of a grid
+    - [ ] several Robust instances in a grid folder (`Robust.<role>.ini`), each with its own launcher name, its own connectors: two asset servers, a mixed local and external grid
+    - [ ] the MoneyServer as a controller (`MoneyServerController`)
+    - [ ] a service served somewhere else is declared with its address in the config of the grid, and the health page checks it
+- [ ] the order of the work: the engine, then the helpers, then the installation scripts in pure bash (helpers and engine only, no other PHP); the PHP classes of the setup in the kit go
 - [ ] the engine: OpenAPI contracts, JSON:API resources, RFC 9457 errors, PSR-7 messages (with PSR-15 and PSR-17), PSR-4 autoloading
     - [ ] one layer of use cases; the command line, the HTTP API and the PHP library are adapters of it
+        - [x] a first generic slice: `Api` lists and reads the grids, the simulators and the services as JSON:API, the errors are `Problem` (RFC 9457)
+        - [ ] the other resources (avatars, regions, parcels, estates: they need a grid), then the writes
+        - [ ] a PSR-7 / PSR-15 adapter (`Response` is the answer without a framework), the command line and the PHP library as the other two
     - [ ] the OpenAPI document is the contract, checked against the code by tests
+        - [x] `Contract::document()` for the first slice, checked against `detail()` of the models
+        - [ ] the endpoints the core and the viewers call, as endpoints of their own
     - [ ] what the core of OpenSimulator and the viewers call (`query.php`, `register.php`, `offline.php`, `currency.php`, `landtool.php`, `get_grid_info`...) keeps the format they expect: described in the contract as endpoints of their own, not reshaped
     - [ ] to bring to it first: `Collection::json()`, the errors of the helpers, the fields of the setup, the line protocol of `ScriptUi` (the questions of the setup become a resource of the API)
     - the engine is cleaned first, as a library on its own; its consumers (the helpers, the kit, the manager) are put in order after
@@ -86,10 +98,12 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
                 - [ ] the core has a slot for a ban list of the whole grid (`BansService` in `[GatekeeperService]`, interface `IBansService`, no implementation shipped): a later option
                 - [x] deleting what a user left in the databases is the avatar's (`leftovers()`, `purgeSql()`, each thing in the database of its service), the statements stay for the administrator to review
             - [ ] `Simulator` and not `Sim` in what the user types or has already written: `--sims`, `opensim import sim`, the `sim` field of the region form
-        - [ ] a pseudo cron in the engine: the mechanics only, the consumers say what to schedule (the helpers: the parser of the events...)
-            - [ ] tasks with a name and an interval, run when due by whoever comes first: a request (after the answer is sent: `dontWait()` today is the rudimentary form), or a real cron through the command line
-            - [ ] a task never runs twice at once (a lock), and a task that fails is told, not retried in a loop
-            - [ ] the last run and the next of each task are known (a file or the database), for the health page
+        - [x] a pseudo cron in the engine: the mechanics only, the consumers say what to schedule (`Scheduling\Scheduler`, `Task`)
+            - [x] tasks with a name and an interval, run when due by whoever comes first: `tick()` after the answer of a request, `runDue()` from a real cron
+            - [x] a task never runs twice at once (a lock), and a task that fails is told, not retried in a loop
+            - [x] the last run and the next of each task are known (`status()`, files in the state folder), for the health page
+            - [ ] the helpers register their tasks (the parser of the hosts, of the events) and call `tick()` / a cron script
+            - [ ] the health page lists the tasks and their last run
     - the addresses follow the Robust config, not the other way round
         - `currency.php` and `landtool.php` are the `economy` address of `[GridInfoService]` (the helper URI) plus a name the viewers fix: only the prefix changes
         - `register.php`, `offline.php`, `query.php` are old habits, the default: the grid can say others in its `Robust.HG.ini`, and the helpers serve the addresses it says
@@ -351,6 +365,8 @@ Kit, setup and configuration:
     - without it the consoles are the REST ones only (the default anyway)
     - today `Installer` requires it and `setup.sh` installs it
 - [ ] standalone: one simulator with its own services (no Robust), made by the setup like a grid
+    - [x] the engine knows it: `Standalone = true` in `<nick>.conf`, `Grid::isStandalone()`, run through its simulator, its services served by it
+    - [ ] made by the setup: the folder, `<nick>.conf`, the simulator with `Include-Architecture`, `StandaloneCommon.ini`, tested on a container with the core
     - [ ] the architecture of the core for it (`StandaloneHypergrid.ini`), its database, its accounts, its estate
     - [ ] the helpers and the options as for a grid
 - [ ] offline messages on a grid without helpers
