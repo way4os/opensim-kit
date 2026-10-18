@@ -43,12 +43,32 @@ Kit:
 - [ ] `opensim start|restart` never rewrites the config
     - [ ] the config is written only after an install or an upgrade
     - [ ] and only with confirmation (as Debian does)
-- [ ] Hypergrid setup complete: the manual fixes that were needed to get it working are done by the kit [?] which ones
+- [ ] Hypergrid setup complete: the manual fixes it took to get watta.world working (7 steps, `tmp/watta.world/etc/opensim/grids/watta_world`, `git log`) are done by the setup
+    - [x] `ExternalHostNameForLSL` of a simulator on the machine of its grid is the host of the grid (it was the name of the machine, `watta`)
+    - [x] `[GridInfoService] gatekeeper` is written for a hypergrid
+    - [ ] [?] `Region_Welcome = "DefaultRegion, DefaultHGRegion, ..."` was missing in the Robust.HG.ini of the setup, though the setup file had the roles
+        - the package scenario checks it and passes: find the build or the path (quick setup, web, import) that left it out
+    - [ ] `FallbackRegion` for the first region (the fix added it)
+    - [ ] no `127.0.0.1` in `CertHostIp` and `RobustCertHostIp`
+    - [ ] connectors of Robust enabled by the options that need them
+        - [ ] offline messages: `OfflineIMServiceConnector`
+        - [ ] groups: `GroupsServiceConnector`, `HGGroupsServiceConnector`
+        - [ ] baked textures: `BakedTextureService`
+        - [ ] estates: `EstateDataService`
+    - [ ] map tiles: `GenerateMaptiles`, `MapImageModule`, `MaptileRefresh`, `TextureOnMapTile`, `DrawPrimOnMapTile`, `TexturePrims`
+    - [ ] `OutboundDisallowForUserScripts` blocks the calls of the scripts to the local network (the helpers of the grid, the other machines of the operator)
+    - [ ] `AllowOSFunctions = true` (the `osslEnable.ini` of the setup does not enable OSSL)
+    - [ ] [?] `RegionType` in the region files (`Mainland`, `Private`...)
+    - [ ] [?] the name of the grid is the one typed ("Watta World"), not the nick form ("Watta_world") in Robust, the helpers and the conf
+    - the web server snippet of watta.world (`handle` per route, imported from the site) is the model for "Caddy config compatible with an existing website" below
 - [ ] no `127.0.0.1` left in the config (unusable beyond tests)
-- [ ] more flexible OSSL config, optional (the default one refuses very common usages, e.g. NPC and animated objects)
-    - the standard config enables the functions with the defaults of the core
-    - [ ] the operator customizes them: which functions, for whom
-- [ ] options (OpenSimSearch, Gloebit...) come with their own ini file, merged into the config
+- [ ] options are ini files, included or combined: changing an option never needs a change in an install script
+    - [ ] an option is a folder: its ini files, the packages it needs (apt), the DLLs it adds, its questions
+    - [ ] options: OpenSimSearch, Gloebit, NPC, helpers, mini website (`opensim-web`)...
+    - [ ] OSSL variants are options too
+        - [ ] default / strict (the standard config enables the functions with the defaults of the core)
+        - [ ] relaxed / NPC / animations (the default one refuses very common usages, e.g. NPC and animated objects)
+        - [ ] the operator customizes them: which functions, for whom
 - [ ] Caddy config compatible with an existing website
     - [ ] only the tiny website (`opensim-web`) is a fully handled website
     - [ ] the Caddy config is a snippet, updatable
@@ -69,7 +89,12 @@ Helpers:
 The beta:
 
 - [ ] state of the refactoring frozen as a coherent beta of the family (the Unreleased list below)
-    - [ ] `opensim setup`: install wizard from scratch to live grid with basic/default features (terminal CLI)
+    - [ ] `setup.sh` is back as the install wizard (bash): the PHP forms are too heavy to drive from a shell script
+        - [ ] the questions are asked with the tools made for it: our `yesno` and `readvar`, `dialog`, the interfaces `dpkg` uses
+        - [ ] the engine provides the questions and processes the answers
+        - [ ] the script asks which options to enable (see the options above), installs what they need and calls the engine
+        - [ ] from scratch to live grid with basic/default features
+    - [ ] `opensim setup`: the same wizard in the terminal, from the CLI
     - [ ] `opensim setup --web`: open wizard in a secured temporary website for web setup
         - [ ] the page is served over HTTPS (some browsers refuse forms over plain HTTP, the passwords must not cross the network in clear)
         - self-signed is fine for this temporary step
@@ -141,8 +166,16 @@ Services isolation, to reduce the attack surface (analysis first: security, perf
 - [ ] UserAccountService
     - [ ] separate database: `[UserAccountService] ConnectionString`
     - [ ] separate Robust instance: `[ServiceList] UserAccountServiceConnector`
-- the grid imposes its asset service on the simulators
+- the grid imposes its asset service on the simulators (a fact: it changes the strategies, not the code)
 - other services: not separated unless the analysis says so
+- [ ] two grids that share the map and the users and keep their asset service apart (even their inventory)
+    - example: a main grid (`mygrid.org:8002`) with a restricted private port, internal regions only; a public grid (`guests.mygrid.org:8002` or `mygrid.org:8005`) with an open private port, for the simulators of others
+    - [ ] what the two grids share (map, users) and what they keep apart (assets, inventory)
+    - [ ] how the services of each grid are told apart (ports, Robust instances, databases)
+    - [ ] what a visitor of the public grid can reach of the main one
+- [ ] authentication of the private port
+    - [ ] how the protocol works (it seems to be one user/key pair for the grid, not one per authorized party)
+    - [ ] whether it can protect the external simulators (one key per simulator or per operator)
 
 Import and restore:
 
@@ -384,6 +417,14 @@ Features:
         - [ ] the operator chooses what a new region gets at its start (name of the parcel, music, media, flags): the script is the place for it
 - [ ] sections of the search database (places, events, classifieds)
 - [ ] finer rights of the members of a grid
+- [ ] registration types of a grid
+    - [ ] free and open: everyone can register
+    - [ ] by invitation
+        - [ ] by any member
+        - [ ] reserved to some categories of members
+    - [ ] subscription
+        - [ ] linked to a payment module
+        - [ ] linked to a third-party service
 - [ ] delete a region
     - checks: users in it, neighbours, estate, parcels and objects
     - [ ] backup first
