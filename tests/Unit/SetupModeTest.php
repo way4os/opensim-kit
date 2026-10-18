@@ -15,6 +15,17 @@ describe('where the setup is gone through', function () {
             ->and(SetupMode::resolve([], null))->toBe(SetupMode::TERMINAL);
     });
 
+    test('a script that asks the questions is the folder of its pipes, whatever else is said', function () {
+        $ask = static fn(): string => throw new RuntimeException('asked');
+
+        expect(SetupMode::resolve(['--frontend', '/tmp/pipes'], $ask))->toBe(SetupMode::SCRIPT)
+            ->and(SetupMode::resolve(['--frontend=/tmp/pipes', '--web'], $ask))->toBe(SetupMode::SCRIPT)
+            ->and(SetupMode::frontend(['--frontend', '/tmp/pipes']))->toBe('/tmp/pipes')
+            ->and(SetupMode::frontend(['--frontend=/tmp/p']))->toBe('/tmp/p')
+            ->and(SetupMode::frontend(['--frontend']))->toBeNull()
+            ->and(SetupMode::frontend(['--web']))->toBeNull();
+    });
+
     test('instructions give the address, and the way to reach it from another machine', function () {
         $text = SetupMode::instructions('http://127.0.0.1:8123/?t=abc', 8123, false, true);
 

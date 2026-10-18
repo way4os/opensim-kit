@@ -7,13 +7,15 @@ namespace OpenSimKit\Setup;
 use OpenSim\Provisioning\UiInterface;
 
 /**
- * Where the setup is gone through: in the terminal, or in a page of the browser served by the setup itself. Chosen by an
- * option (--terminal, --web) or asked, when someone is there to answer.
+ * Where the setup is gone through: in the terminal, in a page of the browser served by the setup itself, or by a script that asks
+ * the questions the setup gives it (setup.sh). Chosen by an option (--terminal, --web, --frontend) or asked, when someone is there
+ * to answer.
  */
 final class SetupMode
 {
     public const TERMINAL = 'terminal';
     public const WEB = 'web';
+    public const SCRIPT = 'script';
 
     /**
      * @param list<string> $args the options of the command
@@ -22,11 +24,30 @@ final class SetupMode
     public static function resolve(array $args, ?\Closure $ask): string
     {
         return match (true) {
+            self::frontend($args) !== null => self::SCRIPT,
             in_array('--terminal', $args, true) => self::TERMINAL,
             in_array('--web', $args, true) => self::WEB,
             $ask !== null => $ask(),
             default => self::TERMINAL,
         };
+    }
+
+    /**
+     * The folder of the script that asks the questions (--frontend DIR or --frontend=DIR): it has the two named pipes the setup
+     * talks through, `questions` (what the setup tells) and `answers` (what the script brings back).
+     *
+     * @param list<string> $args the options of the command
+     */
+    public static function frontend(array $args): ?string
+    {
+        foreach ($args as $i => $arg) {
+            $value = str_starts_with($arg, '--frontend=') ? substr($arg, 11) : ($arg === '--frontend' ? ($args[$i + 1] ?? '') : null);
+            if ($value !== null) {
+                return $value !== '' ? $value : null;
+            }
+        }
+
+        return null;
     }
 
     /**

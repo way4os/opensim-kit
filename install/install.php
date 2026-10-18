@@ -10,6 +10,7 @@ use OpenSimKit\Setup\RuntimeCheck;
 use OpenSimKit\Setup\SetupMode;
 use OpenSimKit\Ui\Back;
 use OpenSimKit\Ui\Quit;
+use OpenSimKit\Ui\ScriptUi;
 use OpenSimKit\Web\WizardLauncher;
 use OpenSimKit\Ui\PromptsUi;
 use OpenSim\Provisioning\GridPlan;
@@ -47,6 +48,7 @@ try {
         $terminal = new PromptsUi();
         $mode = SetupMode::resolve(array_slice($argv, 1), stream_isatty(STDIN) ? static fn(): string => SetupMode::ask($terminal) : null);
         $session = null;
+        $script = null;
         $ending = _('The setup stopped.');
         $status = 0;
         try {
@@ -66,6 +68,25 @@ try {
                 // What the commands of the setup say (downloads, installs) is shown on the page, not in the terminal
                 ShellService::showOutputWith($ui->stream(...));
             }
+            if ($mode === SetupMode::SCRIPT) {
+                // The questions go to the script that started the setup (setup.sh), through the two pipes it made
+                $dir = (string) SetupMode::frontend(array_slice($argv, 1));
+                $questions = @fopen("$dir/questions", 'w');
+                $answers = @fopen("$dir/answers", 'r');
+                if ($questions === false || $answers === false) {
+                    $terminal->error(sprintf(_('The pipes of the script are not in %s.'), $dir));
+                    exit(2);
+                }
+                $kept = time();
+                $ui = $script = new ScriptUi($questions, $answers, static function () use (&$kept): void {
+                    // The person may take their time: the rights to act as the user of the install (sudo) do not expire meanwhile
+                    if (time() - $kept > 240) {
+                        $kept = time();
+                        WizardLauncher::keepSudo();
+                    }
+                });
+                ShellService::showOutputWith($ui->stream(...));
+            }
             (new Hub($ui, new RuntimeCheck($ui)))->run();
             $ending = _('The setup is finished.');
         } catch (Back | Quit) {
@@ -75,6 +96,16 @@ try {
         } finally {
             ShellService::showOutputWith(null);
             $session?->stop($ending);
+            if ($script !== null) {
+                try {
+                    if ($status !== 0 || $ending !== _('The setup is finished.')) {
+                        $script->note($ending);
+                    }
+                    $script->close($status);
+                } catch (Quit) {
+                    // The script is gone
+                }
+            }
         }
         exit($status);
     }

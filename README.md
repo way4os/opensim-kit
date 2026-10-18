@@ -44,7 +44,7 @@ cd opensim-kit
 ./setup.sh
 ```
 
-`./setup.sh --help` lists its options (`-y` does not ask, `--no-setup` only prepares the machine).
+`./setup.sh --help` lists its options (`-y` does not ask, `--no-setup` only prepares the machine, `--terminal` and `--web` let `opensim setup` ask the questions itself).
 
 See [INSTALLATION.md](INSTALLATION.md) for more details and advanced installation options.
 

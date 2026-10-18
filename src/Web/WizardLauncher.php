@@ -102,7 +102,7 @@ final class WizardLauncher
     }
 
     /** Renew the sudo rights already given, without ever asking for a password. */
-    private static function keepSudo(): void
+    public static function keepSudo(): void
     {
         if (function_exists('posix_geteuid') && posix_geteuid() !== 0) {
             @exec('sudo -n -v >/dev/null 2>&1');

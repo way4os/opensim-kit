@@ -12,8 +12,13 @@
 # From the web it installs the packages of the Magiiic repository (opensim-kit and what it needs, the .NET runtime
 # included). From a clone it runs the tools of the clone: its PHP libraries come from composer.
 #
+# The questions of the setup are asked by this script (libexec/setup-frontend.sh: dialog when it is there, plain prompts
+# otherwise): `opensim setup` decides what to ask and what to do of the answers, this script only shows them.
+#
 # Options:  -y, --yes   do not ask before installing
 #           --no-setup  prepare the machine, do not start `opensim setup`
+#           --terminal  let `opensim setup` ask the questions itself, in the terminal
+#           --web       let `opensim setup` ask them in a page of the browser
 # Environment: OPENSIM_KIT_DEBS=folder  install the packages (*.deb) of that folder instead of the Magiiic repository
 
 set -euo pipefail
@@ -26,10 +31,12 @@ TOOL_PACKAGES=(ca-certificates curl git unzip screen sudo default-mysql-client)
 
 ASSUME_YES=
 RUN_SETUP=yes
+SETUP_ARGS=()
 for argument in "$@"; do
     case "$argument" in
     -y | --yes) ASSUME_YES=yes ;;
     --no-setup) RUN_SETUP= ;;
+    --terminal | --web) SETUP_ARGS+=("$argument") ;;
     -h | --help)
         sed -n '2,/^$/p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
         exit 0
@@ -74,16 +81,25 @@ as_root() {
     fi
 }
 
-start_setup() { # the command to run, which gets the keyboard even when this script came through a pipe
+start_setup() { # the library of the questions, then the command to run, which gets the keyboard even when this script came through a pipe
+    local frontend=$1 status=0
+    shift
     if [[ -z "$RUN_SETUP" ]]; then
         say "Ready. Run '$*' when you want to make your grid."
         exit 0
     fi
     say "Starting the setup..."
-    if [[ ! -t 0 && -r /dev/tty ]]; then
-        exec "$@" </dev/tty
+    # The questions are asked here, unless the setup is asked to ask them itself or nobody has a keyboard to answer
+    if ((${#SETUP_ARGS[@]} == 0)) && [[ -r "$frontend" ]] && (: </dev/tty) 2>/dev/null; then
+        # shellcheck source=libexec/setup-frontend.sh
+        source "$frontend"
+        frontend_run "$@" || status=$?
+        exit "$status"
     fi
-    exec "$@"
+    if [[ ! -t 0 && -r /dev/tty ]]; then
+        exec "$@" "${SETUP_ARGS[@]+"${SETUP_ARGS[@]}"}" </dev/tty
+    fi
+    exec "$@" "${SETUP_ARGS[@]+"${SETUP_ARGS[@]}"}"
 }
 
 install_packages() {
@@ -137,7 +153,7 @@ if [[ -n "$clone" ]]; then
     if [[ $(uname -s) == Linux ]]; then
         dotnet_runtime "$clone/bin/opensim"
     fi
-    start_setup "$clone/bin/opensim" setup
+    start_setup "$clone/libexec/setup-frontend.sh" "$clone/bin/opensim" setup
 fi
 
 ###
@@ -164,4 +180,4 @@ else
 fi
 
 dotnet_runtime opensim
-start_setup opensim setup
+start_setup /usr/share/opensim-tools/libexec/setup-frontend.sh opensim setup
