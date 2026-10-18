@@ -12,6 +12,13 @@
 #
 # Usage: source tests/bootstrap.sh   (from anywhere)
 
+# The tests need bash 4 or later (the libraries use ${var,,}), the one `env bash` finds. Which one that is, is the choice of the person
+# who runs them (the PATH): nothing here changes it, the tests stop with an older one.
+if ((BASH_VERSINFO[0] < 4)); then
+    echo "tests: bash 4 or later is needed, this is bash ${BASH_VERSION} ($BASH): make \`env bash\` find a newer one" >&2
+    if [[ $- == *i* ]]; then return 1; else exit 1; fi
+fi
+
 __tests_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
 if [[ ! -f "$__tests_root/tests/.env" && -f "$__tests_root/tests/.env.example" ]]; then

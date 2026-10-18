@@ -5,6 +5,14 @@
  * - tests/Environment: what the project needs from its environment (PHP version, compatibility)
  */
 
+// A dependency of the tests, checked before any of them: bash 4 or later, the one `env bash` finds (the scripts start with it). Which
+// one that is, is the choice of the person who runs them (the PATH): the suite stops with an older one, and goes on without bash
+$bashMajor = trim((string) shell_exec("env bash -c 'echo \"\${BASH_VERSINFO[0]}\"' 2>/dev/null"));
+if ($bashMajor !== '' && (int) $bashMajor < 4) {
+    fwrite(STDERR, "tests: bash 4 or later is needed, `env bash` finds bash $bashMajor: make it find a newer one\n");
+    exit(1);
+}
+
 /** The temporary folder by its real path (macOS: /var is a link to /private/var, the paths the code finds are not the same). */
 function test_tmp(): string
 {

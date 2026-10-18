@@ -113,6 +113,8 @@ The scripts of `dev/` are wrappers of build-tools. The scripts of `packaging/` a
 
 ## Tests
 
+The tests need bash 4 or later, the one `env bash` finds (the scripts keep `#!/usr/bin/env bash`; macOS has 3.2 in `/bin`). They stop with a message with an older one. Which bash to use is up to you: nothing in the tests changes your PATH.
+
 One command runs every test, `vendor/bin/pest` (`composer test`): the PHP ones with [Pest](https://pestphp.com), the shell scripts with [bashunit](https://bashunit.typeddevs.com) (`tests/lib/bashunit`), run from Pest. Everything is in `tests/`:
 
 - `tests/Environment`: the PHP minimum. It is read from `composer.json`, the composer platform must follow it, and `phpcs` with PHPCompatibility (`phpcs.xml.dist`) checks that the code needs nothing newer and uses nothing deprecated up to the newest PHP version listed in the test. It runs on the minimum PHP, 8.2 (pinned in `.php-version` for the tools that read it).
