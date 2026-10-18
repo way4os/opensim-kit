@@ -134,7 +134,7 @@ The beta:
         - [ ] then quick setup (the defaults for the rest) or advanced config (every question, the answers proposed)
         - the engine knows how to configure: it provides the questions and processes the answers (one source of truth, also for w4os, mini-web, the manager)
         - `setup.sh` shows the questions with `dialog` or plain prompts (`libexec/setup-frontend.sh`), the engine gives them through two pipes (internal: nothing to explain to the person)
-        - [ ] the scenario of packages that goes through the setup with the script (`wizardscript-grid-scenario.sh`)
+        - [x] the scenario of packages that goes through the setup with the script (`wizardscript-grid-scenario.sh`): a grid made from the first question to a running region, with the real Hub
         - [ ] the options are ini files merged or included (see above), the same whoever asks
     - parked: the setup in the browser (`opensim setup --web`), it comes back later and changes
     - [ ] `opensim import <setup file> --apply` full setup from YAML file, with no questions

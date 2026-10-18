@@ -137,15 +137,17 @@ describe('questions of the script', function () {
         expect(fn() => $ui->confirm('Still there?'))->toThrow(Quit::class);
     });
 
-    test('a form is its fields one at a time, then the review', function () {
-        [$ui, $told] = script_ui(["answer\t1\tAda", "answer\t2\tok"]);
+    test('a form is its fields one at a time, each checked, no review after it', function () {
+        [$ui, $told] = script_ui(["answer\t1\tAd", "answer\t2\tAda", "answer\t3\tyes"]);
 
-        $values = $ui->form([['key' => 'name', 'label' => 'Name']], 'Who');
+        $values = $ui->form([
+            ['key' => 'name', 'label' => 'Name', 'validate' => static fn(string $v): ?string => strlen($v) < 3 ? 'Too short.' : null],
+            ['key' => 'ok', 'label' => 'Sure?', 'type' => 'confirm'],
+            ['key' => 'hidden', 'label' => 'Never', 'when' => static fn(array $v): bool => $v['ok'] === 'no'],
+        ], 'Who');
 
-        expect($values)->toBe(['name' => 'Ada']);
-        $asked = $told();
-        expect(array_column($asked, 0))->toBe(['hello', 'ask', 'note', 'ask'])
-            ->and($asked[2][1])->toBe('Name: Ada');
+        expect($values)->toBe(['name' => 'Ada', 'ok' => 'yes', 'hidden' => ''])
+            ->and(array_column($told(), 0))->toBe(['hello', 'ask', 'ask', 'ask']);
     });
 });
 

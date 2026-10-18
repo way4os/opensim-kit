@@ -27,7 +27,9 @@ use OpenSim\Provisioning\UiInterface;
  */
 final class ScriptUi implements UiInterface, CapturesOutput
 {
-    use AsksForms;
+    use AsksForms {
+        form as private reviewedForm;
+    }
 
     public const VERSION = 1;
 
@@ -119,6 +121,20 @@ final class ScriptUi implements UiInterface, CapturesOutput
             $line = rtrim(substr((string) strrchr("\r$line", "\r"), 1));
             $line !== '' && $this->send('out', $line);
         }
+    }
+
+    /**
+     * A form is its fields, asked one after the other, each checked as it is given: the review of the answers is the plan the setup
+     * shows before it writes anything, not a question after every screen.
+     */
+    public function form(array $fields, string $title = ''): array
+    {
+        $values = [];
+        foreach ($fields as $field) {
+            $values[$field['key']] = $this->visible($field, $values) ? $this->askField($field, $field['default'] ?? '') : '';
+        }
+
+        return $values;
     }
 
     public function choose(string $label, array $options, ?string $default = null, ?string $hint = null): string
