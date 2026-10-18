@@ -3,13 +3,14 @@
 namespace OpenSimKit\Setup;
 
 use OpenSim\Console\InstanceConsoleService;
-use OpenSim\Models\GridState;
-use OpenSim\Models\Region;
 use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Models\SimState;
+use OpenSim\Models\Grid;
+use OpenSim\Models\Region;
+use OpenSim\Models\Simulator;
 use OpenSim\Provisioning\Import\RobustImporter;
 use OpenSim\Provisioning\PendingRestarts;
 use OpenSim\Provisioning\UiInterface;
+use OpenSim\Runtime\Environment;
 use OpenSim\Runtime\ShellService;
 
 /**
@@ -28,24 +29,26 @@ final class Actions
      */
     public function perform(string $op, array $args, array $profile): bool
     {
-        $etcRoot = (string) ($profile['EtcRoot'] ?? '');
+        $environment = Environment::forProfile($profile);
 
         switch ($op) {
             case 'grid-enable':
-                return GridState::enable($etcRoot, $args['nick']) ||
+                return Grid::find($environment, $args['nick'])?->enable() === true ||
                     $this->no('Cannot enable the grid (no Robust config).');
             case 'grid-disable':
-                GridState::disable($etcRoot, $args['nick']);
+                $grid = Grid::find($environment, $args['nick']);
+                $grid?->disable();
 
-                return !GridState::isEnabled($etcRoot, $args['nick']) ||
+                return $grid?->isEnabled() !== true ||
                     $this->no('Cannot disable the grid (permission).');
             case 'sim-enable':
-                return SimState::enable($etcRoot, $args['slug'], $args['ini']) ||
+                return (new Simulator($environment, $args['ini']))->enable() ||
                     $this->no('Cannot enable the simulator (no config).');
             case 'sim-disable':
-                SimState::disable($etcRoot, $args['slug']);
+                $simulator = new Simulator($environment, $args['ini']);
+                $simulator->disable();
 
-                return !SimState::isEnabled($etcRoot, $args['slug']) ||
+                return !$simulator->isEnabled() ||
                     $this->no('Cannot disable the simulator (permission).');
             case 'region-enable':
             case 'region-disable':

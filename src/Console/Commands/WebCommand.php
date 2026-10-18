@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSimKit\Console\Commands;
 
-use OpenSim\Models\GridState;
+use OpenSim\Models\Grid;
 use OpenSim\Provisioning\Web\HelpersConfig;
 use OpenSim\Provisioning\Web\Services;
 use OpenSim\Provisioning\Web\Snippets;
@@ -69,13 +69,13 @@ final class WebCommand extends ScriptCommand
             }
         }
 
-        $etc = $this->engine($out)->layout->etcRoot();
-        $grids = [];
-        foreach (glob("$etc/grids/*", GLOB_ONLYDIR) ?: [] as $dir) {
-            if (GridState::robustIni($etc, basename($dir)) !== null) {
-                $grids[] = basename($dir);
+        $found = [];
+        foreach (Grid::all($this->engine($out)) as $grid) {
+            if ($grid->robustIni() !== null) {
+                $found[$grid->nick()] = $grid;
             }
         }
+        $grids = array_map('strval', array_keys($found));
         if ($options['grid'] === '' && count($grids) === 1) {
             $options['grid'] = $grids[0];
         }
@@ -91,7 +91,7 @@ final class WebCommand extends ScriptCommand
         }
 
         $nick = $options['grid'];
-        $gridDir = "$etc/grids/$nick";
+        $gridDir = $found[$nick]->directory();
         $services = HelpersConfig::services($gridDir);
         $webUrl = HelpersConfig::webUrl($gridDir);
 

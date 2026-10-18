@@ -7,10 +7,9 @@ use OpenSimKit\Ui\FieldForm;
 use OpenSim\Forms\FieldSet;
 use OpenSim\Config\GridFileService;
 use OpenSim\Console\InstanceConsoleService;
+use OpenSim\Models\Grid;
 use OpenSim\Models\GridInfo;
-use OpenSim\Models\GridState;
 use OpenSim\Models\Region;
-use OpenSim\Models\SimState;
 use OpenSim\Models\Simulator;
 use OpenSim\Provisioning\DatabaseService;
 use OpenSim\Provisioning\LocationFinder;
@@ -20,6 +19,7 @@ use OpenSim\Exceptions\SetupFailedException;
 use OpenSim\Provisioning\SimPlan;
 use OpenSim\Provisioning\SimPlanner;
 use OpenSim\Provisioning\UiInterface;
+use OpenSim\Runtime\Environment;
 
 /**
  * Create (or reconfigure) one simulator of a grid, with its first region.
@@ -94,7 +94,6 @@ final class NewSim
      */
     public function complete(SimPlan $plan, GridInfo $grid, array $profile, bool $accepted): ?array
     {
-        $etcRoot = $profile['EtcRoot'] ?? '';
         $database = new DatabaseService($this->ui);
         // The account may have had its password entered since this plan was made: that one is the password of the account
         DatabaseService::applyRemembered($plan);
@@ -122,8 +121,9 @@ final class NewSim
             $this->showPlan($plan);
         }
         // A simulator already linked may run, with users in it: restarting it warns them, and takes two minutes
-        $wasEnabled = SimState::isEnabled($etcRoot, $plan->slug);
-        $running = $wasEnabled && InstanceConsoleService::running(SimState::link($etcRoot, $plan->slug));
+        $simulator = new Simulator(Environment::forProfile($profile), $plan->iniPath());
+        $wasEnabled = $simulator->isEnabled();
+        $running = $wasEnabled && InstanceConsoleService::running($simulator->link());
         // A simulator without a region waits at its first start for the answers of a region to create, on a console nobody
         // reads: it is not started before it has one
         $hasRegion = $plan->createRegion || (glob("{$plan->regionsDir()}/*.ini") ?: []) !== [];
@@ -222,7 +222,7 @@ final class NewSim
         }
         $database = new DatabaseService($this->ui);
         $pool = [];
-        foreach (SimState::names($grid->dir) as $slug) {
+        foreach (Grid::at(Environment::forProfile($profile), $grid->dir)->simulatorNames() as $slug) {
             $pool[$slug] = $this->simTitle($grid, $slug);
         }
 
@@ -488,7 +488,7 @@ final class NewSim
             $known = [];
             foreach (glob("$etcRoot/grids/*", GLOB_ONLYDIR) ?: [] as $dir) {
                 $name = basename($dir);
-                if (GridState::robustIni($etcRoot, $name) !== null) {
+                if (Grid::find(Environment::forProfile($profile), $name)?->robustIni() !== null) {
                     $known[$name] = $name;
                 } elseif (GridInfo::isRemote($etcRoot, $name)) {
                     $known[$name] = "$name (Robust on another machine)";

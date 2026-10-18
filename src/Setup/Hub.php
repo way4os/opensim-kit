@@ -7,14 +7,14 @@ use OpenSimKit\Ui\Back;
 use OpenSimKit\Ui\EditConfig;
 use OpenSimKit\Ui\Quit;
 use OpenSim\Console\InstanceConsoleService;
+use OpenSim\Models\Grid;
 use OpenSim\Models\GridInfo;
-use OpenSim\Models\GridState;
 use OpenSim\Models\Region;
-use OpenSim\Models\SimState;
 use OpenSim\Provisioning\PendingRestarts;
 use OpenSim\Exceptions\SetupFailedException;
 use OpenSim\Provisioning\SimConfig;
 use OpenSim\Provisioning\UiInterface;
+use OpenSim\Runtime\Environment;
 
 /**
  * Setup hub: screens one level deeper each time, from the home to a region:
@@ -52,7 +52,7 @@ final class Hub
                 $name = $this->ui->entity($nick);
                 $options["grid:$nick"] = GridInfo::isRemote($etcRoot, $nick)
                     ? "$name (Robust on another machine)"
-                    : $name . (GridState::isEnabled($etcRoot, $nick) ? '' : ' [disabled]');
+                    : $name . ($this->grid($etcRoot, $nick)?->isEnabled() ? '' : ' [disabled]');
             }
             $options['add'] = _('Add grid');
             $options['quit'] = _('Quit');
@@ -255,7 +255,7 @@ final class Hub
         while (true) {
             $etcRoot = (new InstallConfig())->profile()['EtcRoot'] ?? '';
             $remote = GridInfo::isRemote($etcRoot, $nick);
-            $enabled = GridState::isEnabled($etcRoot, $nick);
+            $enabled = $this->grid($etcRoot, $nick)?->isEnabled() ?? false;
             $sims = $this->sims($etcRoot, $nick);
 
             // The grid is its regions: the simulators are the pool of servers that provide them
@@ -331,7 +331,7 @@ final class Hub
             foreach ($sims as $slug) {
                 $options["sim:$slug"] =
                     $this->ui->entity($this->simTitle($etcRoot, $nick, $slug)) .
-                    (SimState::isEnabled($etcRoot, $slug) ? '' : ' [disabled]');
+                    ($this->grid($etcRoot, $nick)?->simulator($slug)?->isEnabled() ? '' : ' [disabled]');
             }
             $options['addsim'] = _('Add simulator');
             $options['back'] = _('Back');
@@ -366,7 +366,7 @@ final class Hub
     {
         while (true) {
             $etcRoot = (new InstallConfig())->profile()['EtcRoot'] ?? '';
-            $enabled = SimState::isEnabled($etcRoot, $slug);
+            $enabled = $this->grid($etcRoot, $nick)?->simulator($slug)?->isEnabled() ?? false;
             $regions = Region::inDirectory("$etcRoot/grids/$nick/sims/$slug/regions");
 
             $options = [];
@@ -492,7 +492,13 @@ final class Hub
     /** @return list<string> instance names of the simulators of a grid */
     private function sims(string $etcRoot, string $grid): array
     {
-        return $etcRoot === '' ? [] : SimState::names("$etcRoot/grids/$grid");
+        return $this->grid($etcRoot, $grid)?->simulatorNames() ?? [];
+    }
+
+    /** The grid of this nick under EtcRoot, null when there is none. */
+    private function grid(string $etcRoot, string $nick): ?Grid
+    {
+        return $etcRoot === '' ? null : Grid::find(Environment::forProfile(['EtcRoot' => $etcRoot]), $nick);
     }
 
     /** @return list<string> */

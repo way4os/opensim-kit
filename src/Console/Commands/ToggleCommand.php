@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace OpenSimKit\Console\Commands;
 
 use OpenSim\Archives\Instances;
+use OpenSim\Interfaces\Enablable;
+use OpenSim\Models\Grid;
 use OpenSim\Models\GridInfo;
-use OpenSim\Models\GridState;
-use OpenSim\Models\SimState;
 use OpenSim\Provisioning\Features;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -66,13 +66,12 @@ abstract class ToggleCommand extends EngineCommand
 
         // The grids and the simulators the setup made, by the name of their instance
         $instances = [];
-        foreach (glob("$etc/grids/*", GLOB_ONLYDIR) ?: [] as $dir) {
-            $nick = basename($dir);
-            if (GridState::robustIni($etc, $nick) !== null) {
-                $instances[GridInfo::instanceName($nick)] = ['kind' => 'grid', 'nick' => $nick, 'enabled' => GridState::isEnabled($etc, $nick)];
+        foreach (Grid::all($this->engine($output)) as $grid) {
+            if ($grid->robustIni() !== null) {
+                $instances[GridInfo::instanceName($grid->nick())] = ['kind' => 'grid', 'model' => $grid];
             }
-            foreach (SimState::names($dir) as $slug) {
-                $instances[$slug] = ['kind' => 'simulator', 'slug' => $slug, 'ini' => "$dir/sims/$slug.ini", 'enabled' => SimState::isEnabled($etc, $slug)];
+            foreach ($grid->simulators() as $simulator) {
+                $instances[basename($simulator->ini(), '.ini')] = ['kind' => 'simulator', 'model' => $simulator];
             }
         }
 
@@ -89,12 +88,12 @@ abstract class ToggleCommand extends EngineCommand
 
                 continue;
             }
-            if ($instance['enabled'] === $enable) {
+            if ($instance['model']->isEnabled() === $enable) {
                 $output->writeln("{$instance['kind']} $name is already {$verb}d", OutputInterface::OUTPUT_RAW);
 
                 continue;
             }
-            if ($this->perform($instance, $enable, $etc, $error)) {
+            if ($this->perform($instance, $enable, $error)) {
                 $output->writeln("{$instance['kind']} $name {$verb}d" . ($enable ? ": opensim start $name" : ''), OutputInterface::OUTPUT_RAW);
             } else {
                 $failed = true;
@@ -107,19 +106,20 @@ abstract class ToggleCommand extends EngineCommand
     /**
      * Link the config of an instance where the launcher finds it, or unlink it.
      *
-     * @param array<string,mixed> $instance
+     * @param array{kind:string,model:Enablable} $instance
      */
-    private function perform(array $instance, bool $enable, string $etc, OutputInterface $error): bool
+    private function perform(array $instance, bool $enable, OutputInterface $error): bool
     {
         $grid = $instance['kind'] === 'grid';
+        $model = $instance['model'];
         if ($enable) {
-            $done = $grid ? GridState::enable($etc, $instance['nick']) : SimState::enable($etc, $instance['slug'], $instance['ini']);
+            $done = $model->enable();
             $done || $error->writeln($grid ? 'Cannot enable the grid (no Robust config).' : 'Cannot enable the simulator (no config).', OutputInterface::OUTPUT_RAW);
 
             return $done;
         }
-        $grid ? GridState::disable($etc, $instance['nick']) : SimState::disable($etc, $instance['slug']);
-        $done = $grid ? !GridState::isEnabled($etc, $instance['nick']) : !SimState::isEnabled($etc, $instance['slug']);
+        $model->disable();
+        $done = !$model->isEnabled();
         $done || $error->writeln($grid ? 'Cannot disable the grid (permission).' : 'Cannot disable the simulator (permission).', OutputInterface::OUTPUT_RAW);
 
         return $done;
