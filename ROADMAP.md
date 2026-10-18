@@ -50,8 +50,15 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
         - [ ] the global functions of `includes/` (`osDie`, `osXmlDie`, `osXmlResponse`, `currency_*`, `opensim_*`...) become namespaced code in `src/`, their errors problem details (RFC 9457)
         - [ ] what is the toolset's (`Provisioning`, `Console`, `Runtime`, `Archives`, `Testing`) and what is the library's (`Config`, `Data`, `Models`, `SignIn`, `Network`): decide where to cut, then the dependencies of each
         - [ ] the autoload is `psr-4` only, no `classmap` of root files, no `files` of functions
-- [ ] the helpers, the web setup and the mini website: a light framework, easy for a beginner to read (Slim 4 or like)
-- [ ] the layouts: every HTML object is coded with classes of a CSS system (Bootstrap or Tailwind), no style written in place
+    - the addresses follow the Robust config, not the other way round
+        - `currency.php` and `landtool.php` are the `economy` address of `[GridInfoService]` (the helper URI) plus a name the viewers fix: only the prefix changes
+        - `register.php`, `offline.php`, `query.php` are old habits, the default: the grid can say others in its `Robust.HG.ini`, and the helpers serve the addresses it says
+        - `get_grid_info` is a service of Robust; a page that answers the same address is a convention of ours, which can be changed
+        - [ ] so the contract of these endpoints is made from the config of the grid (the prefix and the names it says), not written once
+- [ ] the helpers, the web setup and the mini website: a light framework, easy for a beginner to read, PSR-7 and PSR-15 (Slim 4; Tiny, `ranaroussi/tiny`, is not: no composer package, no namespace, no PSR, PHP 8.3 at least while the project runs on 8.2)
+- [ ] the layouts: every HTML object has business classes (of its own, named for what it is), and the application that uses it decides the style
+    - [ ] nothing written in place (no `style=`), no CSS imposed: the application maps the classes to Bootstrap, to Tailwind or to its own
+    - [ ] the applications are a PHP micro-framework, WordPress, later Laravel
 - [ ] installable as composer libraries, Debian packages, Homebrew formulas, or from a clone
 
 ### 3.0.0-beta.7 (target: before 10-18, for Speculoos and hal)
@@ -126,7 +133,8 @@ The beta:
 
 - [ ] state of the refactoring frozen as a coherent beta of the family (the Unreleased list below)
     - [ ] `opensim setup` is intuitive and says nothing superfluous: the same questions whoever shows them (the terminal, `setup.sh`)
-        - [ ] first what to set up
+        - [ ] first who runs OpenSim: the dedicated users `opensim` and `www-data` (recommended), or the person who runs the setup, for everything
+        - [ ] then what to set up
             - [ ] a grid
             - [ ] a simulator that joins a grid that exists (OSGrid, Speculoos...)
             - [ ] standalone: one simulator with its own services, no grid (simpler than joining one)
