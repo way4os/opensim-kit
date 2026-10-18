@@ -241,4 +241,17 @@ describe('host scripts see as the one of the simulator', function () {
             ->and(SimConfig::lslHost(new SimPlan()))
             ->not->toBe('hg.osgrid.org');
     });
+
+    test('is the host of the grid when the simulator runs on the machine of the grid', function () {
+        $plan = new SimPlan();
+        $plan->baseHostname = 'play.example.org';
+
+        expect(SimConfig::lslHost($plan))
+            ->toBe('${Const|BaseHostname}')
+            ->and((new SimConfig())->render($plan))
+            ->toContain('ExternalHostNameForLSL = "${Const|BaseHostname}"');
+
+        $plan->gridHere = false;
+        expect(SimConfig::lslHost($plan))->not->toBe('${Const|BaseHostname}');
+    });
 });
