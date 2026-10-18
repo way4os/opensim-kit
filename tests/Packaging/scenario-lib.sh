@@ -59,6 +59,17 @@ ini_set() { # file, section, key, value
     rm -f "$tmp"
 }
 
+# The value of a setting in its section of an ini file (the last one, as OpenSimulator reads it), empty when there is none
+ini_get() { # file, section, key
+    SECTION=$2 KEY=$3 awk '
+        BEGIN { section = "[" ENVIRON["SECTION"] "]"; key = ENVIRON["KEY"] }
+        { sub(/\r$/, "") }
+        /^\[/ { inside = ($0 == section) }
+        inside && $0 ~ ("^[ \t]*" key "[ \t]*=") { value = $0; sub(/^[^=]*=[ \t]*/, "", value); gsub(/^"|"$/, "", value); found = value }
+        END { print found }
+    ' "$1"
+}
+
 # A setting of [Helpers] in the Helpers.ini of the grid of the scenario: what has no official place
 helpers_ini=/etc/opensim/grids/testgrid/Helpers.ini
 robust_ini=/etc/opensim/grids/testgrid/Robust.HG.ini

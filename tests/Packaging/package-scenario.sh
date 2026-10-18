@@ -231,9 +231,10 @@ check "the simulator runs with the master of its grid, and its own config does n
 check "what Robust serves, its simulators use: the bakes, the groups, the estates" "robust=/etc/opensim/grids/testgrid/Robust.HG.ini &&
     grep -qE '^\s*BakedTextureService' \$robust && grep -qE '^\s*GroupsServiceConnector' \$robust && grep -qE '^\s*HGGroupsServiceConnector' \$robust &&
     grep -qE '^\s*EstateDataService' \$robust &&
-    grep -A1 '^\[XBakes\]' $master | grep -qE '^URL = .*PrivatePort' &&
-    grep -A8 '^\[Groups\]' $master | grep -qE '^ServicesConnectorModule = \"Groups HG Service Connector\"' &&
-    grep -qE '^\s*LocalServiceModule = .*EstateDataRemoteConnector' /etc/opensim/grids/testgrid/config-include/GridCommon.ini"
+    [ \"\$(ini_get $master XBakes URL)\" = '\${Const|PrivURL}:\${Const|PrivatePort}' ] &&
+    [ \"\$(ini_get $master Groups ServicesConnectorModule)\" = 'Groups HG Service Connector' ] &&
+    [ \"\$(ini_get $master Groups Module)\" = 'Groups Module V2' ] &&
+    [ \"\$(ini_get /etc/opensim/grids/testgrid/config-include/GridCommon.ini EstateDataStore LocalServiceModule)\" = 'OpenSim.Services.Connectors.dll:EstateDataRemoteConnector' ]"
 check "the first region is the default region of the grid, and Robust says so" "grep -q '^Region_Sim1 = \"DefaultRegion, DefaultHGRegion, Persistent\"' /etc/opensim/grids/testgrid/Robust.HG.ini &&
     [ \"\$(mysql -BN -e \"SELECT (flags & 1 AND flags & 1024) FROM testgrid_robust.regions WHERE regionName='Sim1'\")\" = 1 ] &&
     curl -s -d 'METHOD=get_default_regions&SCOPEID=00000000-0000-0000-0000-000000000000' http://127.0.0.1:8003/grid | grep -q '>Sim1<'"
