@@ -50,16 +50,19 @@ Kit:
         - the package scenario checks it and passes: find the build or the path (quick setup, web, import) that left it out
     - [ ] `FallbackRegion` for the first region (the fix added it)
     - [ ] no `127.0.0.1` in `CertHostIp` and `RobustCertHostIp`
-    - [ ] connectors of Robust enabled by the options that need them
-        - [ ] offline messages: `OfflineIMServiceConnector`
-        - [ ] groups: `GroupsServiceConnector`, `HGGroupsServiceConnector`
-        - [ ] baked textures: `BakedTextureService`
-        - [ ] estates: `EstateDataService`
+    - connectors of Robust: all those of the services the helpers provide are enabled, and all those of the hypergrid when it is enabled
+        - [x] helpers: `OfflineIMServiceConnector`, `GroupsServiceConnector`, `UserProfilesServiceConnector`
+        - [x] hypergrid: `HGGroupsServiceConnector`
+        - [ ] groups on the simulators: `[Groups]` (module V2, service connector local or HG), the Robust side is done
+        - [ ] [?] `BakedTextureService`, `EstateDataService`: neither helpers nor hypergrid, the fix enabled them
     - [ ] map tiles: `GenerateMaptiles`, `MapImageModule`, `MaptileRefresh`, `TextureOnMapTile`, `DrawPrimOnMapTile`, `TexturePrims`
     - [ ] `OutboundDisallowForUserScripts` blocks the calls of the scripts to the local network (the helpers of the grid, the other machines of the operator)
     - [ ] `AllowOSFunctions = true` (the `osslEnable.ini` of the setup does not enable OSSL)
     - [ ] [?] `RegionType` in the region files (`Mainland`, `Private`...)
-    - [ ] [?] the name of the grid is the one typed ("Watta World"), not the nick form ("Watta_world") in Robust, the helpers and the conf
+    - [x] a grid whose files do not say its name is named by the words of its nick ("Watta World"), not "Watta_world"
+        - [ ] [?] find where the name was lost: a first install with the packages of the repository whose conf had no `GridName`?
+    - [x] `helpers.ini` (first setups) and `Helpers.ini` side by side broke the clone on macOS (case-insensitive): the setup renames the first, or keeps it aside as `helpers.ini~` when both exist
+        - [ ] the same check for every file the setup writes (two names that differ by the case only)
     - the web server snippet of watta.world (`handle` per route, imported from the site) is the model for "Caddy config compatible with an existing website" below
 - [ ] no `127.0.0.1` left in the config (unusable beyond tests)
 - [ ] options are ini files, included or combined: changing an option never needs a change in an install script
@@ -90,8 +93,10 @@ The beta:
 
 - [ ] state of the refactoring frozen as a coherent beta of the family (the Unreleased list below)
     - [ ] `setup.sh` is back as the install wizard (bash): the PHP forms are too heavy to drive from a shell script
-        - [ ] the questions are asked with the tools made for it: our `yesno` and `readvar`, `dialog`, the interfaces `dpkg` uses
-        - [ ] the engine provides the questions and processes the answers
+        - the engine knows how to configure: it provides the questions and processes the answers (one source of truth, also for w4os, mini-web, the manager)
+        - the script only knows how to show a question and send the answer back
+        - [ ] the engine gives each question as data and takes the answer (a protocol the script speaks, no PHP form handled by bash)
+        - [ ] the script shows them with the tools made for it: our `yesno` and `readvar`, `dialog`, the interfaces `dpkg` uses
         - [ ] the script asks which options to enable (see the options above), installs what they need and calls the engine
         - [ ] from scratch to live grid with basic/default features
     - [ ] `opensim setup`: the same wizard in the terminal, from the CLI
@@ -175,6 +180,7 @@ Services isolation, to reduce the attack surface (analysis first: security, perf
     - [ ] what a visitor of the public grid can reach of the main one
 - [ ] authentication of the private port
     - [ ] how the protocol works (it seems to be one user/key pair for the grid, not one per authorized party)
+        - Robust: `[Network] AuthType = "BasicHttpAuthentication"`, `HttpAuthUsername`, `HttpAuthPassword`; a service section can say `AuthType = "None"`
     - [ ] whether it can protect the external simulators (one key per simulator or per operator)
 
 Import and restore:
