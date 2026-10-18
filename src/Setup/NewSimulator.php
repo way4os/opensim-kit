@@ -310,9 +310,7 @@ final class NewSimulator
     /** The name a simulator was given, from its instance name (the grid's nick and an underscore start it) */
     private function simulatorNameOf(Grid $grid, string $slug): string
     {
-        $prefix = Slug::slug($grid->nick()) . '_';
-
-        return str_starts_with($slug, $prefix) ? substr($slug, strlen($prefix)) : $slug;
+        return Slug::simulatorOf($slug, $grid->nick());
     }
 
     /**
@@ -380,7 +378,7 @@ final class NewSimulator
         $plan->hypergrid = $grid->isHypergrid();
         $plan->logsDirectory = $grid->logsDirectory();
         $plan->simulatorName = $simulatorName;
-        $plan->slug = Slug::slug($grid->nick() . '_' . $simulatorName);
+        $plan->slug = $grid->instanceOf($simulatorName);
         $plan->regionOnly = true;
         $plan->createRegion = true;
         if (!is_file($plan->iniPath())) {

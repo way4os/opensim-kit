@@ -69,7 +69,7 @@ abstract class ToggleCommand extends EngineCommand
         $instances = [];
         foreach (Grid::all($this->engine($output)) as $grid) {
             if ($grid->robustIni() !== null) {
-                $instances[Slug::slug($grid->nick())] = ['kind' => 'grid', 'model' => $grid];
+                $instances[Slug::snake($grid->nick())] = ['kind' => 'grid', 'model' => $grid];
             }
             foreach ($grid->simulators() as $simulator) {
                 $instances[basename($simulator->ini(), '.ini')] = ['kind' => 'simulator', 'model' => $simulator];
@@ -79,7 +79,7 @@ abstract class ToggleCommand extends EngineCommand
         $enable = $verb === 'enable';
         $failed = false;
         foreach ($names as $name) {
-            $instance = $instances[Slug::slug($name)] ?? null;
+            $instance = $instances[Slug::snake($name)] ?? null;
             if ($instance === null) {
                 $error->writeln(
                     "$verb: no grid or simulator called $name" . ($instances === [] ? '' : ' (known: ' . implode(', ', array_keys($instances)) . ')'),
@@ -181,7 +181,7 @@ abstract class ToggleCommand extends EngineCommand
             // What the simulators and Robust read at their start; the OpenSim.ini of the grid is read by the helpers each time
             $restart = $touched;
             if ($result['robust']) {
-                array_unshift($restart, Slug::slug($grid->nick()));
+                array_unshift($restart, Slug::snake($grid->nick()));
             }
             $parts = array_filter([
                 $touched === [] ? null : count($touched) . ' simulator' . (count($touched) === 1 ? '' : 's'),

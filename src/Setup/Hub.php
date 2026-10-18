@@ -478,9 +478,7 @@ final class Hub
         if (($name = SimulatorConfig::readName("$etcRoot/grids/$nick/sims/$slug.ini")) !== null) {
             return $name;
         }
-        $prefix = Slug::slug($nick) . '_';
-
-        return str_starts_with($slug, $prefix) ? substr($slug, strlen($prefix)) : $slug;
+        return Slug::simulatorOf($slug, $nick);
     }
 
     /** @return list<string> grid nicks under EtcRoot/grids */

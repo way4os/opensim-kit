@@ -129,7 +129,7 @@ describe('questions about a new simulator', function () {
         $plan = (new NewSimulator($ui))->prepare($grid, $profile);
 
         expect($plan->simulatorName)->toBe('Garden Sim')
-            ->and($plan->slug)->toBe('garden_garden_sim')
+            ->and($plan->slug)->toBe('garden_garden-sim')
             ->and($plan->httpPort)->toBe(9020)
             ->and($plan->consoleMode)->toBe('screen')
             ->and($plan->consolePort)->toBe(9024)

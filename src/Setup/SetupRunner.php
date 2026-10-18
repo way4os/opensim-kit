@@ -197,9 +197,7 @@ final class SetupRunner
         if (($name = SimulatorConfig::readName("$etcRoot/grids/{$made[0]}/sims/{$made[1]}.ini")) !== null) {
             return $name;
         }
-        $prefix = Slug::slug($made[0]) . '_';
-
-        return str_starts_with($made[1], $prefix) ? substr($made[1], strlen($prefix)) : $made[1];
+        return Slug::simulatorOf($made[1], $made[0]);
     }
 
     /** @param list<array<string,mixed>> $users */

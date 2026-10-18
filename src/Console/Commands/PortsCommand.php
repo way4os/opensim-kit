@@ -38,7 +38,7 @@ final class PortsCommand extends ScriptCommand
             } elseif (str_starts_with($arg, '--private-address=')) {
                 $address = substr($arg, strlen('--private-address='));
             } else {
-                $names[] = Slug::slug($arg);
+                $names[] = Slug::snake($arg);
             }
         }
 
@@ -46,7 +46,7 @@ final class PortsCommand extends ScriptCommand
         $instances = [];
         foreach (['robust' => 'robust.d', 'opensim' => 'opensim.d'] as $type => $folder) {
             foreach (glob("$etc/$folder/*.ini") ?: [] as $ini) {
-                $name = Slug::slug(basename($ini, '.ini'));
+                $name = Slug::snake(basename($ini, '.ini'));
                 if ($names === [] || in_array($name, $names, true)) {
                     $instances[] = [$name, $type, $ini];
                 }
