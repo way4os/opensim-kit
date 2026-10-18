@@ -69,6 +69,26 @@ final class SetupRunner
     }
 
     /**
+     * A simulator that joins a grid that exists: the grid (a preset, or its address) and the owner of its estate are in the data, the
+     * rest is what the setup proposes. Quick: the plan is shown and accepted or not; advanced: every question, the answers proposed.
+     *
+     * @param array<string,mixed> $data  `join` (preset, address), `owner`, `simulators`
+     * @return ?array{0:string,1:string} the grid and the instance of the simulator; null when abandoned
+     */
+    public function runJoin(array $data, bool $advanced): ?array
+    {
+        $prompts = SetupFile::simPrompts($data, 0);
+        // The plan is accepted by the person, not by the table
+        unset($prompts['Apply this configuration']);
+        $join = $data['join'] ?? [];
+        $prompts['Grid to join'] = (string) ($join['preset'] ?? '') !== '' ? (string) $join['preset'] : '-';
+        $prompts['Address of the grid'] = (string) ($join['address'] ?? '');
+        $ui = new PresetUi($this->ui, $prompts, [...self::ASK, 'Apply this configuration'], $advanced);
+
+        return (new NewSim($ui))->run(null, null, true, self::simValues($data, 0), $advanced);
+    }
+
+    /**
      * @param array<string,mixed> $data  a setup (SetupFile::parse)
      * @param list<string> $ask  the questions still asked of the user (self::ASK for the quick setup)
      * @param string $resultFile  where the passwords made for the accounts of the list are written

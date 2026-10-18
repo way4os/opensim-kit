@@ -16,8 +16,11 @@ mysql -e "CREATE DATABASE testgrid_robust; CREATE USER opensim@localhost IDENTIF
 mysql testgrid_robust -e "CREATE TABLE IF NOT EXISTS im_offline (ID mediumint(9) NOT NULL AUTO_INCREMENT, PrincipalID char(36) NOT NULL DEFAULT '',
     FromID char(36) NOT NULL DEFAULT '', Message text NOT NULL, TMStamp timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
     PRIMARY KEY (ID), KEY PrincipalID (PrincipalID), KEY FromID (FromID)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3"
-check "the setup wrote the files for the three servers" "[ -s /etc/opensim/grids/testgrid/web/testgrid.caddyfile ] &&
-    [ -s /etc/opensim/grids/testgrid/web/testgrid-nginx.conf ] && [ -s /etc/opensim/grids/testgrid/web/testgrid-apache.conf ]"
+check "the setup wrote the file of the server it was told" "[ -s /etc/opensim/grids/testgrid/web/testgrid.caddyfile ]"
+# The other servers: the file is made by the command, for the server of the person
+opensim web testgrid snippet nginx >/etc/opensim/grids/testgrid/web/testgrid-nginx.conf
+opensim web testgrid snippet apache >/etc/opensim/grids/testgrid/web/testgrid-apache.conf
+check "the command makes the files of the other servers" "[ -s /etc/opensim/grids/testgrid/web/testgrid-nginx.conf ] && [ -s /etc/opensim/grids/testgrid/web/testgrid-apache.conf ]"
 apt_q install php-fpm
 systemctl start php8.2-fpm
 check "PHP-FPM listens where the files say" "[ -S /run/php/php-fpm.sock ]"

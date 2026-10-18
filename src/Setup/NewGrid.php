@@ -250,6 +250,19 @@ final class NewGrid
             $given === [] ? null : $planner->resolve($answers),
         );
 
+        // The options of a new grid (search, currency, OSSL, web): not asked for a grid that exists
+        $options = $fields->group('options');
+        if (array_filter($options->all(), static fn(array $field): bool => ($field['enable'] ?? true) !== false) !== []) {
+            $answers += FieldForm::ask(
+                $this->ui,
+                $options,
+                $planner->resolve($answers + $given),
+                _('Options'),
+                $answers,
+                $given === [] ? null : $planner->resolve($answers),
+            );
+        }
+
         return $this->planned($planner->plan($answers + $given), true);
     }
 
@@ -327,6 +340,10 @@ final class NewGrid
             "  Web URL:     {$plan->webUrl}",
             '  Helpers:     ' .
             ($plan->helpers ? "served at {$plan->webUrl}{$plan->helpersPath}" : 'not served by this web site'),
+            '  Search:      ' . ['internal' => 'this grid (opensim-helpers)', 'shared' => 'shared provider (2do.directory)', 'disabled' => 'none'][$plan->search],
+            '  Currency:    ' . ($plan->economy === 'gloebit' ? 'Gloebit' : 'BetaGridLikeMoneyModule'),
+            '  OSSL:        ' . ($plan->ossl ? 'more functions for parcel owners (NPC, animations, drawing...)' : 'the defaults of the core'),
+            ...$plan->helpers ? ['  Web server:  ' . ['caddy' => 'Caddy', 'apache' => 'Apache', 'nginx' => 'nginx'][$plan->webServer] . ($plan->webSite === 'website' ? ', with the mini website' : ', the helpers only')] : [],
             "  Database:    {$plan->dbName} @ {$plan->dbHost} (user {$plan->dbUser})",
             "  Robust ini:  {$plan->robustIni()}",
             "  Grid dir:    {$plan->etcDirectory}",

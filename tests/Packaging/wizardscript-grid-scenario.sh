@@ -35,7 +35,7 @@ fe_answer() {
     answer=$default
     case "$label" in
     'Grid name') answer='Script Grid' ;;
-    'Login URI') answer='localhost:8002' ;;
+    'Grid URL') answer='localhost:8002' ;;
     'Grid owner') answer='Script Owner' ;;
     'Owner password') answer='secret12' ;;
     'Database password') answer='knownpw12' ;;

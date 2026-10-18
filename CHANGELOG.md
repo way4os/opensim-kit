@@ -3,6 +3,9 @@
 ### Unreleased
 
 - update: `setup.sh` shows the questions of the setup with `dialog`, or with plain prompts
+- update: `opensim setup` asks what to set up, the basics, the options with their default, then quick or advanced
+- new: options of a new grid: search (own, shared 2do.directory, none), currency, more OSSL, web server and site
+- update: the setup writes the web server file of the server chosen only, never over one that exists
 - fix: a hypergrid tells its gatekeeper, the scripts of a simulator see the grid host
 - fix: a new grid serves bakes, estates, groups and profiles, its simulators use them
 - fix: `helpers.ini` of old setups becomes `Helpers.ini` (a case clash on macOS)

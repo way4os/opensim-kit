@@ -1,6 +1,6 @@
 <?php
 
-use OpenSimKit\Setup\QuickSetup;
+use OpenSimKit\Setup\StartSetup;
 use OpenSimKit\Ui\AsksForms;
 use OpenSimKit\Ui\PresetUi;
 use OpenSim\Provisioning\UiInterface;
@@ -97,13 +97,13 @@ test('asks the database again after a failure', function () {
 });
 
 test('reads a login URI as host:port, with or without the scheme', function () {
-    expect(QuickSetup::login('play.example.org:8002'))
+    expect(StartSetup::login('play.example.org:8002'))
         ->toBe(['play.example.org', 8002])
-        ->and(QuickSetup::login(' http://vonda:8012/ '))
+        ->and(StartSetup::login(' http://vonda:8012/ '))
         ->toBe(['vonda', 8012])
-        ->and(QuickSetup::login('play.example.org'))
+        ->and(StartSetup::login('play.example.org'))
         ->toBeNull()
-        ->and(QuickSetup::login('host:99999'))
+        ->and(StartSetup::login('host:99999'))
         ->toBeNull();
 });
 

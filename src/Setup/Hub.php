@@ -39,6 +39,7 @@ final class Hub
         // A core that cannot run on this machine is said at once, not when the first grid fails to start
         $this->runtime?->ensure();
 
+        $first = true;
         while (true) {
             $config = new InstallConfig();
             $cores = $config->profiles();
@@ -57,7 +58,9 @@ final class Hub
             $options['quit'] = _('Quit');
 
             $default = $cores === [] ? 'core' : ($grids === [] ? 'add' : "grid:{$grids[0]}");
-            $choice = $this->ui->choose(_('OpenSim — setup'), $options, $default);
+            // A machine with a core and nothing else goes straight to what it is for: no menu to read first
+            $choice = $first && $cores !== [] && $grids === [] ? 'add' : $this->ui->choose(_('OpenSim — setup'), $options, $default);
+            $first = false;
 
             try {
                 $quit = match (true) {
@@ -189,56 +192,34 @@ final class Hub
      */
     private function addGrid(): bool
     {
-        $choice = $this->ui->choose(
-            _('Add a grid'),
-            [
-                'quick' => _('Quick setup'),
-                'new' => _('Advanced setup'),
-                'external' => _('Connect to an external grid'),
-                'back' => _('Back'),
-                'quit' => _('Quit'),
-            ],
-            'quick',
-        );
+        $start = (new StartSetup($this->ui))->ask();
+        $made = $this->guard(fn() => $this->make($start));
 
-        switch ($choice) {
-            case 'quick':
-                $made = $this->guard(fn() => $this->quickSetup());
-
-                return $made !== null && $this->ready($made[0], $made[1]);
-            case 'new':
-                $nick = $this->guard(fn() => (new NewGrid($this->ui))->run(null));
-                if ($nick === null) {
-                    return false;
-                }
-                // The grid is made: its first simulator and its region are what is missing to use it
-                $made = $this->guard(fn() => (new NewSim($this->ui))->run($nick));
-
-                return $made !== null ? $this->ready($made[0], $made[1]) : $this->gridScreen($nick);
-            case 'external':
-                $made = $this->guard(fn() => (new NewSim($this->ui))->run(null, null, true));
-
-                return $made !== null && $this->simScreen($made[0], $made[1]);
-            default:
-                return $choice === 'quit';
-        }
+        return $made !== null && ($start['type'] === StartSetup::GRID ? $this->ready($made[0], $made[1]) : $this->simScreen($made[0], $made[1]));
     }
 
     /**
-     * The quick setup: a form, then the setup with the defaults and the plan to accept. When the plan is
-     * not accepted, the advanced setup is offered.
+     * What the start of the setup asked, made: a grid and its first simulator, or a simulator that joins a grid. Quick shows the plan
+     * and writes it once accepted (when it is not, every question is asked, with the answers proposed).
      *
+     * @param array{type:string,mode:string,data:array<string,mixed>} $start
      * @return ?array{0:string,1:string} the grid and its simulator
      */
-    private function quickSetup(): ?array
+    private function make(array $start): ?array
     {
-        $data = (new QuickSetup($this->ui))->ask();
+        $runner = new SetupRunner($this->ui);
+        $advanced = $start['mode'] === StartSetup::ADVANCED;
+        if ($start['type'] === StartSetup::SIMULATOR) {
+            return $runner->runJoin($start['data'], $advanced);
+        }
+        if ($advanced) {
+            return $runner->run($start['data'], [], '', true);
+        }
         try {
-            return (new SetupRunner($this->ui))->runQuick($data);
+            return $runner->runQuick($start['data']);
         } catch (EditConfig) {
-            // Nothing is written yet: every question again, with what was typed and what the setup chose as the
-            // answers proposed
-            return (new SetupRunner($this->ui))->run($data, [], '', true);
+            // Nothing is written yet: every question again, with what was typed and what the setup chose as the answers proposed
+            return $runner->run($start['data'], [], '', true);
         }
     }
 

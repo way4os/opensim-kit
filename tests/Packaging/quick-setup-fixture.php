@@ -4,7 +4,7 @@
 return [
     'fill' => [
         'Grid name' => 'Web Grid',
-        'Login URI' => 'localhost:8002',
+        'Grid URL' => 'localhost:8002',
         'Grid owner' => 'Web Owner',
         'Owner password' => 'secret12',
         // The account of the database exists already: its password is asked, once
