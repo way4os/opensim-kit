@@ -2,11 +2,11 @@
 
 ### Unreleased
 
-- new: `setup.sh` asks the questions of the setup itself (dialog, or plain prompts), the setup gives them (`opensim setup --frontend DIR`)
-- fix: a hypergrid tells its gatekeeper in the grid info, and the scripts of a simulator see the host of the grid
-- fix: Robust serves the bakes, the estates, the groups and the profiles of a new grid, its simulators use them
-- fix: `helpers.ini` of the first setups is renamed `Helpers.ini` (two files differing by the case break a clone on macOS)
-- fix: a grid whose files do not say its name is "Watta World", not "Watta_world"
+- new: `setup.sh` asks the questions itself, `opensim setup --frontend` gives them
+- fix: a hypergrid tells its gatekeeper, the scripts of a simulator see the grid host
+- fix: a new grid serves bakes, estates, groups and profiles, its simulators use them
+- fix: `helpers.ini` of old setups becomes `Helpers.ini` (a case clash on macOS)
+- fix: a grid with no name is named from its nick in words (Watta World)
 - update: `gettext` is suggested, not required: without it the messages stay in English
 - update: the navigation of the setup in the browser is one row (Cancel, Quit, Continue), Cancel replaces Back (it gives up the screen), and a menu's Back and Quit are not shown twice
 - fix: a new region offers every role, checked only when the grid has no region with it yet (several default regions are possible)
