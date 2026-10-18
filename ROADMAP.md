@@ -50,6 +50,10 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
         - [ ] the global functions of `includes/` (`osDie`, `osXmlDie`, `osXmlResponse`, `currency_*`, `opensim_*`...) become namespaced code in `src/`, their errors problem details (RFC 9457)
         - [ ] what is the toolset's (`Provisioning`, `Console`, `Runtime`, `Archives`, `Testing`) and what is the library's (`Config`, `Data`, `Models`, `SignIn`, `Network`): decide where to cut, then the dependencies of each
         - [ ] the autoload is `psr-4` and `files` for what has to be global (`_()`, the xmlrpc polyfill, the constants), no `classmap` of root files
+        - [ ] one way to enable, disable and tell the state of a grid, a simulator, a region (no `GridState`, `SimState`, `RegionState` beside the models)
+            - [ ] `Enablable` (`isEnabled()`, `enable()`, `disable()`) for `Robust`, `Simulator` (both already have them from `Instance`), `Grid` (delegates to its Robust) and `Region`
+            - [ ] `GridState` and `SimState` go: their callers (setup, commands, backup, provisioners) ask the model
+            - [ ] a region has its file in its simulator (enabled while it ends in `.ini`) and its row in the grid (`Region`): one model, `Region::configured()` lists the files
         - [ ] a pseudo cron in the engine: the mechanics only, the consumers say what to schedule (the helpers: the parser of the events...)
             - [ ] tasks with a name and an interval, run when due by whoever comes first: a request (after the answer is sent: `dontWait()` today is the rudimentary form), or a real cron through the command line
             - [ ] a task never runs twice at once (a lock), and a task that fails is told, not retried in a loop
