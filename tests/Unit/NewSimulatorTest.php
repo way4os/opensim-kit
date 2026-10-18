@@ -11,7 +11,7 @@ use OpenSim\Models\GridInfo;
 use OpenSim\Provisioning\GridPlan;
 use OpenSim\Models\Region;
 use OpenSim\Provisioning\UiInterface;
-use OpenSimKit\Setup\NewSim;
+use OpenSimKit\Setup\NewSimulator;
 
 /** A user who accepts what is proposed, and answers the questions whose label contains the start of a key. */
 final class SimUiFake implements UiInterface
@@ -99,10 +99,10 @@ describe('questions about a new simulator', function () {
         [$grid, $profile] = sim_install();
         $ui = new SimUiFake(['Name of the new account' => 'Ann Poe', 'Password of the new account' => 'secret1']);
 
-        $plan = (new NewSim($ui))->prepare($grid, $profile);
+        $plan = (new NewSimulator($ui))->prepare($grid, $profile);
 
         expect($ui->asked)->toContain('Simulator name', 'Simulator HTTP port', 'Console of the simulator', 'Database host', 'Estate name', 'Name of the new account (First Last)', 'Region name', 'Region location (x,y)', 'Region port')
-            ->and($plan->simName)->toBe('Welcome')
+            ->and($plan->simulatorName)->toBe('Welcome')
             ->and($plan->slug)->toBe('garden_welcome')
             ->and($plan->gridNick)->toBe('garden')
             ->and($plan->httpPort % 10)->toBe(0)
@@ -128,9 +128,9 @@ describe('questions about a new simulator', function () {
             'Region name' => 'Roses', 'Role of this region' => [Region::flagName(Region::FALLBACK_REGION)], 'Region location' => '8100,8100',
         ]);
 
-        $plan = (new NewSim($ui))->prepare($grid, $profile);
+        $plan = (new NewSimulator($ui))->prepare($grid, $profile);
 
-        expect($plan->simName)->toBe('Garden Sim')
+        expect($plan->simulatorName)->toBe('Garden Sim')
             ->and($plan->slug)->toBe('garden_garden_sim')
             ->and($plan->httpPort)->toBe(9020)
             ->and($plan->consoleMode)->toBe('screen')
@@ -144,7 +144,7 @@ describe('questions about a new simulator', function () {
         [$grid, $profile] = sim_install();
         $ui = new SimUiFake(['Name of the new account' => 'Ann Poe', 'Password of the new account' => 'secret1', 'Create the first region' => false]);
 
-        $plan = (new NewSim($ui))->prepare($grid, $profile);
+        $plan = (new NewSimulator($ui))->prepare($grid, $profile);
 
         expect($plan->createRegion)->toBeFalse()->and($ui->asked)->not->toContain('Region name');
     });
@@ -153,7 +153,7 @@ describe('questions about a new simulator', function () {
         [$grid, $profile] = sim_install(['planned' => false, 'dbName' => 'nowhere', 'dbHost' => '127.0.0.1:1']);
         $ui = new SimUiFake(['Estate owner' => 'Far Away']);
 
-        $plan = (new NewSim($ui))->prepare($grid, $profile);
+        $plan = (new NewSimulator($ui))->prepare($grid, $profile);
 
         expect($ui->asked)->toContain('Estate owner (an account of the grid)')->and($ui->asked)->not->toContain('Name of the new account (First Last)')
             ->and($plan->estateOwner)->toBe('Far Away')
@@ -166,7 +166,7 @@ describe('questions about a new simulator', function () {
         unlink("$root/cores/0.9.3.0/bin/OpenSim.dll");
         $ui = new SimUiFake();
 
-        expect((new NewSim($ui))->prepare($grid, $profile))->toBeNull()->and($ui->notes)->toContain('error: No OpenSim core found.');
+        expect((new NewSimulator($ui))->prepare($grid, $profile))->toBeNull()->and($ui->notes)->toContain('error: No OpenSim core found.');
     });
 
     test('abandon a simulator that exists when the person says so, and modify it when they do not', function () {
@@ -175,10 +175,10 @@ describe('questions about a new simulator', function () {
         file_put_contents("{$grid->dir}/sims/garden_welcome.ini", "[Network]\nhttp_listener_port = 9050\n[Estates]\nDefaultEstateName = \"Old Estate\"\nDefaultEstateOwnerName = \"Jane Doe\"\n");
 
         $ui = new SimUiFake(['is already configured' => 'abandon', 'Simulator name' => 'Welcome']);
-        expect((new NewSim($ui))->prepare($grid, $profile))->toBeNull()->and($ui->notes)->toContain('Left unchanged.');
+        expect((new NewSimulator($ui))->prepare($grid, $profile))->toBeNull()->and($ui->notes)->toContain('Left unchanged.');
 
         $ui = new SimUiFake(['Simulator name' => 'Welcome', 'Name of the new account' => 'Ann Poe', 'Password of the new account' => 'secret1']);
-        $plan = (new NewSim($ui))->prepare($grid, $profile);
+        $plan = (new NewSimulator($ui))->prepare($grid, $profile);
         // Its own settings are the ones proposed
         expect($plan->httpPort)->toBe(9050)->and($plan->estateName)->toBe('Old Estate');
     });
@@ -199,10 +199,10 @@ describe('A setup file that answers the questions about a simulator', function (
         [$grid, $profile] = sim_install();
         $ui = new SimUiFake();
 
-        $plan = (new NewSim($ui))->prepare($grid, $profile, null, sim_values());
+        $plan = (new NewSimulator($ui))->prepare($grid, $profile, null, sim_values());
 
         expect($ui->asked)->toBe([])
-            ->and($plan->simName)->toBe('Garden Sim')
+            ->and($plan->simulatorName)->toBe('Garden Sim')
             ->and($plan->httpPort)->toBe(9020)
             ->and($plan->consolePort)->toBe(9024)
             ->and([$plan->dbUser, $plan->dbPass])->toBe(['opensim', 'secret1'])
@@ -218,7 +218,7 @@ describe('A setup file that answers the questions about a simulator', function (
         [$grid, $profile] = sim_install(['planned' => false, 'dbName' => 'nowhere', 'dbHost' => '127.0.0.1:1']);
         $ui = new SimUiFake();
 
-        $plan = (new NewSim($ui))->prepare($grid, $profile, null, sim_values());
+        $plan = (new NewSimulator($ui))->prepare($grid, $profile, null, sim_values());
 
         // The accounts of this grid cannot be read here: the owner has to exist
         expect($ui->asked)->toBe([])->and($plan->estateOwner)->toBe('Ann Poe')->and($plan->createOwner)->toBeFalse();
@@ -229,11 +229,11 @@ describe('A setup file that answers the questions about a simulator', function (
         $ui = new SimUiFake(['Simulator HTTP port' => '9030']);
         $values = sim_values(['simulator' => ['name' => 'Garden Sim', 'http_port' => 'abc', 'database_user' => 'opensim', 'database_password' => 'secret1']]);
 
-        $plan = (new NewSim($ui))->prepare($grid, $profile, null, $values);
+        $plan = (new NewSimulator($ui))->prepare($grid, $profile, null, $values);
 
         expect($ui->asked)->toContain('Simulator HTTP port')
             ->and($plan->httpPort)->toBe(9030)
-            ->and($plan->simName)->toBe('Garden Sim')
+            ->and($plan->simulatorName)->toBe('Garden Sim')
             ->and($plan->estateOwner)->toBe('Ann Poe');
     });
 
@@ -242,7 +242,7 @@ describe('A setup file that answers the questions about a simulator', function (
         $ui = new SimUiFake();
         $values = sim_values(['region' => ['name' => 'Roses', 'roles' => []]]);
 
-        $plan = (new NewSim($ui))->prepare($grid, $profile, null, $values);
+        $plan = (new NewSimulator($ui))->prepare($grid, $profile, null, $values);
 
         expect($ui->asked)->toBe([])->and($plan->regionName)->toBe('Roses')->and($plan->regionRoles)->toBe([])->and($plan->regionLocation)->not->toBe('');
     });
@@ -251,10 +251,10 @@ describe('A setup file that answers the questions about a simulator', function (
         [$grid, $profile] = sim_install();
         $ui = new SimUiFake();
 
-        $plan = (new NewSim($ui))->prepare($grid, $profile, null, sim_values(), true);
+        $plan = (new NewSimulator($ui))->prepare($grid, $profile, null, sim_values(), true);
 
         expect($ui->asked)->toContain('Simulator name', 'Simulator HTTP port', 'Database user', 'Estate name', 'Region name')
-            ->and($plan->simName)->toBe('Garden Sim')
+            ->and($plan->simulatorName)->toBe('Garden Sim')
             ->and($plan->httpPort)->toBe(9020)
             ->and([$plan->dbUser, $plan->dbPass])->toBe(['opensim', 'secret1'])
             ->and($plan->estateOwner)->toBe('Ann Poe')

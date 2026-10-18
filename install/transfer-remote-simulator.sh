@@ -53,58 +53,58 @@ debug get local config from $EtcRoot
 debug BinDirectory $BinDirectory
 debug Include-Common ${Include_Common}
 
-for sim in $@; do
-	debug transfering simulator $sim from $source
-	mkdir $TMPDIR/$sim && cd $TMPDIR/$sim || end $?
+for simulator in $@; do
+	debug transfering simulator $simulator from $source
+	mkdir $TMPDIR/$simulator && cd $TMPDIR/$simulator || end $?
 
-	debug get remote config file $source:$EtcRoot/opensim.d/$sim.ini
-	scp $source:$EtcRoot/opensim.d/$sim.ini $TMP.ini || end $?
-	cleanupIni $TMP.ini >$sim.remote.ini
+	debug get remote config file $source:$EtcRoot/opensim.d/$simulator.ini
+	scp $source:$EtcRoot/opensim.d/$simulator.ini $TMP.ini || end $?
+	cleanupIni $TMP.ini >$simulator.remote.ini
 
 	debug get remote db config
-	crudget $sim.remote.ini DatabaseService ConnectionString |
+	crudget $simulator.remote.ini DatabaseService ConnectionString |
 		tr ";" "\n" | grep = | grep -v "Old Guids" |
 		sed -e "s/^Data Source/REMOTEDBHOST/" -e "s/^Database/REMOTEDBNAME/" -e "s/^User ID/REMOTEDBUSER/" -e "s/^Password/REMOTEDBPASS/" |
 		tee $TMP.remotedb.ini && . $TMP.remotedb.ini || end $?
 
-	if [ -e $EtcRoot/opensim.d/$sim.ini ]; then
-		log 1 "$EtcRoot/opensim.d/$sim.ini already exists"
+	if [ -e $EtcRoot/opensim.d/$simulator.ini ]; then
+		log 1 "$EtcRoot/opensim.d/$simulator.ini already exists"
 		if ! yesno "Replace with remote config?"; then
 			yesno "Erase other data and replace with remote content?" || end $?
-			cp $EtcRoot/opensim.d/$sim.ini $TMP.ini
+			cp $EtcRoot/opensim.d/$simulator.ini $TMP.ini
 		fi
 	fi
-	cleanupIni $TMP.ini >$sim.ini
+	cleanupIni $TMP.ini >$simulator.ini
 
 	debug get local db config
-	crudget $sim.ini DatabaseService ConnectionString |
+	crudget $simulator.ini DatabaseService ConnectionString |
 		tr ";" "\n" | grep = | grep -v "Old Guids" |
 		sed -e "s/^Data Source/DBHOST/" -e "s/^Database/DBNAME/" -e "s/^User ID/DBUSER/" -e "s/^Password/DBPASS/" |
-		tee $sim.$$.db.ini && . $sim.$$.db.ini || end $?
+		tee $simulator.$$.db.ini && . $simulator.$$.db.ini || end $?
 
-	[ "$BinDirectory" ] && crudini --set $sim.ini Launch BinDir "$BinDirectory"
-	[ "$EstateConnectionString" ] && crudini --set $sim.ini DatabaseService EstateConnectionString "\"$EstateConnectionString\""
-	[ "$GLBSpecificConnectionString" ] && crudini --set $sim.ini Gloebit GLBSpecificConnectionString "\"$GLBSpecificConnectionString\""
-	[ "$GridCommon" ] && crudini --set $sim.ini Includes Include-Common "$GridCommon"
+	[ "$BinDirectory" ] && crudini --set $simulator.ini Launch BinDir "$BinDirectory"
+	[ "$EstateConnectionString" ] && crudini --set $simulator.ini DatabaseService EstateConnectionString "\"$EstateConnectionString\""
+	[ "$GLBSpecificConnectionString" ] && crudini --set $simulator.ini Gloebit GLBSpecificConnectionString "\"$GLBSpecificConnectionString\""
+	[ "$GridCommon" ] && crudini --set $simulator.ini Includes Include-Common "$GridCommon"
 
-	SimName=$(crudget $sim.ini Launch SimName)
+	SimName=$(crudget $simulator.ini Launch SimName)
 	# just make sure SimName is lowercase and without spaces
 	$SimName=$(echo $SimName | sed "s/[^[:alnum:]_]//g" | tr [:upper:] [:lower:])
 
 	## Forget that stuff, simname **is** the MachineName
 	# log check if MachineName is present and valid
-	# MachineName==$(crudget $sim.ini Launch MachineName)
+	# MachineName==$(crudget $simulator.ini Launch MachineName)
 	# [ "$MachineName" ] \
 	# && MachineName=$(echo $MachineName | sed "s/[^[:alnum:]_]//g" ) \
 	# || MachineName=$(echo $SimName | sed "s/[^[:alnum:]_]//g" | tr [:upper:] [:lower:]) \
 	# && [ "$MachineName" ] \
-	# && crudini --set $sim.ini Launch MachineName $MachineName \
+	# && crudini --set $simulator.ini Launch MachineName $MachineName \
 	# || end $? MachineName $MachineName empty
 	# log MachineName $MachineName
 
 	# log rough and dirty LogConfig fix
-	crudini --set $sim.ini Launch LogConfig "$(crudget $GridCommon Const DataRoot | sed -e "s#\${Launch|SimName}#${SimName}#g" -e "s#\${Launch|MachineName}#${SimName}#g")/config/log.config"
-	# crudini --set $sim.ini Launch LogConfig "$(crudget $GridCommon Const DataRoot | sed -e "s#\${Launch|SimName}#${MachineName}#g" -e "s#\${Launch|MachineName}#${MachineName}#g")/config/log.config"
+	crudini --set $simulator.ini Launch LogConfig "$(crudget $GridCommon Const DataRoot | sed -e "s#\${Launch|SimName}#${SimName}#g" -e "s#\${Launch|MachineName}#${SimName}#g")/config/log.config"
+	# crudini --set $simulator.ini Launch LogConfig "$(crudget $GridCommon Const DataRoot | sed -e "s#\${Launch|SimName}#${MachineName}#g" -e "s#\${Launch|MachineName}#${MachineName}#g")/config/log.config"
 
 	debug "Creating user $DBUSER (if not exists)"
 	echo "CREATE USER IF NOT EXISTS $DBUSER IDENTIFIED BY '$DBPASS'" | sudo mysql -BN
@@ -128,7 +128,7 @@ for sim in $@; do
 
 	# create local directories and sync non cache ones
 	# section=
-	# egrep -v "http:|https:|^Include|OutboundDisallowForUserScripts" $sim.live.ini \
+	# egrep -v "http:|https:|^Include|OutboundDisallowForUserScripts" $simulator.live.ini \
 	# | inigrep / | sed "s/ *=.*//" | while read line
 	# do
 	#   echo $line | grep -q "\[" && section=$(echo $line | sed "s/[^[:alpha:]]//g") && continue
@@ -136,15 +136,15 @@ for sim in $@; do
 	# done | sort -u
 
 	debug get remote live config
-	ssh $source "screen -x $sim -X stuff 'config save /tmp/$sim.live.$$.ini$lr'" || end $? "Is remote simulator up and running?"
-	scp $source:/tmp/$sim.live.$$.ini ./$sim.live.ini || end $? "Could not get live config. Is remote simulator up and running?"
+	ssh $source "screen -x $simulator -X stuff 'config save /tmp/$simulator.live.$$.ini$lr'" || end $? "Is remote simulator up and running?"
+	scp $source:/tmp/$simulator.live.$$.ini ./$simulator.live.ini || end $? "Could not get live config. Is remote simulator up and running?"
 
 	log 1 stop remote simulator
-	ssh $source "$BINDIR/opensim stop now $sim" || end $?
-	ssh -t $source "screen -x $sim"
+	ssh $source "$BINDIR/opensim stop now $simulator" || end $?
+	ssh -t $source "screen -x $simulator"
 
 	debug "dump remote db to local one"
-	debug ssh $source "$BINDIR/opensim stop $sim"
+	debug ssh $source "$BINDIR/opensim stop $simulator"
 	DUMPSIZE=$(mysql --skip-column-names -h$source -u$REMOTEDBUSER -p"$REMOTEDBPASS" $REMOTEDBNAME <<<"
   SELECT ROUND(SUM(data_length + index_length) * 0.5, 0)
   FROM information_schema.TABLES WHERE table_schema='$REMOTEDBNAME';
@@ -155,14 +155,14 @@ for sim in $@; do
 		end $?
 
 	debug calculating local config log $GridCommon to grid.ini
-	cp $sim.ini $sim.local.ini
+	cp $simulator.ini $simulator.local.ini
 	cleanupIni $GridCommon >$TMP.ini
-	crudini --merge $sim.local.ini <$TMP.ini
-	cat $sim.local.ini | tr "$ :/\"" "\n" | grep '{.*|.*}' | sort -u | tr "{|}" " " |
+	crudini --merge $simulator.local.ini <$TMP.ini
+	cat $simulator.local.ini | tr "$ :/\"" "\n" | grep '{.*|.*}' | sort -u | tr "{|}" " " |
 		while read section variable; do
-			value=$(crudget $sim.local.ini $section $variable)
+			value=$(crudget $simulator.local.ini $section $variable)
 			# echo "  $section->$variable = $value"
-			sed -i~ "s#\${$section|$variable}#$value#g" $sim.local.ini || end $?
+			sed -i~ "s#\${$section|$variable}#$value#g" $simulator.local.ini || end $?
 		done
 
 	echo "AssetCache CacheRoot
@@ -173,29 +173,29 @@ Const ConfigDirectory
 DataSnapshot snapshot_cache_directory
 GridService MapTileDirectory
 Startup regionload_regionsdir" | while read section param; do
-		dst=$(crudget $sim.local.ini $section $param)
+		dst=$(crudget $simulator.local.ini $section $param)
 		[ "$dst" ] && mkdir -p "$dst"
 
-		src=$(crudget $sim.live.ini $section $param)
+		src=$(crudget $simulator.live.ini $section $param)
 		[ "$src" ] || continue
 		echo $section $param $src $dst | egrep -qi "cache" && continue # exclude cache
-		echo "/$src/" | egrep -qi "/$sim/" || continue                 # exclude shared
+		echo "/$src/" | egrep -qi "/$simulator/" || continue                 # exclude shared
 		debug sync $source:$src/ to $dst/
 		rsync --progress -Waz $source:"$src"/ "$dst"/ || end $?
 	done
-	regionload_regionsdir=$(crudget $sim.local.ini Startup regionload_regionsdir)
+	regionload_regionsdir=$(crudget $simulator.local.ini Startup regionload_regionsdir)
 	[ "$regionload_regionsdir" ] || end $? regionload_regionsdir not set
 	find $regionload_regionsdir -name "*.ini" | grep -q . || end $? "no region found in $regionload_regionsdir"
 
-	debug "activate $EtcRoot/opensim.d/$sim.ini"
+	debug "activate $EtcRoot/opensim.d/$simulator.ini"
 	mkdir -p $EtcRoot/opensim.d
-	cp $sim.ini $EtcRoot/opensim.d/$sim.ini
+	cp $simulator.ini $EtcRoot/opensim.d/$simulator.ini
 
-	debug starting local simulator $sim
-	opensim start $sim || end $?
+	debug starting local simulator $simulator
+	opensim start $simulator || end $?
 
-	debug "deactivate $sim on source"
-	ssh $source "mv $EtcRoot/opensim.d/$sim.ini $EtcRoot/opensim.d/$sim.transfered" || end $?
+	debug "deactivate $simulator on source"
+	ssh $source "mv $EtcRoot/opensim.d/$simulator.ini $EtcRoot/opensim.d/$simulator.transfered" || end $?
 	debug "We should be good now"
 done
 

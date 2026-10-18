@@ -11,13 +11,13 @@ Detect in the original config the values that `opensim setup` asks (the name and
 ## Known
 
 - The kit already reads what it needs from the files of a grid it made (`GridInfo::parse`, `<nick>.conf`, `sims/`), and describes a grid it only knows by address (`Remote = true`, `GridInfo::loadRemote`).
-- The setup generates a Robust config by overlaying its values on the example of the core (`RobustConfig::generate`, `Ini`), which keeps the comments and the defaults; a simulator config the same way (`SimConfig`).
+- The setup generates a Robust config by overlaying its values on the example of the core (`RobustConfig::generate`, `Ini`), which keeps the comments and the defaults; a simulator config the same way (`SimulatorConfig`).
 - Inputs: `Robust.ini` or `Robust.HG.ini` (with its `Include-*`, `[Const]` and `${Const|...}` expansions), `OpenSim.ini`, `GridCommon.ini`, `Regions/*.ini`.
 
 ## Proposed
 
-1. **Reader** (read-only, the rights of the user who runs it): expands `[Const]` and `${Const|...}` as OpenSim does, follows the includes, and returns the settings of the setup (a `GridPlan`/`SimPlan` filled from the files, one question less for each value found).
-2. **Standard config**: the plan goes through the generators of the kit (`RobustConfig`, `SimConfig`, the shared architecture files), for the core chosen.
+1. **Reader** (read-only, the rights of the user who runs it): expands `[Const]` and `${Const|...}` as OpenSim does, follows the includes, and returns the settings of the setup (a `GridPlan`/`SimulatorPlan` filled from the files, one question less for each value found).
+2. **Standard config**: the plan goes through the generators of the kit (`RobustConfig`, `SimulatorConfig`, the shared architecture files), for the core chosen.
 3. **Customizations**: the original is compared with the example of **its own** version of the core (the `.example` files of its `bin/` folder, when they are there); what differs and is not already set by the plan is injected into the new config (section and key, the original value), with a comment of where it comes from. Keys that the current core does not know are listed, not injected.
 4. **Output**: a report (what was found, what was injected, what was left out and why), written next to the new config; nothing of the original is changed.
 5. The result is a grid of the kit (`/etc/opensim/grids/<nick>/...`) that can be started in place of the original, or compared with it.

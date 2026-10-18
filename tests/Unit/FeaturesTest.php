@@ -67,9 +67,9 @@ function features_tree(bool $helpers = true, bool $general = false): array
 }
 
 /** What a simulator ini of the tree has. */
-function features_sim(string $grid, string $sim): string
+function features_sim(string $grid, string $simulator): string
 {
-    return (string) file_get_contents("$grid/sims/$sim.ini");
+    return (string) file_get_contents("$grid/sims/$simulator.ini");
 }
 
 describe('opensim enable <grid> search', function () {

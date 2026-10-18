@@ -6,7 +6,7 @@
 source /test/scenario-lib.sh
 tools="$(deb opensim-rest-php) $(deb opensim-engine) $(deb opensim-helpers) $(deb opensim-tools)"
 robust_pid() { pgrep -f "^dotnet .*Robust.dll" | head -1; }
-sim_pid() { pgrep -f "^dotnet .*OpenSim.dll" | head -1; }
+simulator_pid() { pgrep -f "^dotnet .*OpenSim.dll" | head -1; }
 
 # What a command printed, indented, to read why a check failed
 shown() {
@@ -65,7 +65,7 @@ opensim status >/tmp/status0.out 2>&1
 check "status lists the enabled instances, down" "grep -q '^lc .*robust .*\[down\]' /tmp/status0.out && grep -q '^lcsim .*opensim .*\[down\]' /tmp/status0.out && tail -1 /tmp/status0.out | grep -q '0 up, 2 down'"
 opensim start lc >/tmp/start-lc.out 2>&1
 code=$?
-check "start lc: Robust comes up, ready, exit code 0" "[ $code = 0 ] && [ -n \"\$(robust_pid)\" ] && grep -q 'lc started' /tmp/start-lc.out && [ -z \"\$(sim_pid)\" ]"
+check "start lc: Robust comes up, ready, exit code 0" "[ $code = 0 ] && [ -n \"\$(robust_pid)\" ] && grep -q 'lc started' /tmp/start-lc.out && [ -z \"\$(simulator_pid)\" ]"
 pid=$(robust_pid)
 opensim status >/tmp/status1.out 2>&1
 shown status1.out
@@ -76,14 +76,14 @@ check "status tells Robust runs, as the system user, the simulator does not" "gr
 opensim start lc >/tmp/start-lc2.out 2>&1
 check "start lc again leaves it as it is" "[ \"\$(robust_pid)\" = '$pid' ] && [ \$(pgrep -fc '^dotnet .*Robust.dll') = 1 ]"
 opensim start lcsim >/tmp/start-sim.out 2>&1
-check "start lcsim: the simulator comes up, in a screen session" "[ -n \"\$(sim_pid)\" ] && grep -q 'lcsim started' /tmp/start-sim.out && runuser -u opensim -- screen -ls | grep -q '\\.lcsim'"
-simpid=$(sim_pid)
+check "start lcsim: the simulator comes up, in a screen session" "[ -n \"\$(simulator_pid)\" ] && grep -q 'lcsim started' /tmp/start-sim.out && runuser -u opensim -- screen -ls | grep -q '\\.lcsim'"
+simulatorpid=$(simulator_pid)
 opensim restart now lc >/tmp/restart-lc.out 2>&1
-check "restart lc: Robust again, another process; the simulator was left alone" "[ -n \"\$(robust_pid)\" ] && [ \"\$(robust_pid)\" != '$pid' ] && [ \"\$(sim_pid)\" = '$simpid' ]"
+check "restart lc: Robust again, another process; the simulator was left alone" "[ -n \"\$(robust_pid)\" ] && [ \"\$(robust_pid)\" != '$pid' ] && [ \"\$(simulator_pid)\" = '$simulatorpid' ]"
 opensim restart now --sims lc >/tmp/restart-all.out 2>&1
-check "restart --sims lc: the simulator restarts with it" "[ -n \"\$(robust_pid)\" ] && [ -n \"\$(sim_pid)\" ] && [ \"\$(sim_pid)\" != '$simpid' ]"
+check "restart --sims lc: the simulator restarts with it" "[ -n \"\$(robust_pid)\" ] && [ -n \"\$(simulator_pid)\" ] && [ \"\$(simulator_pid)\" != '$simulatorpid' ]"
 opensim stop now lcsim >/tmp/stop-sim.out 2>&1
-check "stop now lcsim: only the simulator goes" "[ -z \"\$(sim_pid)\" ] && [ -n \"\$(robust_pid)\" ]"
+check "stop now lcsim: only the simulator goes" "[ -z \"\$(simulator_pid)\" ] && [ -n \"\$(robust_pid)\" ]"
 opensim stop now lc >/tmp/stop-lc.out 2>&1
 shown stop-lc.out
 check "stop now lc: Robust goes" "[ -z \"\$(robust_pid)\" ] && grep -q 'lc stopped' /tmp/stop-lc.out"
@@ -94,9 +94,9 @@ check "start of what does not exist fails and says so" "[ \$? != 0 ] && grep -q 
 
 ts "the service"
 systemctl start opensim
-check "the service starts every enabled instance" "[ -n \"\$(robust_pid)\" ] && [ -n \"\$(sim_pid)\" ]"
+check "the service starts every enabled instance" "[ -n \"\$(robust_pid)\" ] && [ -n \"\$(simulator_pid)\" ]"
 systemctl stop opensim
-check "the service stops them" "[ -z \"\$(robust_pid)\" ] && [ -z \"\$(sim_pid)\" ]"
+check "the service stops them" "[ -z \"\$(robust_pid)\" ] && [ -z \"\$(simulator_pid)\" ]"
 
 ts "done: $([ $FAILED = 0 ] && echo 'all checks passed' || echo 'SOME CHECKS FAILED')"
 exit $FAILED

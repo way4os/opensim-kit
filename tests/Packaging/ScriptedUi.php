@@ -3,7 +3,7 @@
 use OpenSim\Provisioning\UiInterface;
 
 // A frontend of the setup that answers from a table, for the scripted tests
-// (newgrid-driver.php, newsim-driver.php).
+// (newgrid-driver.php, newsimulator-driver.php).
 
 final class ScriptedUi implements UiInterface
 {

@@ -13,10 +13,10 @@ robust_pid() { pgrep -f "^dotnet .*Robust.dll" | head -1; }
 robust_log() { ls /var/log/opensim/testgrid_robust*.log 2>/dev/null | grep -v Stats | head -1; }
 quits() { cat /var/log/opensim/testgrid_robust*.log 2>/dev/null | grep -c '\[CONSOLE\] Quitting'; }
 # What runs, to find out when an instance goes
-state() { echo "   [Robust: $(robust_pid), simulator: $(sim_pid)] $*"; }
+state() { echo "   [Robust: $(robust_pid), simulator: $(simulator_pid)] $*"; }
 # The simulator of the grid made by the wizard, and its region
-sim_pid() { pgrep -f "^dotnet .*OpenSim.dll -inifile=/etc/opensim/opensim.d/testgrid_sim1.ini" | head -1; }
-sim_registered() { grep -c 'Region Sim1 .* registered at 8002,8002' /var/log/opensim/testgrid_sim1.log 2>/dev/null; }
+simulator_pid() { pgrep -f "^dotnet .*OpenSim.dll -inifile=/etc/opensim/opensim.d/testgrid_sim1.ini" | head -1; }
+simulator_registered() { grep -c 'Region Sim1 .* registered at 8002,8002' /var/log/opensim/testgrid_sim1.log 2>/dev/null; }
 robust_state() { echo "   Robust pid: $(robust_pid || true), clean shutdowns: $(quits)"; }
 profile() { grep -q '^\[opensim-0.9.3.0\]' /etc/opensim/opensim.conf 2>/dev/null; }
 
@@ -213,11 +213,11 @@ check "no write denied" "! grep -qiE 'denied|unauthorized' $(robust_log)"
 # administrator account is asked), and starts with its region
 ts "simulator in the grid"
 owner_password='Pa ss^w0rd\z'
-(cd /var/lib/opensim && TEST_GRID=testgrid TEST_SIM=Sim1 TEST_START=1 TEST_NEW_OWNER="Test Owner" TEST_NEW_OWNER_PASSWORD="$owner_password" \
-    TEST_ADMIN_USER=dbroot TEST_ADMIN_PASSWORD=adminpw runuser -u opensim -- php /test/newsim-driver.php >/tmp/sim1.out 2>&1
+(cd /var/lib/opensim && TEST_GRID=testgrid TEST_SIMULATOR=Sim1 TEST_START=1 TEST_NEW_OWNER="Test Owner" TEST_NEW_OWNER_PASSWORD="$owner_password" \
+    TEST_ADMIN_USER=dbroot TEST_ADMIN_PASSWORD=adminpw runuser -u opensim -- php /test/newsimulator-driver.php >/tmp/sim1.out 2>&1
     echo "exit code: $?" >>/tmp/sim1.out)
 check "the simulator wizard ends well, the region is online" "grep -q 'exit code: 0' /tmp/sim1.out &&
-    grep -q 'region Sim1 is online' /tmp/sim1.out && [ -n '$(sim_pid)' ]"
+    grep -q 'region Sim1 is online' /tmp/sim1.out && [ -n '$(simulator_pid)' ]"
 check "the region is registered in the grid" "[ \"\$(mysql -BN -e \"SELECT CONCAT(locX DIV 256, ',', locY DIV 256) FROM testgrid_robust.regions WHERE regionName='Sim1'\")\" = 8002,8002 ]"
 # The simulator wizard gives the roles of the default region (not the fallback one, which is not checked by default)
 # to the first region, the one that lets visitors in: without it a login fails with "destination not found"
@@ -259,14 +259,14 @@ check "the password of the account, with a space, a caret and a backslash, is ke
 check "the region loads the enabled modules" "grep -q 'Plugin Loaded: OpenSimSearch' /var/log/opensim/testgrid_sim1.log"
 check "nothing written in the read-only core" "! grep -iE 'unauthorized|denied' /var/log/opensim/testgrid_sim1.log | grep -viE 'gloebit'"
 check "the native libraries are found" "[ -L /var/lib/opensim/native/0.9.3.0/libBulletSim.so ] && ! grep -q 'DllNotFound' /var/log/opensim/testgrid_sim1.log"
-sim=$(sim_pid)
+simulator=$(simulator_pid)
 
 # More regions are added to the running simulator without restarting it, and
 # the console of an instance can be reached
-(cd /var/lib/opensim && TEST_GRID=testgrid TEST_SIM=Sim1 TEST_ADD_REGION=Sim1North runuser -u opensim -- php /test/newsim-driver.php >/tmp/region2.out 2>&1
+(cd /var/lib/opensim && TEST_GRID=testgrid TEST_SIMULATOR=Sim1 TEST_ADD_REGION=Sim1North runuser -u opensim -- php /test/newsimulator-driver.php >/tmp/region2.out 2>&1
     echo "exit code: $?" >>/tmp/region2.out)
 check "a region is added to the running simulator, and online" "grep -q 'exit code: 0' /tmp/region2.out && grep -q 'Region Sim1North is online' /tmp/region2.out &&
-    [ \"\$(mysql -BN -e \"SELECT CONCAT(locX DIV 256, ',', locY DIV 256) FROM testgrid_robust.regions WHERE regionName='Sim1North'\")\" = 8003,8002 ] && [ '$(sim_pid)' = '$sim' ]"
+    [ \"\$(mysql -BN -e \"SELECT CONCAT(locX DIV 256, ',', locY DIV 256) FROM testgrid_robust.regions WHERE regionName='Sim1North'\")\" = 8003,8002 ] && [ '$(simulator_pid)' = '$simulator' ]"
 check "the parcel of the new region is named after it by the object of the setup, without a restart" "grep -q 'Parcel of region Sim1North is named Sim1North' /tmp/region2.out &&
     [ \"\$(mysql -BN -e \"SELECT Name FROM testgrid_sim1.land WHERE RegionUUID = (SELECT uuid FROM testgrid_robust.regions WHERE regionName='Sim1North')\")\" = Sim1North ]"
 (cd /var/lib/opensim && TEST_GRID=testgrid runuser -u opensim -- php /test/account-driver.php >/tmp/account.out 2>&1; echo "exit code: $?" >>/tmp/account.out)
@@ -313,7 +313,7 @@ source /test/ban-scenario.sh
 # A region that exists is changed in place: its place, not its identity
 regionfile=/etc/opensim/grids/testgrid/sims/testgrid_sim1/regions/Sim1North.ini
 regionuuid=$(grep -m1 '^RegionUUID' $regionfile)
-(cd /var/lib/opensim && TEST_GRID=testgrid TEST_SIM=Sim1 TEST_RECONFIGURE_REGION=Sim1North TEST_LOCATION=8002,8003 runuser -u opensim -- php /test/newsim-driver.php >/tmp/region3.out 2>&1
+(cd /var/lib/opensim && TEST_GRID=testgrid TEST_SIMULATOR=Sim1 TEST_RECONFIGURE_REGION=Sim1North TEST_LOCATION=8002,8003 runuser -u opensim -- php /test/newsimulator-driver.php >/tmp/region3.out 2>&1
     echo "exit code: $?" >>/tmp/region3.out)
 check "a region is reconfigured in place, its UUID kept" "grep -q 'exit code: 0' /tmp/region3.out && grep -q '^Location = 8002,8003' $regionfile && [ \"\$(grep -m1 '^RegionUUID' $regionfile)\" = '$regionuuid' ]"
 # The next free place and port follow the rules of the setup: the place nearest to the first one of the grid,
@@ -386,13 +386,13 @@ check "a command reaches the console of a running instance" "opensim command tes
     runuser -u opensim -- screen -S testgrid_sim1 -X hardcopy /tmp/console.txt && grep -aq 'Version: OpenSim' /tmp/console.txt"
 check "a command to an instance that does not run fails" "! opensim command nosuchinstance 'show info' >/dev/null 2>&1"
 (sleep 2; printf '\001d') | script -qec "TERM=xterm opensim console testgrid_sim1" /dev/null >/tmp/attach.out 2>&1
-check "the console attaches, and leaves the instance running" "grep -aq 'detached from' /tmp/attach.out && [ '$(sim_pid)' = '$sim' ]"
+check "the console attaches, and leaves the instance running" "grep -aq 'detached from' /tmp/attach.out && [ '$(simulator_pid)' = '$simulator' ]"
 
 # screen takes a name for the start of one: stopping a grid that does not run
 # must not stop the simulator whose name begins the same
 opensim stop now testgrid >/dev/null 2>&1
 opensim stop now testgrid >/dev/null 2>&1
-check "stopping a grid that is not running leaves its simulator alone" "[ -n '$(sim_pid)' ] && [ '$(sim_pid)' = '$sim' ]"
+check "stopping a grid that is not running leaves its simulator alone" "[ -n '$(simulator_pid)' ] && [ '$(simulator_pid)' = '$simulator' ]"
 opensim start testgrid >/dev/null 2>&1
 pid=$(robust_pid)
 
@@ -400,7 +400,7 @@ ts upgrade
 # --allow-downgrades: apt treats a file of the version a repository has too, but another build of it, as a downgrade
 apt_q install --reinstall --allow-downgrades $tools "$core"
 check "Robust not restarted" "[ '$(robust_pid)' = '$pid' ]"
-check "the simulator not restarted" "[ '$(sim_pid)' = '$sim' ]"
+check "the simulator not restarted" "[ '$(simulator_pid)' = '$simulator' ]"
 
 ts "development build and modules"
 check "modules installed by opensim-kit" "dpkg -s opensim-0.9.3.0-gloebit opensim-0.9.3.0-opensimsearch >/dev/null 2>&1"
@@ -435,22 +435,22 @@ state after moving the grid back
 pid=$(robust_pid)
 check "grid back on the release" "[ -n '$pid' ]"
 apt_q remove opensim-unstable
-echo "   Robust $(robust_pid) (was $pid), simulator $(sim_pid) (was $sim)"
-if [ -z "$(sim_pid)" ]; then
+echo "   Robust $(robust_pid) (was $pid), simulator $(simulator_pid) (was $simulator)"
+if [ -z "$(simulator_pid)" ]; then
     echo "   The simulator is gone, its log:"
     tail -25 /var/log/opensim/testgrid_sim1.log | cut -c1-200
     echo "   its screen, and what is running:"
     runuser -u opensim -- screen -ls | head -5
     ps -eo pid,etime,args | grep -E "dotnet|screen" | grep -v grep | cut -c1-150
 fi
-check "instances of another core untouched" "[ '$(robust_pid)' = '$pid' ] && [ '$(sim_pid)' = '$sim' ]"
+check "instances of another core untouched" "[ '$(robust_pid)' = '$pid' ] && [ '$(simulator_pid)' = '$simulator' ]"
 apt_q install "$unstable"
 
 # A simulator with a remote (REST) console: no screen session, everything through
 # its port (x4 of its block), the ports of the next block (9010)
 ts "remote console"
-(cd /var/lib/opensim && TEST_GRID=testgrid TEST_SIM=Rest TEST_START=1 TEST_CONSOLE=rest TEST_OWNER="Test Owner" \
-    TEST_ADMIN_USER=dbroot TEST_ADMIN_PASSWORD=adminpw runuser -u opensim -- php /test/newsim-driver.php >/tmp/rest.out 2>&1
+(cd /var/lib/opensim && TEST_GRID=testgrid TEST_SIMULATOR=Rest TEST_START=1 TEST_CONSOLE=rest TEST_OWNER="Test Owner" \
+    TEST_ADMIN_USER=dbroot TEST_ADMIN_PASSWORD=adminpw runuser -u opensim -- php /test/newsimulator-driver.php >/tmp/rest.out 2>&1
     echo "exit code: $?" >>/tmp/rest.out)
 check "a simulator with a remote console is set up and started" "grep -q 'exit code: 0' /tmp/rest.out && grep -q 'region Rest is online' /tmp/rest.out"
 check "its console is in its config, on the port x4 of its block" "grep -q '^console_port = 9014' /etc/opensim/grids/testgrid/sims/testgrid_rest.ini &&
@@ -474,8 +474,8 @@ rm -f /etc/opensim/opensim.d/testgrid_rest.ini
 # address (here the one of this machine, taken for another one), which is kept
 # under its own nick, and owns an estate of an account that has to exist already
 ts "simulator of a grid elsewhere"
-(cd /var/lib/opensim && TEST_REMOTE_GRID=Elsewhere TEST_REMOTE_ADDRESS=localhost:8002 TEST_SIM=Far TEST_START=1 TEST_OWNER="Test Owner" \
-    TEST_DB_PASSWORD=testpass TEST_ADMIN_USER=dbroot TEST_ADMIN_PASSWORD=adminpw runuser -u opensim -- php /test/newsim-driver.php >/tmp/far.out 2>&1
+(cd /var/lib/opensim && TEST_REMOTE_GRID=Elsewhere TEST_REMOTE_ADDRESS=localhost:8002 TEST_SIMULATOR=Far TEST_START=1 TEST_OWNER="Test Owner" \
+    TEST_DB_PASSWORD=testpass TEST_ADMIN_USER=dbroot TEST_ADMIN_PASSWORD=adminpw runuser -u opensim -- php /test/newsimulator-driver.php >/tmp/far.out 2>&1
     echo "exit code: $?" >>/tmp/far.out)
 check "the simulator wizard joins a grid by its address and ends well" "grep -q 'exit code: 0' /tmp/far.out && grep -q 'Wrote /etc/opensim/grids/Elsewhere/Elsewhere.conf' /tmp/far.out && grep -q \"Simulator 'Far' is running\" /tmp/far.out"
 check "the grid is kept as a remote one, with its address and its ports" "grep -q '^Remote = true' /etc/opensim/grids/Elsewhere/Elsewhere.conf && grep -q '^BaseHostname = localhost' /etc/opensim/grids/Elsewhere/Elsewhere.conf &&
@@ -534,8 +534,8 @@ source /test/no-region-scenario.sh
 [[ ${STOP_AFTER:-} != no-region ]] || { ts "done after the simulator without a region: $([ $FAILED = 0 ] && echo 'all checks passed' || echo 'SOME CHECKS FAILED')"; exit $FAILED; }
 
 # The name proposed for the simulator made for a region
-source /test/sim-name-scenario.sh
-[[ ${STOP_AFTER:-} != sim-name ]] || { ts "done after the name of the simulator: $([ $FAILED = 0 ] && echo 'all checks passed' || echo 'SOME CHECKS FAILED')"; exit $FAILED; }
+source /test/simulator-name-scenario.sh
+[[ ${STOP_AFTER:-} != simulator-name ]] || { ts "done after the name of the simulator: $([ $FAILED = 0 ] && echo 'all checks passed' || echo 'SOME CHECKS FAILED')"; exit $FAILED; }
 
 # A setup file gives its answers by the names of the fields
 source /test/setupfile-scenario.sh
@@ -546,16 +546,16 @@ source /test/configure-scenario.sh
 [[ ${STOP_AFTER:-} != configure ]] || { ts "done after configuring: $([ $FAILED = 0 ] && echo 'all checks passed' || echo 'SOME CHECKS FAILED')"; exit $FAILED; }
 
 ts "remove the tools, grid started by the service"
-registered=$(sim_registered)
+registered=$(simulator_registered)
 systemctl restart opensim
 robust_state
-grid_started() { [ -n "$(robust_pid)" ] && [ -n "$(sim_pid)" ] && [ "$(sim_registered)" -gt "$registered" ]; }
+grid_started() { [ -n "$(robust_pid)" ] && [ -n "$(simulator_pid)" ] && [ "$(simulator_registered)" -gt "$registered" ]; }
 wait_check 120 "the service starts the grid, then its simulator" grid_started
 before=$(quits)
 apt_q remove opensim-tools
 robust_state
 check "Robust stopped cleanly" "[ -z '$(robust_pid)' ] && [ '$(quits)' = $((before + 1)) ]"
-check "the simulator stopped too" "[ -z '$(sim_pid)' ]"
+check "the simulator stopped too" "[ -z '$(simulator_pid)' ]"
 check "core kept" "[ -f /usr/share/opensim/0.9.3.0/bin/OpenSim.exe ]"
 
 ts "reinstall the tools"

@@ -1,8 +1,8 @@
 <?php
 
 use OpenSim\Provisioning\Presets;
-use OpenSim\Provisioning\SimConfig;
-use OpenSim\Provisioning\SimPlan;
+use OpenSim\Provisioning\SimulatorConfig;
+use OpenSim\Provisioning\SimulatorPlan;
 
 /**
  * The presets of the grids a simulator can join: folders with the structure of the folder of a grid, any file of it optional,
@@ -153,12 +153,12 @@ describe('presets', function () {
     test(
         'are read by the simulators from their own folder: the architecture, and the settings laid over their config',
         function () {
-            $plan = new SimPlan();
+            $plan = new SimulatorPlan();
             $plan->gridDir = '/etc/opensim/grids/osgrid';
             $plan->configDir = '/etc/opensim/presets/osgrid';
             $plan->presetSettings =
                 "[Search]\nModule = OpenSimSearch\n[UserProfiles]\nProfileServiceURL = \"http://services.osgrid.org\"\n";
-            $text = (new SimConfig())->render($plan);
+            $text = (new SimulatorConfig())->render($plan);
 
             expect($text)
                 ->toContain('Include-Architecture = "/etc/opensim/presets/osgrid/config-include/GridHypergrid.ini"')
@@ -168,7 +168,7 @@ describe('presets', function () {
                 ->toContain('ProfileServiceURL = "http://services.osgrid.org"')
                 ->not->toContain('ProfileServiceURL = "${Const|BaseURL}')
                 // A simulator of a grid of this machine reads the folder of its grid
-                ->and((new SimConfig())->render(new SimPlan()))
+                ->and((new SimulatorConfig())->render(new SimulatorPlan()))
                 ->toContain('Include-Architecture = "/config-include/')
                 ->not->toContain('Module = OpenSimSearch');
         },
@@ -201,7 +201,7 @@ describe('simulator that joins a grid by a preset', function () {
         require_once dirname(__DIR__) . '/Packaging/ScriptedUi.php';
         $etc = sys_get_temp_dir() . '/etc-' . bin2hex(random_bytes(4));
         mkdir($etc);
-        $wizard = new \OpenSimKit\Setup\NewSim(new ScriptedUi(['Grid to join' => 'osgrid']));
+        $wizard = new \OpenSimKit\Setup\NewSimulator(new ScriptedUi(['Grid to join' => 'osgrid']));
         $remote = new ReflectionMethod($wizard, 'remoteGrid');
         $remote->setAccessible(true);
 
@@ -228,30 +228,30 @@ describe('simulator that joins a grid by a preset', function () {
 
 describe('host scripts see as the one of the simulator', function () {
     test('is the address of the machine the simulator runs on, never the host of the grid', function () {
-        $plan = new SimPlan();
+        $plan = new SimulatorPlan();
         $plan->baseHostname = 'hg.osgrid.org';
         $plan->externalHost = 'play.example.org';
 
-        expect(SimConfig::lslHost($plan))
+        expect(SimulatorConfig::lslHost($plan))
             ->toBe('play.example.org')
-            ->and((new SimConfig())->render($plan))
+            ->and((new SimulatorConfig())->render($plan))
             ->toContain('ExternalHostNameForLSL = "play.example.org"')
             ->not->toContain('ExternalHostNameForLSL = "hg.osgrid.org"')
             // Without an address given, the name of the machine, not the one of the grid
-            ->and(SimConfig::lslHost(new SimPlan()))
+            ->and(SimulatorConfig::lslHost(new SimulatorPlan()))
             ->not->toBe('hg.osgrid.org');
     });
 
     test('is the host of the grid when the simulator runs on the machine of the grid', function () {
-        $plan = new SimPlan();
+        $plan = new SimulatorPlan();
         $plan->baseHostname = 'play.example.org';
 
-        expect(SimConfig::lslHost($plan))
+        expect(SimulatorConfig::lslHost($plan))
             ->toBe('${Const|BaseHostname}')
-            ->and((new SimConfig())->render($plan))
+            ->and((new SimulatorConfig())->render($plan))
             ->toContain('ExternalHostNameForLSL = "${Const|BaseHostname}"');
 
         $plan->gridHere = false;
-        expect(SimConfig::lslHost($plan))->not->toBe('${Const|BaseHostname}');
+        expect(SimulatorConfig::lslHost($plan))->not->toBe('${Const|BaseHostname}');
     });
 });

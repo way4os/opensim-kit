@@ -5,7 +5,7 @@ use OpenSimKit\Ui\QuietUi;
 use OpenSim\Provisioning\AccountList;
 use OpenSim\Provisioning\GridPlan;
 use OpenSim\Provisioning\SetupFile;
-use OpenSim\Provisioning\SimPlan;
+use OpenSim\Provisioning\SimulatorPlan;
 
 const SETUP_YAML = <<<'YAML'
 grid:
@@ -73,7 +73,7 @@ test('gives the answers of the grid, by the names of its fields', function () {
 test('gives the answers of a simulator, its owner and its regions', function () {
     $data = SetupFile::parse(SETUP_YAML);
 
-    expect(SetupFile::simValues($data, 0))->toBe(['name' => 'Welcome', 'database_user' => 'opensim', 'database_password' => 'secret1'])
+    expect(SetupFile::simulatorValues($data, 0))->toBe(['name' => 'Welcome', 'database_user' => 'opensim', 'database_password' => 'secret1'])
         // the owner of the file owns the estate, to make if the grid does not have it
         ->and(SetupFile::owner($data, 0))->toBe(['name' => 'Jane Doe', 'password' => 'hunter22', 'email' => ''])
         ->and(SetupFile::regionValues($data, 0, 0))->toBe(['name' => 'Welcome', 'location' => '1000,1000', 'roles' => ['DefaultRegion', 'DefaultHGRegion']])
@@ -81,7 +81,7 @@ test('gives the answers of a simulator, its owner and its regions', function () 
 
     $data['simulators'][0]['database'] = ['host' => 'sim-db', 'name' => 'own_db'];
     $data['simulators'][0]['estate'] = ['name' => 'My Estate', 'owner' => 'John Roe'];
-    expect(SetupFile::simValues($data, 0))->toMatchArray(['database_host' => 'sim-db', 'database_name' => 'own_db', 'database_user' => 'opensim', 'estate_name' => 'My Estate'])
+    expect(SetupFile::simulatorValues($data, 0))->toMatchArray(['database_host' => 'sim-db', 'database_name' => 'own_db', 'database_user' => 'opensim', 'estate_name' => 'My Estate'])
         ->and(SetupFile::owner($data, 0)['name'])->toBe('John Roe');
 });
 
@@ -92,7 +92,7 @@ test('answers what the application asks once the grid is made, and the administr
     $data['grid']['start'] = false;
 
     expect(SetupFile::gridPrompts($data))->toBe(['Administrator user' => 'dbroot', 'Password of ' => 'rootpw', 'Enable grid' => true, 'Apply this configuration' => true, 'Start grid' => false])
-        ->and(SetupFile::simPrompts($data, 0))->toMatchArray(['Administrator user' => 'dbroot', 'Enable simulator' => true, 'Start simulator' => true])
+        ->and(SetupFile::simulatorPrompts($data, 0))->toMatchArray(['Administrator user' => 'dbroot', 'Enable simulator' => true, 'Start simulator' => true])
         ->and(SetupFile::regionPrompts($data, 0))->toBe(['Add region' => true, 'Load it now' => true]);
 
     $data['grid']['enable'] = false;
@@ -106,7 +106,7 @@ test('answers what the application asks once the grid is made, and the administr
     expect(SetupFile::regionPrompts($data, 0)['Load it now'])->toBeFalse();
     unset($data['simulators'][0]['enable'], $data['simulators'][0]['start']);
 
-    $ui = new PresetUi(new QuietUi(), SetupFile::simPrompts($data, 0));
+    $ui = new PresetUi(new QuietUi(), SetupFile::simulatorPrompts($data, 0));
     expect($ui->text('Administrator user', 'root'))->toBe('dbroot')
         ->and($ui->secret('Password of dbroot'))->toBe('rootpw')
         ->and($ui->confirm('Enable simulator (link into opensim.d)', false))->toBeTrue();
@@ -121,21 +121,21 @@ test('keeps what the setup did, to make it again', function () {
     $grid->dbPass = 'secret1';
     $data = SetupFile::withGrid([], $grid);
 
-    $sim = new SimPlan();
-    $sim->simName = 'Welcome';
-    $sim->regionName = 'Welcome';
-    $sim->estateOwner = 'Jane Doe';
-    $sim->dbName = 'welcome_db';
-    $sim->estateName = 'Test Estate';
-    $sim->createOwner = true;
-    $sim->ownerPassword = 'hunter22';
-    $data = SetupFile::withSim($data, $sim);
+    $simulator = new SimulatorPlan();
+    $simulator->simulatorName = 'Welcome';
+    $simulator->regionName = 'Welcome';
+    $simulator->estateOwner = 'Jane Doe';
+    $simulator->dbName = 'welcome_db';
+    $simulator->estateName = 'Test Estate';
+    $simulator->createOwner = true;
+    $simulator->ownerPassword = 'hunter22';
+    $data = SetupFile::withSimulator($data, $simulator);
     // one more region, later
-    $more = new SimPlan();
-    $more->simName = 'Welcome';
+    $more = new SimulatorPlan();
+    $more->simulatorName = 'Welcome';
     $more->regionName = 'Second';
     $more->dbUser = '';
-    $data = SetupFile::withSim($data, $more);
+    $data = SetupFile::withSimulator($data, $more);
 
     expect($data['grid']['database']['name'])
         ->toBe('test_grid_robust')

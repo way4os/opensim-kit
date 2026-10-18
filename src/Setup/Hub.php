@@ -12,7 +12,7 @@ use OpenSim\Models\GridInfo;
 use OpenSim\Models\Region;
 use OpenSim\Provisioning\PendingRestarts;
 use OpenSim\Exceptions\SetupFailedException;
-use OpenSim\Provisioning\SimConfig;
+use OpenSim\Provisioning\SimulatorConfig;
 use OpenSim\Provisioning\UiInterface;
 use OpenSim\Runtime\Environment;
 
@@ -195,7 +195,7 @@ final class Hub
         $start = (new StartSetup($this->ui))->ask();
         $made = $this->guard(fn() => $this->make($start));
 
-        return $made !== null && ($start['type'] === StartSetup::GRID ? $this->ready($made[0], $made[1]) : $this->simScreen($made[0], $made[1]));
+        return $made !== null && ($start['type'] === StartSetup::GRID ? $this->ready($made[0], $made[1]) : $this->simulatorScreen($made[0], $made[1]));
     }
 
     /**
@@ -246,7 +246,7 @@ final class Hub
         );
         $choice = $this->ui->choose(_('Setup'), ['quit' => _('Finish setup'), 'more' => _('Continue setup')], 'quit');
 
-        return $choice === 'quit' || $this->simScreen($nick, $slug);
+        return $choice === 'quit' || $this->simulatorScreen($nick, $slug);
     }
 
     /** @return bool whether to quit the setup */
@@ -256,23 +256,23 @@ final class Hub
             $etcRoot = (new InstallConfig())->profile()['EtcRoot'] ?? '';
             $remote = GridInfo::isRemote($etcRoot, $nick);
             $enabled = $this->grid($etcRoot, $nick)?->isEnabled() ?? false;
-            $sims = $this->sims($etcRoot, $nick);
+            $simulators = $this->simulators($etcRoot, $nick);
 
             // The grid is its regions: the simulators are the pool of servers that provide them
             $options = [];
-            foreach ($sims as $slug) {
+            foreach ($simulators as $slug) {
                 foreach (Region::inDirectory("$etcRoot/grids/$nick/sims/$slug/regions") as $region) {
                     $name = $region->name();
                     $options["region:$slug:$name"] =
                         $this->ui->entity($name) .
                         ' [' .
-                        $this->simName($nick, $slug) .
+                        $this->simulatorName($nick, $slug) .
                         ']' .
                         ($region->isEnabled() ? '' : ' [disabled]');
                 }
             }
             $options['addregion'] = _('Add region');
-            $options['sims'] = _('Simulators');
+            $options['simulators'] = _('Simulators');
             if (!$remote) {
                 $options['configure'] = _('Configure grid');
                 $options['toggle'] = $enabled ? 'Disable this grid' : 'Enable this grid';
@@ -293,12 +293,12 @@ final class Hub
                     $this->guard(fn() => (new NewGrid($this->ui))->run($nick));
                     break;
                 case $choice === 'addregion':
-                    $made = $this->guard(fn() => (new NewSim($this->ui))->addRegionToGrid($nick));
-                    if ($made !== null && $this->simScreen($made[0], $made[1])) {
+                    $made = $this->guard(fn() => (new NewSimulator($this->ui))->addRegionToGrid($nick));
+                    if ($made !== null && $this->simulatorScreen($made[0], $made[1])) {
                         return true;
                     }
                     break;
-                case $choice === 'sims':
+                case $choice === 'simulators':
                     if ($this->poolScreen($nick)) {
                         return true;
                     }
@@ -326,31 +326,31 @@ final class Hub
     {
         while (true) {
             $etcRoot = (new InstallConfig())->profile()['EtcRoot'] ?? '';
-            $sims = $this->sims($etcRoot, $nick);
+            $simulators = $this->simulators($etcRoot, $nick);
             $options = [];
-            foreach ($sims as $slug) {
-                $options["sim:$slug"] =
-                    $this->ui->entity($this->simTitle($etcRoot, $nick, $slug)) .
+            foreach ($simulators as $slug) {
+                $options["simulator:$slug"] =
+                    $this->ui->entity($this->simulatorTitle($etcRoot, $nick, $slug)) .
                     ($this->grid($etcRoot, $nick)?->simulator($slug)?->isEnabled() ? '' : ' [disabled]');
             }
-            $options['addsim'] = _('Add simulator');
+            $options['addsimulator'] = _('Add simulator');
             $options['back'] = _('Back');
             $options['quit'] = _('Quit');
 
             $choice = $this->ui->choose(
                 'Simulators of ' . $this->ui->entity($nick),
                 $options,
-                $sims !== [] ? "sim:{$sims[0]}" : 'addsim',
+                $simulators !== [] ? "simulator:{$simulators[0]}" : 'addsimulator',
             );
             if ($choice === 'back' || $choice === 'quit') {
                 return $choice === 'quit';
             }
-            if ($choice === 'addsim') {
-                $made = $this->guard(fn() => (new NewSim($this->ui))->run($nick));
-                if ($made !== null && $this->simScreen($made[0], $made[1])) {
+            if ($choice === 'addsimulator') {
+                $made = $this->guard(fn() => (new NewSimulator($this->ui))->run($nick));
+                if ($made !== null && $this->simulatorScreen($made[0], $made[1])) {
                     return true;
                 }
-            } elseif ($this->simScreen($nick, substr($choice, strlen('sim:')))) {
+            } elseif ($this->simulatorScreen($nick, substr($choice, strlen('simulator:')))) {
                 return true;
             }
         }
@@ -362,7 +362,7 @@ final class Hub
      *
      * @return bool whether to quit the setup
      */
-    private function simScreen(string $nick, string $slug): bool
+    private function simulatorScreen(string $nick, string $slug): bool
     {
         while (true) {
             $etcRoot = (new InstallConfig())->profile()['EtcRoot'] ?? '';
@@ -374,14 +374,14 @@ final class Hub
                 $options['region:' . $region->name()] = $this->ui->entity($region->name()) . ($region->isEnabled() ? '' : ' [disabled]');
             }
             // In this simulator: not to be mistaken for the one of the grid, which asks where the region goes
-            $options['addregion'] = sprintf(_('Add region in %s'), $this->simName($nick, $slug));
+            $options['addregion'] = sprintf(_('Add region in %s'), $this->simulatorName($nick, $slug));
             $options['reconfigure'] = _('Configure sim');
             $options['toggle'] = $enabled ? 'Disable this simulator' : 'Enable this simulator';
             $options['back'] = _('Back');
             $options['quit'] = _('Quit');
 
             $choice = $this->ui->choose(
-                'Simulator: ' . $this->ui->entity($this->simTitle($etcRoot, $nick, $slug)),
+                'Simulator: ' . $this->ui->entity($this->simulatorTitle($etcRoot, $nick, $slug)),
                 $options,
                 'addregion',
             );
@@ -390,10 +390,10 @@ final class Hub
             }
             switch (true) {
                 case $choice === 'reconfigure':
-                    $this->guard(fn() => (new NewSim($this->ui))->run($nick, $this->simName($nick, $slug)));
+                    $this->guard(fn() => (new NewSimulator($this->ui))->run($nick, $this->simulatorName($nick, $slug)));
                     break;
                 case $choice === 'addregion':
-                    $this->guard(fn() => (new NewSim($this->ui))->addRegion($nick, $this->simName($nick, $slug)));
+                    $this->guard(fn() => (new NewSimulator($this->ui))->addRegion($nick, $this->simulatorName($nick, $slug)));
                     break;
                 case $choice === 'toggle':
                     $done = $this->act($enabled ? 'sim-disable' : 'sim-enable', [
@@ -439,7 +439,7 @@ final class Hub
             switch ($choice) {
                 case 'reconfigure':
                     $this->guard(
-                        fn() => (new NewSim($this->ui))->reconfigureRegion($nick, $this->simName($nick, $slug), $name),
+                        fn() => (new NewSimulator($this->ui))->reconfigureRegion($nick, $this->simulatorName($nick, $slug), $name),
                     );
                     break;
                 case 'toggle':
@@ -466,16 +466,16 @@ final class Hub
     }
 
     /** The name of a simulator as it was given, else (its config has no mention of it) as its instance name tells it. */
-    private function simTitle(string $etcRoot, string $nick, string $slug): string
+    private function simulatorTitle(string $etcRoot, string $nick, string $slug): string
     {
-        return SimConfig::readName("$etcRoot/grids/$nick/sims/$slug.ini") ?? $this->simName($nick, $slug);
+        return SimulatorConfig::readName("$etcRoot/grids/$nick/sims/$slug.ini") ?? $this->simulatorName($nick, $slug);
     }
 
     /** The name of a simulator from the name of its instance: what follows the grid nick. */
-    private function simName(string $nick, string $slug): string
+    private function simulatorName(string $nick, string $slug): string
     {
         $etcRoot = (new InstallConfig())->profile()['EtcRoot'] ?? '';
-        if (($name = SimConfig::readName("$etcRoot/grids/$nick/sims/$slug.ini")) !== null) {
+        if (($name = SimulatorConfig::readName("$etcRoot/grids/$nick/sims/$slug.ini")) !== null) {
             return $name;
         }
         $prefix = GridInfo::instanceName($nick) . '_';
@@ -490,7 +490,7 @@ final class Hub
     }
 
     /** @return list<string> instance names of the simulators of a grid */
-    private function sims(string $etcRoot, string $grid): array
+    private function simulators(string $etcRoot, string $grid): array
     {
         return $this->grid($etcRoot, $grid)?->simulatorNames() ?? [];
     }

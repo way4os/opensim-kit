@@ -7,13 +7,13 @@ namespace OpenSimKit\Setup\Import;
 use OpenSim\Config\ConfigReader;
 use OpenSim\Models\GridInfo;
 use OpenSim\Provisioning\Import\RobustImporter;
-use OpenSim\Provisioning\Import\SimImporter;
+use OpenSim\Provisioning\Import\SimulatorImporter;
 use OpenSim\Exceptions\SetupFailedException;
-use OpenSim\Provisioning\SimConfig;
+use OpenSim\Provisioning\SimulatorConfig;
 use OpenSimKit\Setup\Actions;
 use OpenSimKit\Setup\InstallConfig;
 use OpenSimKit\Setup\NewGrid;
-use OpenSimKit\Setup\NewSim;
+use OpenSimKit\Setup\NewSimulator;
 use OpenSimKit\System\Elevated;
 use OpenSimKit\Ui\QuietUi;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -183,15 +183,15 @@ final class ImportSettings
         if ($core === '' || !is_dir("$core/bin")) {
             throw new ImportFailure('choose the core the simulator will run with: --core DIR (the folder that has bin/)', 2);
         }
-        $plan = SimImporter::plan($raw, $path, $grid, $profile, $options['name'] ?: null, $core);
+        $plan = SimulatorImporter::plan($raw, $path, $grid, $profile, $options['name'] ?: null, $core);
         if (is_string($plan)) {
             throw new ImportFailure($plan, 2);
         }
         if (is_file($plan->iniPath())) {
-            throw new ImportFailure("the simulator {$plan->simName} is already configured ({$plan->iniPath()}): choose another name with --name", 2);
+            throw new ImportFailure("the simulator {$plan->simulatorName} is already configured ({$plan->iniPath()}): choose another name with --name", 2);
         }
-        $regions = SimImporter::regionFiles($raw, $path);
-        $plan->externalHost = SimImporter::externalHost($regions);
+        $regions = SimulatorImporter::regionFiles($raw, $path);
+        $plan->externalHost = SimulatorImporter::externalHost($regions);
 
         // What the core has by default: its defaults file, then the example of OpenSim.ini
         $defaults = ConfigReader::load("{$plan->binDir()}/OpenSimDefaults.ini", [], false, true);
@@ -200,7 +200,7 @@ final class ImportSettings
         $default = array_replace_recursive($defaults, $example);
         $customizations = RobustImporter::customizations(
             $raw,
-            ConfigReader::parse((new SimConfig())->render($plan)),
+            ConfigReader::parse((new SimulatorConfig())->render($plan)),
             $default,
             dirname($path),
             $exampleText,
@@ -208,7 +208,7 @@ final class ImportSettings
         );
         $report = self::report(
             [
-                "Simulator {$plan->simName} ({$plan->slug}) of the grid {$grid->nick}, imported from $path",
+                "Simulator {$plan->simulatorName} ({$plan->slug}) of the grid {$grid->nick}, imported from $path",
                 "Core: $core",
                 "Database: {$plan->dbName} @ {$plan->dbHost} (user {$plan->dbUser}), kept as it is",
                 "HTTP port: {$plan->httpPort}" . ($plan->consoleMode === 'rest' ? ", console {$plan->consolePort}" : ''),
@@ -225,7 +225,7 @@ final class ImportSettings
 
         try {
             if (!Elevated::needed($profile)) {
-                (new NewSim(new QuietUi()))->apply($plan, $profile);
+                (new NewSimulator(new QuietUi()))->apply($plan, $profile);
             } else {
                 Elevated::run(new QuietUi(), '--apply-sim', ['plan' => $plan->toArray(), 'profile' => $profile], $profile['SystemUser']);
             }

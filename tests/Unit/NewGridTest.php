@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 use OpenSim\Provisioning\UiInterface;
 use OpenSimKit\Setup\NewGrid;
-use OpenSimKit\Setup\NewSim;
+use OpenSimKit\Setup\NewSimulator;
 
 /** A user who accepts what is proposed, and answers the questions whose label contains the start of a key. */
 final class GridUiFake implements UiInterface
@@ -272,14 +272,14 @@ describe('What is done once the grid and the simulator are written', function ()
 
         foreach ([$terminal, $web] as $ui) {
             expect($ui->form(NewGrid::applyQuestions('garden', true), 'Apply'))->toBe(['apply' => '', 'enable' => 'yes', 'start' => 'yes'])
-                ->and($ui->form(NewSim::applyQuestions('Welcome', true, true, false), 'Apply'))
+                ->and($ui->form(NewSimulator::applyQuestions('Welcome', true, true, false), 'Apply'))
                 ->toBe(['apply' => '', 'enable' => 'yes', 'start' => 'yes', 'warn' => '']);
         }
     });
 
     test('a plan that is not accepted yet is asked first, and a simulator without a region is not started', function () {
         $ui = new GridUiFake(['Apply this configuration' => false]);
-        $form = (new GridUiFake())->form(NewSim::applyQuestions('Welcome', false, false, false), 'Apply');
+        $form = (new GridUiFake())->form(NewSimulator::applyQuestions('Welcome', false, false, false), 'Apply');
 
         expect($ui->form(NewGrid::applyQuestions('garden', false), 'Apply'))->toBe(['apply' => 'no', 'enable' => '', 'start' => ''])
             ->and($form)->toBe(['apply' => 'yes', 'enable' => 'yes', 'start' => '', 'warn' => '']);

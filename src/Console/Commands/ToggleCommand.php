@@ -170,7 +170,7 @@ abstract class ToggleCommand extends EngineCommand
         }
         $state = $verb . 'd';
         $what = $feature . ($feature === Features::ECONOMY && $verb === 'enable' ? ' (' . ($options['money'] ?? 'beta') . ')' : '');
-        $touched = $result['sims'];
+        $touched = $result['simulators'];
         if ($touched === [] && !$result['grid'] && !$result['robust']) {
             $output->writeln(
                 "nothing to change: $what is already $state for {$grid->nick}" . ($features->simulators() === [] ? ' (the grid has no simulator on this machine)' : ''),

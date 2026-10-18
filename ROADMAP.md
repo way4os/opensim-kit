@@ -184,7 +184,7 @@ The beta:
     - the problem met was probably config and compatibility, not investigated apart from the new installer
     - [ ] one more simulator migrated with beta.7
     - [ ] importing a simulator from its database without an OAR: `opensim import` of a simulator (config and data)
-        - [ ] from its host (reference: `install/transfer-remote-sim.sh`)
+        - [ ] from its host (reference: `install/transfer-remote-simulator.sh`)
             - [ ] connect to the host
             - [ ] fetch the config and the data
             - [ ] make the simulator here: an OAR when it can be reached, the database only when it cannot

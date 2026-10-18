@@ -37,4 +37,4 @@ Next step when taking it up: try the OAR with a parcel only on a test region, wi
 
 ## Now
 
-The object is loaded by the setup in each new region (`NewSim::initRegion`: `load oar --merge --default-user <estate owner> --displacement <to the middle of the region>`), then the setup checks the name of the parcel in the database. The script keeps its `llDie()` commented while it is tested.
+The object is loaded by the setup in each new region (`NewSimulator::initRegion`: `load oar --merge --default-user <estate owner> --displacement <to the middle of the region>`), then the setup checks the name of the parcel in the database. The script keeps its `llDie()` commented while it is tested.

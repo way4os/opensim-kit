@@ -8,7 +8,7 @@
 
 instance=testgrid_empty_sim
 running() { pgrep -f "OpenSim.dll -inifile=/etc/opensim/opensim.d/$instance.ini" >/dev/null; }
-driver() { (cd /var/lib/opensim && TEST_GRID=testgrid TEST_SIM=EmptySim TEST_ADMIN_USER=dbroot TEST_ADMIN_PASSWORD=adminpw "$@" runuser -u opensim -- php /test/newsim-driver.php 2>&1; echo "exit code: $?"); }
+driver() { (cd /var/lib/opensim && TEST_GRID=testgrid TEST_SIMULATOR=EmptySim TEST_ADMIN_USER=dbroot TEST_ADMIN_PASSWORD=adminpw "$@" runuser -u opensim -- php /test/newsimulator-driver.php 2>&1; echo "exit code: $?"); }
 
 ts "no region: a simulator made without one"
 driver env TEST_NO_REGION=1 TEST_START=1 >/tmp/emptysim.out

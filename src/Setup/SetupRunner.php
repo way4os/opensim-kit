@@ -10,7 +10,7 @@ use OpenSim\Provisioning\AccountList;
 use OpenSim\Provisioning\DatabaseService;
 use OpenSim\Exceptions\SetupFailedException;
 use OpenSim\Provisioning\SetupFile;
-use OpenSim\Provisioning\SimConfig;
+use OpenSim\Provisioning\SimulatorConfig;
 use OpenSim\Provisioning\UiInterface;
 
 /**
@@ -43,14 +43,14 @@ final class SetupRunner
         [$gridPlan, $profile] = $prepared;
 
         // The first simulator is planned for the grid as it will be: its ports, its database, its first region
-        $simUi = new PresetUi($this->ui, SetupFile::simPrompts($data, 0), self::ASK);
-        $simPlan = (new NewSim($simUi))->prepare(GridInfo::fromPlan($gridPlan), $profile, null, self::simValues($data, 0));
-        if ($simPlan === null) {
+        $simulatorUi = new PresetUi($this->ui, SetupFile::simulatorPrompts($data, 0), self::ASK);
+        $simulatorPlan = (new NewSimulator($simulatorUi))->prepare(GridInfo::fromPlan($gridPlan), $profile, null, self::simulatorValues($data, 0));
+        if ($simulatorPlan === null) {
             return null;
         }
 
         $this->ui->note(
-            (new NewGrid($gridUi))->describe($gridPlan) . "\n\n" . (new NewSim($simUi))->describe($simPlan),
+            (new NewGrid($gridUi))->describe($gridPlan) . "\n\n" . (new NewSimulator($simulatorUi))->describe($simulatorPlan),
         );
         if (
             $this->ui->choose(
@@ -65,7 +65,7 @@ final class SetupRunner
         $nick = (new NewGrid($gridUi))->complete($gridPlan, $profile, true);
         $grid = $nick === null ? null : GridInfo::load($profile, $nick);
 
-        return $grid === null ? null : (new NewSim($simUi))->complete($simPlan, $grid, $profile, true);
+        return $grid === null ? null : (new NewSimulator($simulatorUi))->complete($simulatorPlan, $grid, $profile, true);
     }
 
     /**
@@ -77,7 +77,7 @@ final class SetupRunner
      */
     public function runJoin(array $data, bool $advanced): ?array
     {
-        $prompts = SetupFile::simPrompts($data, 0);
+        $prompts = SetupFile::simulatorPrompts($data, 0);
         // The plan is accepted by the person, not by the table
         unset($prompts['Apply this configuration']);
         $join = $data['join'] ?? [];
@@ -85,7 +85,7 @@ final class SetupRunner
         $prompts['Address of the grid'] = (string) ($join['address'] ?? '');
         $ui = new PresetUi($this->ui, $prompts, [...self::ASK, 'Apply this configuration'], $advanced);
 
-        return (new NewSim($ui))->run(null, null, true, self::simValues($data, 0), $advanced);
+        return (new NewSimulator($ui))->run(null, null, true, self::simulatorValues($data, 0), $advanced);
     }
 
     /**
@@ -144,22 +144,22 @@ final class SetupRunner
         }
 
         $last = null;
-        foreach ($data['simulators'] ?? [] as $i => $sim) {
-            $made = (new NewSim(new PresetUi($this->ui, SetupFile::simPrompts($data, $i), $ask, $prefill)))->run(
+        foreach ($data['simulators'] ?? [] as $i => $simulator) {
+            $made = (new NewSimulator(new PresetUi($this->ui, SetupFile::simulatorPrompts($data, $i), $ask, $prefill)))->run(
                 $nick,
                 null,
                 false,
-                self::simValues($data, $i),
+                self::simulatorValues($data, $i),
                 $prefill,
             );
             if ($made === null) {
                 return null;
             }
             $last = $made;
-            foreach (array_slice($sim['regions'] ?? [], 1, null, true) as $j => $_) {
-                (new NewSim(new PresetUi($this->ui, SetupFile::regionPrompts($data, $i), $ask, $prefill)))->addRegion(
+            foreach (array_slice($simulator['regions'] ?? [], 1, null, true) as $j => $_) {
+                (new NewSimulator(new PresetUi($this->ui, SetupFile::regionPrompts($data, $i), $ask, $prefill)))->addRegion(
                     $made[0],
-                    $this->simName($made),
+                    $this->simulatorName($made),
                     SetupFile::regionValues($data, $i, $j),
                     $prefill,
                 );
@@ -179,20 +179,20 @@ final class SetupRunner
      * @param array<string,mixed> $data
      * @return array{simulator:array<string,mixed>,owner:array<string,string>,region:array<string,mixed>}
      */
-    private static function simValues(array $data, int $i): array
+    private static function simulatorValues(array $data, int $i): array
     {
         return [
-            'simulator' => SetupFile::simValues($data, $i),
+            'simulator' => SetupFile::simulatorValues($data, $i),
             'owner' => SetupFile::owner($data, $i),
             'region' => SetupFile::regionValues($data, $i, 0),
         ];
     }
 
     /** @param array{0:string,1:string} $made nick and instance of a simulator */
-    private function simName(array $made): string
+    private function simulatorName(array $made): string
     {
         $etcRoot = (string) ((new InstallConfig())->profile()['EtcRoot'] ?? '');
-        if (($name = SimConfig::readName("$etcRoot/grids/{$made[0]}/sims/{$made[1]}.ini")) !== null) {
+        if (($name = SimulatorConfig::readName("$etcRoot/grids/{$made[0]}/sims/{$made[1]}.ini")) !== null) {
             return $name;
         }
         $prefix = GridInfo::instanceName($made[0]) . '_';

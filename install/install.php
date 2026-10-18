@@ -5,7 +5,7 @@ use OpenSim\Runtime\ShellService;
 use OpenSimKit\Setup\Actions;
 use OpenSimKit\Setup\Hub;
 use OpenSimKit\Setup\NewGrid;
-use OpenSimKit\Setup\NewSim;
+use OpenSimKit\Setup\NewSimulator;
 use OpenSimKit\Setup\RuntimeCheck;
 use OpenSimKit\Setup\SetupMode;
 use OpenSimKit\Ui\Back;
@@ -14,7 +14,7 @@ use OpenSimKit\Ui\ScriptUi;
 use OpenSimKit\Web\WizardLauncher;
 use OpenSimKit\Ui\PromptsUi;
 use OpenSim\Provisioning\GridPlan;
-use OpenSim\Provisioning\SimPlan;
+use OpenSim\Provisioning\SimulatorPlan;
 
 /**
  * OpenSim Debian — setup hub (PHP wizard).
@@ -38,7 +38,7 @@ try {
     } elseif (($argv[1] ?? '') === '--apply-sim') {
         // The same for a simulator
         $data = json_decode((string) stream_get_contents(STDIN), true, 512, JSON_THROW_ON_ERROR);
-        (new NewSim(new PromptsUi()))->apply(SimPlan::fromArray($data['plan']), $data['profile']);
+        (new NewSimulator(new PromptsUi()))->apply(SimulatorPlan::fromArray($data['plan']), $data['profile']);
     } elseif (($argv[1] ?? '') === '--apply-action') {
         // What a menu does to the install (enable, disable, restart), as the system user
         $data = json_decode((string) stream_get_contents(STDIN), true, 512, JSON_THROW_ON_ERROR);

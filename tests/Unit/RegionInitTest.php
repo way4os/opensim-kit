@@ -1,14 +1,14 @@
 <?php
 
 
-use OpenSim\Provisioning\SimConfig;
-use OpenSim\Provisioning\SimPlan;
+use OpenSim\Provisioning\SimulatorConfig;
+use OpenSim\Provisioning\SimulatorPlan;
 
 test('enables OSSL for the estate owner', function () {
-    $plan = new SimPlan();
-    $plan->simName = 'Alpha';
+    $plan = new SimulatorPlan();
+    $plan->simulatorName = 'Alpha';
     $plan->gridName = 'Test';
-    $config = (new SimConfig())->render($plan);
+    $config = (new SimulatorConfig())->render($plan);
     $ini = parse_ini_string($config, true, INI_SCANNER_RAW);
 
     expect($ini['OSSL']['Include-osslDefaultEnable'])->toContain('/config-include/osslDefaultEnable.ini');
@@ -48,13 +48,13 @@ test('enables OSSL in a grid', function () {
 });
 
 test('tells a sim the helpers URLs', function () {
-    $plan = new SimPlan();
-    $plan->simName = 'Alpha';
+    $plan = new SimulatorPlan();
+    $plan->simulatorName = 'Alpha';
     $plan->gridNick = 'alpha-world';
     $plan->gridName = 'Test';
     $plan->offlineUrl = 'https://play.example.org/helpers/offline.php';
     $plan->registerUrl = 'https://play.example.org/helpers/register.php';
-    $ini = parse_ini_string((new SimConfig())->render($plan), true, INI_SCANNER_RAW);
+    $ini = parse_ini_string((new SimulatorConfig())->render($plan), true, INI_SCANNER_RAW);
 
     expect($ini['Messaging']['OfflineMessageURL'])
         ->toBe('https://play.example.org/helpers/offline.php')
@@ -69,21 +69,21 @@ test('tells a sim the helpers URLs', function () {
 });
 
 test('writes nothing of them for a grid without helpers', function () {
-    $plan = new SimPlan();
-    $plan->simName = 'Alpha';
+    $plan = new SimulatorPlan();
+    $plan->simulatorName = 'Alpha';
     $plan->gridName = 'Test';
-    $ini = parse_ini_string((new SimConfig())->render($plan), true, INI_SCANNER_RAW);
+    $ini = parse_ini_string((new SimulatorConfig())->render($plan), true, INI_SCANNER_RAW);
 
     expect($ini)->not->toHaveKey('Messaging')->and($ini['DataSnapshot'])->not->toHaveKey('DATA_SRV_Test');
 });
 
 test('names the data service after the grid: its nick, else its name, in PascalCase', function () {
     $name = function (string $nick, string $gridName): string {
-        $plan = new SimPlan();
+        $plan = new SimulatorPlan();
         $plan->gridNick = $nick;
         $plan->gridName = $gridName;
 
-        return SimConfig::dataServiceName($plan);
+        return SimulatorConfig::dataServiceName($plan);
     };
 
     expect($name('vonda', 'Vonda'))

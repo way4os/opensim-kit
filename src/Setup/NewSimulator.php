@@ -16,8 +16,8 @@ use OpenSim\Provisioning\LocationFinder;
 use OpenSim\Provisioning\RegionPlanner;
 use OpenSim\Provisioning\RemoteGridPlanner;
 use OpenSim\Exceptions\SetupFailedException;
-use OpenSim\Provisioning\SimPlan;
-use OpenSim\Provisioning\SimPlanner;
+use OpenSim\Provisioning\SimulatorPlan;
+use OpenSim\Provisioning\SimulatorPlanner;
 use OpenSim\Provisioning\UiInterface;
 use OpenSim\Runtime\Environment;
 
@@ -32,7 +32,7 @@ use OpenSim\Runtime\Environment;
  * whose owner is an account of the grid: OpenSimulator cannot create it, so
  * the account is chosen among the grid's, or created in the grid first.
  */
-final class NewSim
+final class NewSimulator
 {
     private const LANDING = 'At least a default landing region should be created.';
     private const FIRST = 'Welcome';
@@ -41,13 +41,13 @@ final class NewSim
 
     /**
      * @param ?string $gridNick the grid it joins, asked when there are several and none is given
-     * @param ?string $simName  the simulator to modify, asked when none is given
+     * @param ?string $simulatorName  the simulator to modify, asked when none is given
      * @param ?array{simulator?:array<string,mixed>,owner?:array<string,string>,region?:array<string,mixed>} $values the answers of a setup
-     *        file, by the names of the fields (SetupFile::simValues()...): nothing is asked unless an answer is refused; with $edit,
+     *        file, by the names of the fields (SetupFile::simulatorValues()...): nothing is asked unless an answer is refused; with $edit,
      *        every question is asked with them as the answers proposed
      * @return ?array{0:string,1:string} the grid and the instance of the simulator configured, null when nothing was
      */
-    public function run(?string $gridNick = null, ?string $simName = null, bool $external = false, ?array $values = null, bool $edit = false): ?array
+    public function run(?string $gridNick = null, ?string $simulatorName = null, bool $external = false, ?array $values = null, bool $edit = false): ?array
     {
         $profile = (new InstallConfig())->profile();
         $etcRoot = $profile['EtcRoot'] ?? '';
@@ -62,7 +62,7 @@ final class NewSim
             return null;
         }
 
-        $plan = $this->gather($grid, $profile, new DatabaseService($this->ui), $simName, null, $values, $edit);
+        $plan = $this->gather($grid, $profile, new DatabaseService($this->ui), $simulatorName, null, $values, $edit);
         if ($plan === null) {
             return null;
         }
@@ -74,13 +74,13 @@ final class NewSim
      * The questions of a simulator and of its first region, nothing is made. The grid can be one that is only planned
      * (GridInfo::fromPlan): the plan of the simulator is then shown with the one of the grid (the quick setup).
      */
-    public function prepare(GridInfo $grid, array $profile, ?string $simName = null, ?array $values = null, bool $edit = false): ?SimPlan
+    public function prepare(GridInfo $grid, array $profile, ?string $simulatorName = null, ?array $values = null, bool $edit = false): ?SimulatorPlan
     {
-        return $this->gather($grid, $profile, new DatabaseService($this->ui), $simName, null, $values, $edit);
+        return $this->gather($grid, $profile, new DatabaseService($this->ui), $simulatorName, null, $values, $edit);
     }
 
     /** What the plan will do, as the setup shows it. */
-    public function describe(SimPlan $plan): string
+    public function describe(SimulatorPlan $plan): string
     {
         return $this->planText($plan);
     }
@@ -92,7 +92,7 @@ final class NewSim
      * @param array<string,mixed> $profile
      * @return ?array{0:string,1:string} the grid and the instance of the simulator configured, null when nothing was
      */
-    public function complete(SimPlan $plan, GridInfo $grid, array $profile, bool $accepted): ?array
+    public function complete(SimulatorPlan $plan, GridInfo $grid, array $profile, bool $accepted): ?array
     {
         $database = new DatabaseService($this->ui);
         // The account may have had its password entered since this plan was made: that one is the password of the account
@@ -132,7 +132,7 @@ final class NewSim
         }
         // What to do once written is asked here, while the user is at the keyboard (writing may be done by another
         // process), with the confirmation of the plan
-        $v = $this->ui->form(self::applyQuestions($plan->simName, $accepted, $hasRegion, $running), _('Apply'));
+        $v = $this->ui->form(self::applyQuestions($plan->simulatorName, $accepted, $hasRegion, $running), _('Apply'));
         if (($v['apply'] ?? 'yes') === 'no') {
             $this->ui->note(_('Aborted — nothing changed.'));
 
@@ -193,7 +193,7 @@ final class NewSim
     }
 
     /** Write as the user who owns the install (see Elevated). */
-    private function write(SimPlan $plan, array $profile): void
+    private function write(SimulatorPlan $plan, array $profile): void
     {
         if (!Elevated::needed($profile)) {
             $this->apply($plan, $profile);
@@ -223,14 +223,14 @@ final class NewSim
         $database = new DatabaseService($this->ui);
         $pool = [];
         foreach (Grid::at(Environment::forProfile($profile), $grid->dir)->simulatorNames() as $slug) {
-            $pool[$slug] = $this->simTitle($grid, $slug);
+            $pool[$slug] = $this->simulatorTitle($grid, $slug);
         }
 
         // The ports of a region are in the block of its simulator: the first of the pool is the one proposed
         $probe =
             $pool === []
-                ? new SimPlan()
-                : $this->regionPlan($grid, $this->simNameOf($grid, (string) array_key_first($pool)));
+                ? new SimulatorPlan()
+                : $this->regionPlan($grid, $this->simulatorNameOf($grid, (string) array_key_first($pool)));
         if ($probe === null) {
             return null;
         }
@@ -238,7 +238,7 @@ final class NewSim
             $probe->gridNick = $grid->nick;
             $probe->gridDir = $grid->dir;
         }
-        $planner = RegionPlanner::forSim(
+        $planner = RegionPlanner::forSimulator(
             $probe,
             $grid,
             $database,
@@ -256,11 +256,11 @@ final class NewSim
         }
 
         $slug = $answers['sim'];
-        $plan = $this->regionPlan($grid, $this->simNameOf($grid, $slug));
+        $plan = $this->regionPlan($grid, $this->simulatorNameOf($grid, $slug));
         if ($plan === null) {
             return null;
         }
-        RegionPlanner::forSim($plan, $grid, $database)->apply($plan, $answers);
+        RegionPlanner::forSimulator($plan, $grid, $database)->apply($plan, $answers);
         $this->ui->note(
             sprintf(
                 _("Region %s at %s, port %s, for simulator '%s'."),
@@ -300,15 +300,15 @@ final class NewSim
     }
 
     /** A simulator of the pool as the person sees it: its name and the regions it has */
-    private function simTitle(GridInfo $grid, string $slug): string
+    private function simulatorTitle(GridInfo $grid, string $slug): string
     {
         $regions = array_map(static fn(Region $region): string => $region->name(), Region::inDirectory("{$grid->dir}/sims/$slug/regions"));
 
-        return $this->simNameOf($grid, $slug) . ($regions !== [] ? ' (' . implode(', ', $regions) . ')' : '');
+        return $this->simulatorNameOf($grid, $slug) . ($regions !== [] ? ' (' . implode(', ', $regions) . ')' : '');
     }
 
     /** The name a simulator was given, from its instance name (the grid's nick and an underscore start it) */
-    private function simNameOf(GridInfo $grid, string $slug): string
+    private function simulatorNameOf(GridInfo $grid, string $slug): string
     {
         $prefix = GridInfo::instanceName($grid->nick) . '_';
 
@@ -319,11 +319,11 @@ final class NewSim
      * Add a region to a simulator already configured: loaded at once when the
      * simulator runs, else the simulator is started.
      */
-    public function addRegion(string $gridNick, string $simName, ?array $values = null, bool $edit = false): void
+    public function addRegion(string $gridNick, string $simulatorName, ?array $values = null, bool $edit = false): void
     {
         $profile = (new InstallConfig())->profile();
         $grid = $this->grid($profile, $gridNick);
-        $plan = $grid === null ? null : $this->regionPlan($grid, $simName);
+        $plan = $grid === null ? null : $this->regionPlan($grid, $simulatorName);
         if ($plan === null) {
             return;
         }
@@ -340,7 +340,7 @@ final class NewSim
                 $plan->regionName,
                 $plan->regionLocation,
                 $plan->regionPort,
-                $simName,
+                $simulatorName,
             ),
         );
         $v = $this->ui->form(
@@ -371,20 +371,20 @@ final class NewSim
     }
 
     /** The plan of a region of a simulator already configured, null when it is not. */
-    private function regionPlan(GridInfo $grid, string $simName): ?SimPlan
+    private function regionPlan(GridInfo $grid, string $simulatorName): ?SimulatorPlan
     {
-        $plan = new SimPlan();
+        $plan = new SimulatorPlan();
         $plan->gridNick = $grid->nick;
         $plan->gridName = $grid->name;
         $plan->gridDir = $grid->dir;
         $plan->hypergrid = $grid->hypergrid;
         $plan->logsDirectory = $grid->logsDirectory;
-        $plan->simName = $simName;
-        $plan->slug = GridInfo::instanceName($grid->nick . '_' . $simName);
+        $plan->simulatorName = $simulatorName;
+        $plan->slug = GridInfo::instanceName($grid->nick . '_' . $simulatorName);
         $plan->regionOnly = true;
         $plan->createRegion = true;
         if (!is_file($plan->iniPath())) {
-            $this->ui->error(sprintf(_("Simulator '%s' is not configured."), $simName));
+            $this->ui->error(sprintf(_("Simulator '%s' is not configured."), $simulatorName));
 
             return null;
         }
@@ -405,11 +405,11 @@ final class NewSim
      * are its identity in the grid, they stay. Taken into account when the simulator
      * starts again.
      */
-    public function reconfigureRegion(string $gridNick, string $simName, string $regionName): void
+    public function reconfigureRegion(string $gridNick, string $simulatorName, string $regionName): void
     {
         $profile = (new InstallConfig())->profile();
         $grid = $this->grid($profile, $gridNick);
-        $plan = $grid === null ? null : $this->regionPlan($grid, $simName);
+        $plan = $grid === null ? null : $this->regionPlan($grid, $simulatorName);
         if ($plan === null) {
             return;
         }
@@ -432,7 +432,7 @@ final class NewSim
 
         // Its place and its port: the rest of the region is its identity in the grid
         $database = new DatabaseService($this->ui);
-        $planner = RegionPlanner::forSim($plan, $grid, $database)->fixed();
+        $planner = RegionPlanner::forSimulator($plan, $grid, $database)->fixed();
         $fields = new FieldSet([
             ...$planner->fields()->all(),
             ['name' => 'apply', 'type' => 'boolean', 'label' => sprintf(_("Change region '%s'?"), $regionName)],
@@ -450,14 +450,14 @@ final class NewSim
         $this->ui->note(
             sprintf(
                 _("The simulator '%s' restarts to apply it when you quit the setup, or now: opensim restart %s"),
-                $simName,
+                $simulatorName,
                 $plan->slug,
             ),
         );
     }
 
     /** The writing itself, done by SimulatorProvisioner. */
-    public function apply(SimPlan $plan, array $profile): void
+    public function apply(SimulatorPlan $plan, array $profile): void
     {
         (new \OpenSim\Provisioning\SimulatorProvisioner($this->ui))->apply($plan, $profile);
     }
@@ -559,17 +559,17 @@ final class NewSim
         GridInfo $grid,
         array $profile,
         DatabaseService $database,
-        ?string $simName,
+        ?string $simulatorName,
         ?array $region = null,
         ?array $values = null,
         bool $edit = false,
-    ): ?SimPlan {
-        if ($simName === null && $grid->needsLandingRegion()) {
+    ): ?SimulatorPlan {
+        if ($simulatorName === null && $grid->needsLandingRegion()) {
             $this->ui->note(self::LANDING);
         }
         $given = $values['simulator'] ?? [];
         // A simulator made for a region is named after it, as the first of a grid is
-        $planner = SimPlanner::forGrid($grid, $profile, $database, $this->ui, $simName, $region['name'] ?? ($values['region']['name'] ?? null));
+        $planner = SimulatorPlanner::forGrid($grid, $profile, $database, $this->ui, $simulatorName, $region['name'] ?? ($values['region']['name'] ?? null));
         if ($planner->cores() === []) {
             $this->ui->error(_('No OpenSim core found.'));
 
@@ -579,7 +579,7 @@ final class NewSim
 
         if ($values !== null && !$edit) {
             // A setup that answers: the simulator it names is changed if it exists, nothing is asked unless an answer is refused
-            $planner = $planner->forSim($planner->resolve($given)['name']);
+            $planner = $planner->forSimulator($planner->resolve($given)['name']);
             $given += $planner->ownerAnswers($values['owner'] ?? []);
             if ($planner->problems($given) === []) {
                 $plan = $planner->plan($given);
@@ -596,9 +596,9 @@ final class NewSim
         $derived = $given === [] ? null : $planner->resolve();
         $answers = FieldForm::ask($this->ui, $fields->group('simulator'), $planner->resolve($given), _('Simulator'), [], $derived);
         $name = $planner->resolve($answers + $given)['name'];
-        $planner = $planner->forSim($name);
+        $planner = $planner->forSimulator($name);
         $iniPath = "{$grid->dir}/sims/" . $planner->resolve($answers + $given)['slug'] . '.ini';
-        if ($simName === null && is_file($iniPath)) {
+        if ($simulatorName === null && is_file($iniPath)) {
             $action = $this->ui->choose(
                 sprintf(_("Simulator '%s' is already configured (%s)."), $name, $iniPath),
                 [
@@ -634,11 +634,11 @@ final class NewSim
      * @param ?array<string,mixed> $region the answers about a region asked before the simulator
      * @param ?array<string,mixed> $given the answers of a setup file about the first region
      */
-    private function withRegion(SimPlan $plan, GridInfo $grid, DatabaseService $database, ?array $region, ?array $given, bool $answered): SimPlan
+    private function withRegion(SimulatorPlan $plan, GridInfo $grid, DatabaseService $database, ?array $region, ?array $given, bool $answered): SimulatorPlan
     {
         if ($region !== null) {
             // The region was asked first, the simulator is the one that takes it
-            RegionPlanner::forSim($plan, $grid, $database)->apply($plan, $region);
+            RegionPlanner::forSimulator($plan, $grid, $database)->apply($plan, $region);
 
             return $plan;
         }
@@ -651,7 +651,7 @@ final class NewSim
     }
 
     /** The database settings of the plan, asked again: what the plan has is what is proposed. */
-    private function askDatabase(SimPlan $plan): void
+    private function askDatabase(SimulatorPlan $plan): void
     {
         $v = $this->databaseAnswers([
             'database_host' => $plan->dbHost,
@@ -687,7 +687,7 @@ final class NewSim
      * @param array<string,mixed> $answers what was answered before
      * @return array<string,mixed>
      */
-    private function askEstate(SimPlanner $planner, GridInfo $grid, array $answers): array
+    private function askEstate(SimulatorPlanner $planner, GridInfo $grid, array $answers): array
     {
         $accounts = $planner->accounts();
         if ($accounts === null) {
@@ -724,9 +724,9 @@ final class NewSim
      *
      * @param ?array<string,mixed> $given the answers of a setup file: the screen proposes them, or is not shown with $answered
      */
-    private function askRegion(SimPlan $plan, GridInfo $grid, DatabaseService $database, bool $optional = false, ?array $given = null, bool $answered = false): void
+    private function askRegion(SimulatorPlan $plan, GridInfo $grid, DatabaseService $database, bool $optional = false, ?array $given = null, bool $answered = false): void
     {
-        $planner = RegionPlanner::forSim($plan, $grid, $database, $optional);
+        $planner = RegionPlanner::forSimulator($plan, $grid, $database, $optional);
         if ($answered && $planner->problems($given ?? []) === []) {
             // The place is the free one nearest to the place asked
             $planner->apply($plan, $given ?? []);
@@ -806,15 +806,15 @@ final class NewSim
         }
     }
 
-    private function showPlan(SimPlan $plan): void
+    private function showPlan(SimulatorPlan $plan): void
     {
         $this->ui->note($this->planText($plan));
     }
 
-    private function planText(SimPlan $plan): string
+    private function planText(SimulatorPlan $plan): string
     {
         $lines = [
-            "  Simulator:   {$plan->simName}  ({$plan->slug})",
+            "  Simulator:   {$plan->simulatorName}  ({$plan->slug})",
             "  Grid:        {$plan->gridName}  ({$plan->gridNick})",
             "  Core:        {$plan->coreDirectory}",
             "  HTTP port:   {$plan->httpPort}",

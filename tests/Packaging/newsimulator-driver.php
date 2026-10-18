@@ -1,7 +1,7 @@
 <?php
 
 use OpenSim\Exceptions\SetupFailedException;
-use OpenSimKit\Setup\NewSim;
+use OpenSimKit\Setup\NewSimulator;
 
 // Runs the simulator wizard of the installed kit with scripted answers, for
 // tests/Packaging/package-scenario.sh.
@@ -9,23 +9,23 @@ use OpenSimKit\Setup\NewSim;
 require '/usr/share/opensim-tools/bootstrap.php';
 require __DIR__ . '/ScriptedUi.php';
 
-// TEST_GRID: the grid, TEST_SIM: the simulator, TEST_REGION: its first region,
+// TEST_GRID: the grid, TEST_SIMULATOR: the simulator, TEST_REGION: its first region,
 // TEST_OWNER: an account of the grid for the estate (else the first one),
 // TEST_NEW_OWNER / TEST_NEW_OWNER_PASSWORD: an account to create instead,
 // TEST_NO_REGION: no first region, TEST_START: start it, TEST_DB_PASSWORD: the database password (empty keeps
 // the one of the grid), TEST_ADMIN_USER / TEST_ADMIN_PASSWORD: an administrator
 // account of the database server. The retry after a database error is always
 // declined.
-$sim = getenv('TEST_SIM') ?: 'Sim1';
+$simulator = getenv('TEST_SIMULATOR') ?: 'Sim1';
 $answers = [
     'Try again' => false,
-    'Simulator name' => $sim,
+    'Simulator name' => $simulator,
     'Enable simulator' => true,
     'Start simulator' => (bool) getenv('TEST_START'),
     // The console: a screen session, or the remote one when TEST_CONSOLE=rest
     'Console of' => getenv('TEST_CONSOLE') ?: 'screen',
     'Create the first region' => !getenv('TEST_NO_REGION'),
-    'Region name' => getenv('TEST_REGION') ?: $sim,
+    'Region name' => getenv('TEST_REGION') ?: $simulator,
     'Enter the credentials' => (bool) getenv('TEST_ADMIN_USER'),
     'Administrator user' => getenv('TEST_ADMIN_USER') ?: 'root',
     'Password of the new account' => getenv('TEST_NEW_OWNER_PASSWORD') ?: 'ownerpw1',
@@ -44,7 +44,7 @@ if (getenv('TEST_DB_PASSWORD')) {
     $answers['Database password'] = getenv('TEST_DB_PASSWORD');
 }
 
-// TEST_ADD_REGION: add a region of that name to the simulator TEST_SIM instead
+// TEST_ADD_REGION: add a region of that name to the simulator TEST_SIMULATOR instead
 // TEST_REMOTE_GRID=<nick>: the simulator joins a grid by its address, as if its Robust were on
 // another machine (TEST_REMOTE_ADDRESS, default localhost:8002), kept under that nick
 if (getenv('TEST_REMOTE_GRID')) {
@@ -57,23 +57,23 @@ if (getenv('TEST_ADD_REGION')) {
     $answers['Region name'] = getenv('TEST_ADD_REGION');
 }
 // TEST_REGION_TO_GRID: add the region to the grid, which asks where it goes (a new simulator by default), as the
-// Add region of the menu of a grid; TEST_DEFAULT_SIM_NAME: keep the name the setup proposes for the simulator
-if (getenv('TEST_DEFAULT_SIM_NAME')) {
+// Add region of the menu of a grid; TEST_DEFAULT_SIMULATOR_NAME: keep the name the setup proposes for the simulator
+if (getenv('TEST_DEFAULT_SIMULATOR_NAME')) {
     unset($answers['Simulator name']);
 }
-// TEST_RECONFIGURE_REGION: change the place (TEST_LOCATION) of that region of the simulator TEST_SIM
+// TEST_RECONFIGURE_REGION: change the place (TEST_LOCATION) of that region of the simulator TEST_SIMULATOR
 if (getenv('TEST_LOCATION')) {
     $answers['Region location'] = getenv('TEST_LOCATION');
 }
 
 try {
-    $wizard = new NewSim(new ScriptedUi($answers));
+    $wizard = new NewSimulator(new ScriptedUi($answers));
     if (getenv('TEST_RECONFIGURE_REGION')) {
-        $wizard->reconfigureRegion(getenv('TEST_GRID'), $sim, getenv('TEST_RECONFIGURE_REGION'));
+        $wizard->reconfigureRegion(getenv('TEST_GRID'), $simulator, getenv('TEST_RECONFIGURE_REGION'));
     } elseif (getenv('TEST_REGION_TO_GRID')) {
         $wizard->addRegionToGrid(getenv('TEST_GRID'));
     } elseif (getenv('TEST_ADD_REGION')) {
-        $wizard->addRegion(getenv('TEST_GRID'), $sim);
+        $wizard->addRegion(getenv('TEST_GRID'), $simulator);
     } else {
         $wizard->run(getenv('TEST_REMOTE_GRID') ? null : (getenv('TEST_GRID') ?: null));
     }

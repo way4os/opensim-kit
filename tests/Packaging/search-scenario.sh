@@ -3,7 +3,7 @@
 # are running, its accounts exist, its helpers are the ones of the packages. Sourced by package-scenario.sh (STOP_AFTER=search
 # stops the scenario after it, to run only this), in the test container.
 #
-# Two kinds of simulator: one that only tells its snapshot (search/sim-fake.php, with the files collector-*.xml in the
+# Two kinds of simulator: one that only tells its snapshot (search/simulator-fake.php, with the files collector-*.xml in the
 # format OpenSimulator writes), to know what the tables must hold, and the real simulator of the grid.
 # The searches are the calls of the OpenSimSearch module to query.php, with the keys it sends (search/search-check.php, from
 # the contract checked against the source of the module). The search of people is not the module's: the core asks the
@@ -113,15 +113,15 @@ check "it unregisters as well" "[ \"\$(sql \"SELECT COUNT(*) FROM hostsregister 
 # which nothing serves here: another one is added, the one of this test), and tells the parcels shown in search (the flag
 # ShowDirectory, 4096, in its land table, read when it starts)
 ts "search: the simulator of the grid registers by itself, and tells a parcel shown in search"
-sim_ini=/etc/opensim/grids/testgrid/sims/testgrid_sim1.ini
-sed -i '/^DATA_SRV_Search/d' "$sim_ini" # (what a former run left)
-cp "$sim_ini" /tmp/sim1.ini.search
+simulator_ini=/etc/opensim/grids/testgrid/sims/testgrid_sim1.ini
+sed -i '/^DATA_SRV_Search/d' "$simulator_ini" # (what a former run left)
+cp "$simulator_ini" /tmp/sim1.ini.search
 # (an address of the grid on this site: the helpers do not answer an address that has another host name)
 # (the simulator says it itself, over the registration of its grid: a section of its own when its config has none)
-if grep -q '^\[DataSnapshot\]' "$sim_ini"; then
-    sed -i "/^\[DataSnapshot\]/a DATA_SRV_Search = \"http://localhost:8090/helpers/register.php\"" "$sim_ini"
+if grep -q '^\[DataSnapshot\]' "$simulator_ini"; then
+    sed -i "/^\[DataSnapshot\]/a DATA_SRV_Search = \"http://localhost:8090/helpers/register.php\"" "$simulator_ini"
 else
-    printf '\n[DataSnapshot]\nDATA_SRV_Search = "http://localhost:8090/helpers/register.php"\n' >>"$sim_ini"
+    printf '\n[DataSnapshot]\nDATA_SRV_Search = "http://localhost:8090/helpers/register.php"\n' >>"$simulator_ini"
 fi
 mysql testgrid_sim1 -e "UPDATE land SET LandFlags = LandFlags | 4096 WHERE Name = 'Sim1'"
 opensim stop now testgrid_sim1 >/dev/null 2>&1
@@ -133,21 +133,21 @@ if [ "$(sql "SELECT COUNT(*) FROM parcels WHERE parcelname='Sim1'")" != 1 ]; the
     echo "   --- the processes"
     ps -axo pid,user,args | grep -E "dotnet|SCREEN" | grep -v grep | cut -c1-200 | sed 's/^/   ps /'
     echo "   --- the environment of the simulator"
-    tr '\0' '\n' < "/proc/$(sim_pid)/environ" 2>/dev/null | sort | cut -c1-120 | sed 's/^/   env /'
+    tr '\0' '\n' < "/proc/$(simulator_pid)/environ" 2>/dev/null | sort | cut -c1-120 | sed 's/^/   env /'
     echo "   --- DataSnapshot"
-    grep -n -A8 "^\[DataSnapshot\]" "$sim_ini" | cut -c1-200 | sed 's/^/   | /'
+    grep -n -A8 "^\[DataSnapshot\]" "$simulator_ini" | cut -c1-200 | sed 's/^/   | /'
     echo "   --- the region file"
     cat /etc/opensim/grids/testgrid/sims/testgrid_sim1/regions/*.ini | head -20 | sed 's/^/   | /'
 fi
-sim=$(sim_pid) # restarted: what the scenario compares it with later is this one
+simulator=$(simulator_pid) # restarted: what the scenario compares it with later is this one
 # (it registers while it starts, its second region is not loaded yet: it is read again 90 s later, by the job that reads the hosts
 # that are due, which parser.php is)
 wait_check 240 "it is in the register, its regions are known" "curl -s -m 60 -o /dev/null $helpers/parser.php; [ \"\$(sql \"SELECT COUNT(*) FROM hostsregister WHERE port=9000\")\" = 1 ] &&
     [ \"\$(sql \"SELECT GROUP_CONCAT(regionname ORDER BY regionname) FROM $regions WHERE url LIKE '%:9000/'\")\" = Sim1,Sim1North ]"
 check "the simulator tells only the parcel that has the flag, its other parcel is not told" "[ \"\$(sql \"SELECT GROUP_CONCAT(parcelname) FROM allparcels\")\" = Sim1 ]"
-queries sim
+queries simulator
 register 9000 offline "$own_host"
-cp /tmp/sim1.ini.search "$sim_ini"
+cp /tmp/sim1.ini.search "$simulator_ini"
 
 # The search of people is made by the core: it asks the user accounts service of Robust (the accounts of the list made by
 # opensim import are there)

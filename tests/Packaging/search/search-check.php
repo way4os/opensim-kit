@@ -4,7 +4,7 @@
  * makes them to the web service of the grid (query.php of the helpers): the same XML-RPC calls, with the keys the module
  * sends (all strings, as the module sends them), and the answers read the way the module reads them.
  *
- *   php search-check.php GROUP URL      GROUP: places, popular, land, events, classifieds, changed, gone, sim
+ *   php search-check.php GROUP URL      GROUP: places, popular, land, events, classifieds, changed, gone, simulator
  *
  * It prints one line per check, as the scenarios do, and exits with 1 when one failed. What the groups expect is what the
  * fixtures (collector-1-fixture.xml, collector-2-fixture.xml, search-tables-fixture.sql) put in the tables.
@@ -200,7 +200,7 @@ switch ($group) {
         check('changed: a region the simulator stopped telling stays until it unregisters', names(ask($places, ['text' => 'Lounge', 'flags' => MATURE])) === ['Mature Lounge']);
         break;
 
-    case 'sim':
+    case 'simulator':
         // The parcel of the real simulator, as OpenSimulator tells it
         $places = 'DirPlacesQuery/dir_places_query';
         $answer = ask($places, ['text' => 'Sim1']);
@@ -240,7 +240,7 @@ switch ($group) {
         break;
 
     default:
-        fwrite(STDERR, "usage: php search-check.php places|popular|land|events|classifieds|changed|gone|sim|publish URL\n");
+        fwrite(STDERR, "usage: php search-check.php places|popular|land|events|classifieds|changed|gone|simulator|publish URL\n");
         exit(2);
 }
 
