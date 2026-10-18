@@ -663,6 +663,9 @@ Kit:
     - the release ones (`core/`) and the development one (`upstream/opensim`, a submodule) all go to `core/`
     - OpenSimulator is not an upstream of the kit, the kit includes it
     - files: `packaging/build`, `packaging/remote-build`, `.gitmodules`, `DEVELOPERS.md`
+- [ ] bash 4 or later for the scripts that use bash-tools, and bash 3 for the ones a person runs
+    - [ ] a guard at the start of `packaging/tools` and of the dev scripts that load bash-tools: stop with a message with bash 3 (the PATH stays the person's)
+    - [ ] the scripts shipped to a machine (`setup.sh`, `libexec/setup-frontend.sh`, the cron) do not use bash-tools: they stay compatible with bash 3 (macOS), checked by a test
 - [ ] `opensim online`: show who's online
 - [ ] localize the launcher and the bash scripts with gettext
 - [ ] a first translation of the setup (`locales/fr.po`)
