@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace OpenSimKit\Console\Commands;
 
 use OpenSim\Runtime\Environment;
-use OpenSim\Runtime\Result;
+use OpenSim\Runtime\InstanceResult;
 use OpenSimKit\Console\ConsoleReporter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -33,7 +33,7 @@ abstract class EngineCommand extends Command
     /**
      * The status of the command for a list of results: a failure when one instance failed (one still loading did not).
      *
-     * @param list<Result> $results
+     * @param list<InstanceResult> $results
      */
     protected static function status(array $results): int
     {
