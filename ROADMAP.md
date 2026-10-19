@@ -48,11 +48,15 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
 - [ ] the engine: OpenAPI contracts, JSON:API resources, RFC 9457 errors, PSR-7 messages (with PSR-15 and PSR-17), PSR-4 autoloading
     - [ ] one layer of use cases; the command line, the HTTP API and the PHP library are adapters of it
         - [x] a first generic slice: `Api` lists and reads the grids, the simulators and the services as JSON:API, the errors are `Problem` (RFC 9457)
-        - [ ] the other resources (avatars, regions, parcels, estates: they need a grid), then the writes
+        - [x] the other resources: avatars, regions, parcels, estates (`/grids/{grid}/...`), tasks, forms; the writes that exist (an avatar is made and changed, what is enabled is enabled)
+        - [ ] backups and archives as resources, the health checks (`Health` still has the function style of the helpers)
+        - [ ] the standard of the web services whose format is the engine's own (`GET /motd`, `POST /search/hosts`, `POST /offline-messages`, `GET /destinations`, `GET /text-images`): the handlers, and the adapter for their old scripts
+        - [x] the fixed ones (`query`, `currency`, `landtool`) are in the catalog of `Service` with their format fixed and their address configurable
         - [ ] a PSR-7 / PSR-15 adapter (`Response` is the answer without a framework), the command line and the PHP library as the other two
     - [ ] the OpenAPI document is the contract, checked against the code by tests
         - [x] `Contract::document()` for the first slice, checked against `detail()` of the models
-        - [ ] the endpoints the core and the viewers call, as endpoints of their own
+        - [ ] the endpoints the core and the viewers call (`query`, `currency`, `landtool`), described as endpoints of their own with their fixed format
+        - [x] the documentation is made from it (`composer docs`: `docs/api/`), a test fails when it is not the one of the contract
     - [ ] what the core of OpenSimulator and the viewers call (`query.php`, `register.php`, `offline.php`, `currency.php`, `landtool.php`, `get_grid_info`...) keeps the format they expect: described in the contract as endpoints of their own, not reshaped
     - [ ] to bring to it first: `Collection::json()`, the errors of the helpers, the fields of the setup, the line protocol of `ScriptUi` (the questions of the setup become a resource of the API)
     - the engine is cleaned first, as a library on its own; its consumers (the helpers, the kit, the manager) are put in order after
