@@ -587,18 +587,20 @@ Installation:
     - simulator: `http_listener_ssl` and a PKCS12 certificate; `EnableCertConverter` makes it from the PEM files of the CA (`fullchain.pem`, `privkey.pem`) at each start
         - added on 2024-09-16 (commit `52c77b2f12` of the core, in `OpenSimBase.cs`, so the simulator only): 0.9.3.0 has it, 0.9.2 does not, there the `.p12` is made with openssl
     - Robust: `[Network] https_listener`, `https_port`, `https_main`, `cert_path` and `cert_pass` (a PKCS12), no converter for the certificate of a CA
-        - [ ] Robust takes the `.p12` a simulator of the machine converted (`SSL/ssl/<outputCertName>.p12`), else it is made with openssl
-        - [ ] test that the .NET of each core loads what openssl writes (openssl 3 changed the default encryption of a `.p12`)
+        - [ ] the engine makes the `.p12` for every version and every instance, Robust and simulators (no instance is started to convert): one code path, `EnableCertConverter` stays off [?]
+        - [ ] test that the .NET of each core loads the `.p12` (openssl 3 changed the default encryption)
         - [ ] one certificate for all the hostnames of the grid (several names, or a wildcard through DNS-01), so that the `.p12` is shared
     - [ ] base it on certbot, not on the certificate of Caddy (the `ExternalHostName` of a region is not always a site)
     - [ ] deploy hook: copy the PEM where `opensim` reads them (`/etc/letsencrypt` is root's), restart the instances (the conversion only happens at start)
     - [ ] fully automated letsencrypt integration: the grid admin does nothing once it is enabled (obtain, renew, convert, restart)
         - the engine owns it: it knows the instances, their hostnames, their config, the restarts and the health; certbot is behind an interface, so it can move to a package of its own or be replaced
-        - [ ] the challenge is chosen for each hostname, by who answers port 80 for it (webroot and standalone only work when it is the web server, or nobody)
-            - [ ] webroot: a web server of the machine serves this hostname
-            - [ ] DNS-01: no port, no cut; a token of the DNS provider, given once; the only one for a hostname that points elsewhere (a prefix on another machine, Robust on port 80 as at OSGrid)
-            - [ ] standalone, the last resort: the instance that holds the port is stopped for the challenge, and started again; the restart that loads the certificate is needed anyway, so it is one stop, at a quiet time, users warned
-            - [?] the process on port 80 answers the challenge itself: a module that serves `/.well-known/acme-challenge/` from a folder, then webroot works as it is
+        - [ ] the challenge is chosen for each hostname, by who answers port 80 for it
+            - the common case: `www.yourgrid.org` and `login.yourgrid.org:8002` on one server; port 80 is the web server's, which does not know `login`: standalone is impossible, and webroot does not work as it is
+            - [ ] webroot, once the web server answers `/.well-known/acme-challenge/` whatever the host (a catch-all location in the snippet the setup writes for Caddy, nginx and Apache, before any redirect to https)
+            - [ ] DNS-01: no port, no web server; a token of the DNS provider, given once; also a wildcard (one certificate for every prefix); the only one for a hostname that points to another machine
+            - [ ] standalone: when no web server runs on the machine
+            - rare: Robust itself on port 80 (OSGrid): its instance is stopped for the challenge (the restart that loads the certificate is needed anyway)
+            - [?] the process on port 80 answers the challenge itself: a module that serves `/.well-known/acme-challenge/` from a folder
         - [ ] `opensim ssl enable <grid|simulator> <hostname>` gets the certificate once, the timer of certbot renews it
         - [ ] `opensim ssl deploy` is its deploy hook: PEM copied where the instances read them, settings written, instances that use the hostname restarted
             - simulator: `EnableCertConverter`, `PemCertPublicKey`, `PemCertPrivateKey`, `outputCertPassword` (the core converts at each start)
