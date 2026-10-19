@@ -80,8 +80,8 @@ check "start lcsim: the simulator comes up, in a screen session" "[ -n \"\$(simu
 simulatorpid=$(simulator_pid)
 opensim restart now lc >/tmp/restart-lc.out 2>&1
 check "restart lc: Robust again, another process; the simulator was left alone" "[ -n \"\$(robust_pid)\" ] && [ \"\$(robust_pid)\" != '$pid' ] && [ \"\$(simulator_pid)\" = '$simulatorpid' ]"
-opensim restart now --sims lc >/tmp/restart-all.out 2>&1
-check "restart --sims lc: the simulator restarts with it" "[ -n \"\$(robust_pid)\" ] && [ -n \"\$(simulator_pid)\" ] && [ \"\$(simulator_pid)\" != '$simulatorpid' ]"
+opensim restart now --simulators lc >/tmp/restart-all.out 2>&1
+check "restart --simulators lc: the simulator restarts with it" "[ -n \"\$(robust_pid)\" ] && [ -n \"\$(simulator_pid)\" ] && [ \"\$(simulator_pid)\" != '$simulatorpid' ]"
 opensim stop now lcsim >/tmp/stop-sim.out 2>&1
 check "stop now lcsim: only the simulator goes" "[ -z \"\$(simulator_pid)\" ] && [ -n \"\$(robust_pid)\" ]"
 opensim stop now lc >/tmp/stop-lc.out 2>&1

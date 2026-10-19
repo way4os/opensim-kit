@@ -37,31 +37,31 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 final class ImportSettings
 {
-    private const USAGE = "usage: opensim import [NICK] robust FILE [--core DIR] [--apply]\n       opensim import GRID sim FILE [--name NAME] [--core DIR] [--apply]\n";
+    private const USAGE = "usage: opensim import [NICK] robust FILE [--core DIR] [--apply]\n       opensim import GRID simulator FILE [--name NAME] [--core DIR] [--apply]\n";
 
     private OutputInterface $out;
 
     /**
-     * @param list<string> $args [GRID] robust|sim FILE and the options, as ImportFile hands them
+     * @param list<string> $args [GRID] robust|simulator FILE and the options, as ImportFile hands them
      */
     public function run(array $args, OutputInterface $out, OutputInterface $err): int
     {
         $this->out = $out;
-        // [GRID] robust|sim FILE: the grid comes first, as the instance does in the other commands (the nick of the grid to
+        // [GRID] robust|simulator FILE: the grid comes first, as the instance does in the other commands (the nick of the grid to
         // make, or the grid the simulator joins)
         $grid = '';
-        if (!in_array($args[0] ?? '', ['robust', 'sim'], true) && !str_starts_with($args[0] ?? '-', '-')) {
+        if (!in_array($args[0] ?? '', ['robust', 'simulator'], true) && !str_starts_with($args[0] ?? '-', '-')) {
             $grid = array_shift($args);
         }
         $what = $args[0] ?? '';
-        if (!in_array($what, ['robust', 'sim'], true)) {
+        if (!in_array($what, ['robust', 'simulator'], true)) {
             $err->write(self::USAGE, false, OutputInterface::OUTPUT_RAW);
 
             return 2;
         }
         array_shift($args);
 
-        $options = ['nick' => $what === 'robust' ? $grid : '', 'core' => '', 'grid' => $what === 'sim' ? $grid : '', 'name' => ''];
+        $options = ['nick' => $what === 'robust' ? $grid : '', 'core' => '', 'grid' => $what === 'simulator' ? $grid : '', 'name' => ''];
         $apply = false;
         $words = [];
         for ($i = 0; $i < count($args); $i++) {

@@ -20,8 +20,8 @@ Type 'opensim <command> --help' or 'opensim help <command>' for specific help on
 
 Commands:
     status
-    start [--sims] [target...]
-    stop|restart [--sims] [now] [target...]
+    start [--simulators] [target...]
+    stop|restart [--simulators] [now] [target...]
     enable|disable <instance...>
     enable|disable <grid> search [<url prefix>]
     enable|disable <grid> economy [beta|gloebit] [<url prefix>]
@@ -52,7 +52,7 @@ This machine
     rest --url http://HOST:PORT --user USER (-- <command> | - | --repl)
     install-dotnet  install the .NET runtime OpenSim needs (as root)
 
-A target is a grid (its services, its Robust) or a simulator. --sims adds the simulators of the grid, which do not need to
+A target is a grid (its services, its Robust) or a simulator. --simulators adds the simulators of the grid, which do not need to
 restart when its Robust does.
 
     -h|--help       display this help

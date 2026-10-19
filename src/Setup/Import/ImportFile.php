@@ -94,7 +94,7 @@ final class ImportFile
         // What the file holds, and what was asked of it
         $holds = match ($kind) {
             'robust' => ['grid'],
-            'sim' => ['simulator'],
+            'simulator' => ['simulator'],
             'accounts' => ['users'],
             default => ['grid', 'simulator', 'users'],
         };
@@ -102,7 +102,7 @@ final class ImportFile
         if ($wanted === []) {
             throw new ImportFailure(
                 "nothing to import: $file holds " .
-                    ($kind === 'robust' ? 'the config of a grid' : ($kind === 'sim' ? 'the config of a simulator' : 'a list of accounts')) .
+                    ($kind === 'robust' ? 'the config of a grid' : ($kind === 'simulator' ? 'the config of a simulator' : 'a list of accounts')) .
                     ', not what ' . implode(' and ', array_keys(array_filter($only))) . ' asks for',
                 2,
             );
@@ -116,11 +116,11 @@ final class ImportFile
                 $err,
             );
         }
-        if ($kind === 'sim') {
+        if ($kind === 'simulator') {
             return (new ImportSettings())->run(
                 array_merge(
                     $grid !== '' ? [$grid] : [],
-                    ['sim', $path],
+                    ['simulator', $path],
                     $options['core'] !== '' ? ['--core', $options['core']] : [],
                     $options['name'] !== '' ? ['--name', $options['name']] : [],
                     $extra,
@@ -204,7 +204,7 @@ final class ImportFile
         return $made === null ? 1 : 0;
     }
 
-    /** What kind of file it is: robust (a Robust ini), sim (an OpenSim ini), setup (a setup of the kit) or accounts. */
+    /** What kind of file it is: robust (a Robust ini), simulator (an OpenSim ini), setup (a setup of the kit) or accounts. */
     private function kind(string $path, string $format): string
     {
         $text = (string) file_get_contents($path);
@@ -227,7 +227,7 @@ final class ImportFile
             return 'robust';
         }
         if (preg_match('/^\s*\[(?:Startup|Estates|Network|Architecture)\]/mi', $text) === 1) {
-            return 'sim';
+            return 'simulator';
         }
         if (preg_match('/^\s*\[\w+\]\s*$/m', $text) !== 1) {
             return 'accounts'; // a list with no sections: the lines of a spreadsheet

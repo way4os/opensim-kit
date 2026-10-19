@@ -52,7 +52,7 @@ describe('command line', function () {
         $status = $app->dispatch($argv);
         $text = (string) ob_get_clean();
 
-        expect($status)->toBe(0)->and($text)->toContain('usage: opensim')->toContain('start [--sims] [target...]')
+        expect($status)->toBe(0)->and($text)->toContain('usage: opensim')->toContain('start [--simulators] [target...]')
 ;
     })->with([
         [['opensim']],
@@ -187,12 +187,12 @@ describe('commands start, stop and restart', function () {
         expect($status)->toBe(1);
     });
 
-    test('take --sims for the simulators of the grid, which a grid alone leaves out', function () {
+    test('take --simulators for the simulators of the grid, which a grid alone leaves out', function () {
         $machine = new Machine();
         $machine->processes->add('dotnet OpenSim.dll -inifile=' . $machine->etc . '/opensim.d/alpha.ini');
         $machine->consoles->console('alpha')->onSend = fn(string $l) => $l === 'shutdown' && $machine->processes->remove(4000);
 
-        $status = machine_application($machine)->run(new ArrayInput(['command' => 'stop', 'targets' => ['now', 'demo'], '--sims' => true]), new BufferedOutput());
+        $status = machine_application($machine)->run(new ArrayInput(['command' => 'stop', 'targets' => ['now', 'demo'], '--simulators' => true]), new BufferedOutput());
 
         expect($status)->toBe(0)->and($machine->processes->all())->toBe([]);
     });

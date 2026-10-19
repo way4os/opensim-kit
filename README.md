@@ -56,13 +56,13 @@ See [INSTALLATION.md](INSTALLATION.md) for more details and advanced installatio
 `opensim start [target...]`
 
 - Without a target, start every enabled instance: the Robust of each grid (linked in etc/robust.d), then the simulators (linked in etc/opensim.d)
-- A target is a grid (`vonda`: its services, its Robust) or a simulator (`vonda_welcome`); the simulators do not need to restart with the Robust, `--sims` adds the enabled simulators of the grid
+- A target is a grid (`vonda`: its services, its Robust) or a simulator (`vonda_welcome`); the simulators do not need to restart with the Robust, `--simulators` adds the enabled simulators of the grid
 
 `opensim stop [now] [target...]`
 
 `opensim restart [now] [target...]`
 
-- Stop/Restart everything enabled or the targets; with `--sims`, a grid stops its simulators first, then its Robust, and starts the other way round
+- Stop/Restart everything enabled or the targets; with `--simulators`, a grid stops its simulators first, then its Robust, and starts the other way round
 - If first parameter is "now", stops the simulator immediately, otherwise send reminders to leave during 2 minutes then stop
 
 `opensim enable|disable <grid> search|economy|profiles`
