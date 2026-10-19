@@ -211,7 +211,8 @@ The beta:
         - [ ] then the basics, which depend on the choice
             - [ ] grid: name of the grid, login URI, Hypergrid (yes), avatar (name, password, email)
             - [ ] standalone: name of the simulator (it is the grid), login URI, Hypergrid (yes), avatar (name, password, email)
-            - [ ] preset: name of the simulator, the avatar that owns its estate there (it exists), no login URI and no Hypergrid (the grid decides)
+            - [ ] preset: name of the simulator, login URI and Hypergrid shown but read-only (the preset gives them), the avatar that owns its estate there (it exists)
+                - later: its password, to check the avatar is theirs (to think over: who may do it, the admin or not)
         - [ ] then the options, each with its default
             - [ ] search: internal (the helpers), shared (2do.directory) or none (internal)
             - [ ] currency: BetaGridLikeMoneyModule or Gloebit (BetaGridLikeMoneyModule)
