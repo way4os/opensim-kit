@@ -209,11 +209,13 @@ The beta:
         - [ ] then what to set up: one list, whether it makes a grid or joins one: grid, standalone, then the presets (Speculoos, OSGrid, the custom ones)
             - the engine does not treat them as presets yet (grid and standalone make, a preset joins): to align later, or not
         - [ ] then the basics, which depend on the choice
-            - names are Latin letters without accents, in every alphabet: the engine transliterates, the person validates the change
-                - why: Firestorm drops the accents of a destination, of the link in the chat and of the display, the console accepts them
-                - avatar: two words of letters, digits and hyphens; no `.` nor `@` (hypergrid: First.Last@grid), no `_` (taken for a space in many places of OpenSimulator)
-                - region: letters, digits, space, `.` and `-`; no `_` (Ma Region and Ma_Region would be the same `Region_Ma_Region`)
-                - login URI: lower case, no transliteration (a domain name may be in unicode)
+            - the rules, their messages and the corrections are the models' (Avatar, Region, Grid, Simulator): the setup, the API and the other apps ask their fields, none has a rule of its own
+                - names are Latin letters without accents, in every alphabet: the model transliterates, the person validates the change
+                    - why: Firestorm drops the accents of a destination, of the link in the chat and of the display, the console accepts them
+                - Avatar: name of two words of letters, digits and hyphens; no `.` nor `@` (hypergrid: First.Last@grid), no `_` (taken for a space in many places of OpenSimulator)
+                - Avatar: password of 6 characters at least (to make configurable in opensim.conf), no double quote; email without space, quote nor backslash
+                - Region: letters, digits, space, `.` and `-`; no `_` (Ma Region and Ma_Region would be the same `Region_Ma_Region`)
+                - Grid: name transliterated; login URI with or without the scheme (http only), host in lower case, no transliteration (a domain name may be in unicode); web URL http or https
             - [ ] grid: name of the grid, login URI, Hypergrid (yes), avatar (name, password, email)
             - [ ] standalone: name of the simulator (it is the grid), login URI, Hypergrid (yes), avatar (name, password, email)
             - [ ] preset: name of the simulator, login URI and Hypergrid shown but read-only (the preset gives them), the avatar that owns its estate there (it exists)
