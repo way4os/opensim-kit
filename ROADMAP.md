@@ -585,12 +585,20 @@ Installation:
 
 - [ ] SSL management for the OpenSim servers (0.9.3 supports it)
     - simulator: `http_listener_ssl` and a PKCS12 certificate; `EnableCertConverter` makes it from the PEM files of the CA (`fullchain.pem`, `privkey.pem`) at each start
-    - Robust: `[Network] https_*` and `cert_path`, no converter (a `.p12` made with openssl)
+        - the example ini of 0.9.2.2 has no converter: on 0.9.2 the `.p12` is made with openssl (the code of 0.9.2 not read)
+    - Robust: `[Network] https_listener`, `https_port`, `https_main`, `cert_path` and `cert_pass` (a PKCS12), no converter for the certificate of a CA
+        - [ ] Robust takes the `.p12` a simulator of the machine converted (`SSL/ssl/<outputCertName>.p12`), else it is made with openssl
+        - [ ] test that the .NET of each core loads what openssl writes (openssl 3 changed the default encryption of a `.p12`)
+        - [ ] one certificate for all the hostnames of the grid (several names, or a wildcard through DNS-01), so that the `.p12` is shared
     - [ ] base it on certbot, not on the certificate of Caddy (the `ExternalHostName` of a region is not always a site)
     - [ ] deploy hook: copy the PEM where `opensim` reads them (`/etc/letsencrypt` is root's), restart the instances (the conversion only happens at start)
     - [ ] fully automated letsencrypt integration: the grid admin does nothing once it is enabled (obtain, renew, convert, restart)
         - the engine owns it: it knows the instances, their hostnames, their config, the restarts and the health; certbot is behind an interface, so it can move to a package of its own or be replaced
-        - [ ] the challenge is chosen for the host: webroot when a web server answers on port 80 (nothing is stopped), standalone when none does
+        - [ ] the challenge is chosen for each hostname, by who answers port 80 for it (webroot and standalone only work when it is the web server, or nobody)
+            - [ ] webroot: a web server of the machine serves this hostname
+            - [ ] DNS-01: no port, no cut; a token of the DNS provider, given once; the only one for a hostname that points elsewhere (a prefix on another machine, Robust on port 80 as at OSGrid)
+            - [ ] standalone, the last resort: the instance that holds the port is stopped for the challenge, and started again; the restart that loads the certificate is needed anyway, so it is one stop, at a quiet time, users warned
+            - [?] the process on port 80 answers the challenge itself: a module that serves `/.well-known/acme-challenge/` from a folder, then webroot works as it is
         - [ ] `opensim ssl enable <grid|simulator> <hostname>` gets the certificate once, the timer of certbot renews it
         - [ ] `opensim ssl deploy` is its deploy hook: PEM copied where the instances read them, settings written, instances that use the hostname restarted
             - simulator: `EnableCertConverter`, `PemCertPublicKey`, `PemCertPrivateKey`, `outputCertPassword` (the core converts at each start)
