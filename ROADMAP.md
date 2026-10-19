@@ -251,6 +251,11 @@ The beta:
 
 ### 3.0.0-beta.8 (safe for other grids)
 
+Tests:
+
+- [ ] the 10 test files that name the SQLite driver in their code take their database from `tests/.env` (`test_pdo()`), like the newer ones
+    - not clean, not blocking
+
 Resources/CPU usage protection:
 
 - [ ] Refuse to try starting a new simulator if CPU usage is critical
