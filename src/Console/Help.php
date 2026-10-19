@@ -30,6 +30,7 @@ Commands:
     console|screen <instance>
     command <instance> <text>|-
     ports [instance...] [--publish|--ufw]
+    api [GET|POST|PATCH|DELETE] PATH [key=value...] [--data=JSON|@FILE|-] [--grid=NICK]
 
 Grids
     setup

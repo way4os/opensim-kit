@@ -13,6 +13,7 @@ use OpenSimKit\Console\Commands\ConsoleCommand;
 use OpenSimKit\Console\Commands\DisableCommand;
 use OpenSimKit\Console\Commands\EnableCommand;
 use OpenSimKit\Console\Commands\RestartCommand;
+use OpenSimKit\Console\Commands\ApiCommand;
 use OpenSimKit\Console\Commands\BackupCommand;
 use OpenSimKit\Console\Commands\BanCommand;
 use OpenSimKit\Console\Commands\ImportCommand;
@@ -75,6 +76,7 @@ final class Application extends ConsoleApplication
         $environment ??= static fn(ReporterInterface $reporter): Environment => OpenSim::environment($reporter);
 
         return [
+            new ApiCommand($environment),
             new StartCommand($environment),
             new StopCommand($environment),
             new RestartCommand($environment),

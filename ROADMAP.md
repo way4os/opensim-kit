@@ -63,7 +63,7 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
         - [x] a grid with no guide has its popular places and its places shown in search (ten of each), as sections or as the lines the boards read
         - [x] the fixed ones (`query`, `currency`, `landtool`) are in the catalog of `Service` with their format fixed and their address configurable
         - [x] a PSR-7 / PSR-15 adapter (`Api\Handler`: the application brings the implementation of the messages and calls `terminate()` once the response is sent)
-        - [ ] the command line and the PHP library as the other two adapters
+        - [x] the command line (`opensim api`) and the PHP library (`Api\Router`) as the other two adapters
     - [ ] the OpenAPI document is the contract, checked against the code by tests
         - [x] `Contract::document()` for the first slice, checked against `detail()` of the models
         - [x] the endpoints the core and the viewers call (`query`, `register`, `offline`, `currency`, `landtool`, `get_grid_info`) and the pages of the helpers, described as endpoints of their own with their fixed format (`docs/api/`)
