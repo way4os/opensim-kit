@@ -34,7 +34,7 @@ function plan_database(): OSPDO
     $pdo = new OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
     $pdo->exec('CREATE TABLE UserAccounts (PrincipalID CHAR(36) PRIMARY KEY, ScopeID CHAR(36), FirstName VARCHAR(64), LastName VARCHAR(64), Email VARCHAR(64), Created INT, UserLevel INT DEFAULT 0, UserFlags INT DEFAULT 0, UserTitle VARCHAR(64) DEFAULT \'\', active INT DEFAULT 1)');
     $pdo->exec('CREATE TABLE GridUser (UserID VARCHAR(255) PRIMARY KEY, HomeRegionID CHAR(36), LastRegionID CHAR(36), Online CHAR(5) DEFAULT \'false\', Login CHAR(16) DEFAULT \'0\', Logout CHAR(16) DEFAULT \'0\')');
-    $pdo->exec('CREATE TABLE userprofile (useruuid CHAR(36) PRIMARY KEY, profileImage CHAR(36), profileAboutText TEXT, profileURL VARCHAR(255), profilePartner CHAR(36), profileWantToText TEXT, profileSkillsText TEXT, profileLanguages TEXT, profileFirstImage CHAR(36), profileFirstText TEXT)');
+    $pdo->exec('CREATE TABLE userprofile (useruuid CHAR(36) PRIMARY KEY, profileImage CHAR(36), profileAboutText TEXT, profileURL VARCHAR(255), profilePartner CHAR(36), profileWantToMask INT, profileWantToText TEXT, profileSkillsMask INT, profileSkillsText TEXT, profileLanguages TEXT, profileFirstImage CHAR(36), profileFirstText TEXT)');
     $pdo->exec('CREATE TABLE assets (id CHAR(36), CreatorID VARCHAR(255))');
     $pdo->exec('CREATE TABLE prims (UUID CHAR(36), OwnerID CHAR(36))');
     $pdo->exec('CREATE TABLE hg_traveling_data (SessionID CHAR(36), UserID CHAR(36), GridExternalName VARCHAR(255))');
