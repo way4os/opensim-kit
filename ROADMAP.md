@@ -589,6 +589,7 @@ Installation:
     - Robust: `[Network] https_listener`, `https_port`, `https_main`, `cert_path` and `cert_pass` (a PKCS12), no converter for the certificate of a CA
         - [ ] the engine makes the `.p12` for every version and every instance, Robust and simulators (no instance is started to convert): one code path, `EnableCertConverter` stays off [?]
         - [ ] test that the .NET of each core loads the `.p12` (openssl 3 changed the default encryption)
+        - [ ] test whether a running instance serves a new `.p12` without a restart: that decides between the converter of 0.9.3 and ours (the code says no: `BaseHttpServer` loads the certificate when the server is made and gives it to the listener at start, the converter only runs at start)
         - [ ] one certificate for all the hostnames of the grid (several names, or a wildcard through DNS-01), so that the `.p12` is shared
     - [ ] base it on certbot, not on the certificate of Caddy (the `ExternalHostName` of a region is not always a site)
     - [ ] deploy hook: copy the PEM where `opensim` reads them (`/etc/letsencrypt` is root's), restart the instances (the conversion only happens at start)
@@ -596,8 +597,8 @@ Installation:
         - the engine owns it: it knows the instances, their hostnames, their config, the restarts and the health; certbot is behind an interface, so it can move to a package of its own or be replaced
         - [ ] the challenge is chosen for each hostname, by who answers port 80 for it
             - the common case: `www.yourgrid.org` and `login.yourgrid.org:8002` on one server; port 80 is the web server's, which does not know `login`: standalone is impossible, and webroot does not work as it is
-            - [ ] webroot, once the web server answers `/.well-known/acme-challenge/` whatever the host (a catch-all location in the snippet the setup writes for Caddy, nginx and Apache, before any redirect to https)
-            - [ ] DNS-01: no port, no web server; a token of the DNS provider, given once; also a wildcard (one certificate for every prefix); the only one for a hostname that points to another machine
+            - [ ] webroot: not trivial, the host of the instance has no web server of its own, so the web server needs a special configuration for it (a location `/.well-known/acme-challenge/` for that host, before any redirect to https), permanent or only for the renewal, written and removed by the engine for Caddy, nginx and Apache
+            - [ ] DNS-01: no port, no web server, but not trivial either: the grid must own the domain (not a dynamic DNS) and give a token of its DNS provider; also a wildcard (one certificate for every prefix); a solid solution to allow and to document
             - [ ] standalone: when no web server runs on the machine
             - rare: Robust itself on port 80 (OSGrid): its instance is stopped for the challenge (the restart that loads the certificate is needed anyway)
             - [?] the process on port 80 answers the challenge itself: a module that serves `/.well-known/acme-challenge/` from a folder
