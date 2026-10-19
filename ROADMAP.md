@@ -591,7 +591,12 @@ Installation:
         - [ ] test that the .NET of each core loads the `.p12` (openssl 3 changed the default encryption)
         - [ ] test whether a running instance serves a new `.p12` without a restart: that decides between the converter of 0.9.3 and ours (the code says no: `BaseHttpServer` loads the certificate when the server is made and gives it to the listener at start, the converter only runs at start)
         - [ ] one certificate for all the hostnames of the grid (several names, or a wildcard through DNS-01), so that the `.p12` is shared
-    - [ ] base it on certbot, not on the certificate of Caddy (the `ExternalHostName` of a region is not always a site)
+    - changes the `BaseURL`, the URI of the hypergrid, the login URL and the behavior of Robust of a grid that exists: for 3.1, easy only for a new grid
+    - [ ] our own certificate from certbot, never the one of the web server (Caddy keeps it elsewhere than certbot): `--webroot` with the aliases wanted, `--allow-subset-of-names` so that an alias that cannot be verified does not fail the others
+    - [ ] `ExternalHostName` of the regions: `SYSTEMIP` is the recommended value (a name forces DNS lookups, slower), but with `http_listener_ssl` the core checks it against the certificate for each region and refuses the region otherwise (`OpenSimBase.cs`, `BaseHttpServer.CheckSSLCertHost`)
+        - the check compares an IPv4 address with the DNS names and the CN of the certificate, never with its IP addresses (read for IPv6 only): a named certificate refuses `SYSTEMIP`, and an IP certificate would not pass either (reading of the code, to confirm by a test)
+        - [ ] decide: simulators over https with the hostname as `ExternalHostName`, or only Robust over https (login, gatekeeper) and the simulators on http with `SYSTEMIP`
+        - [ ] a certificate on a bare IP (Let's Encrypt, short-lived): a separate subject, if the core can use it at all
     - [ ] deploy hook: copy the PEM where `opensim` reads them (`/etc/letsencrypt` is root's), restart the instances (the conversion only happens at start)
     - [ ] fully automated letsencrypt integration: the grid admin does nothing once it is enabled (obtain, renew, convert, restart)
         - the engine owns it: it knows the instances, their hostnames, their config, the restarts and the health; certbot is behind an interface, so it can move to a package of its own or be replaced
