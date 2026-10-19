@@ -645,6 +645,12 @@ w4os plugin:
         - [ ] a service in the helpers and a module of our own
         - [ ] the same API, so that their module works with ours
 - [ ] classifieds: handle hypergrid/centralized (might require an OpenSim module, as it does not seem to expose a way to query an external source)
+- [ ] one rendering engine for the pictures of text: the one of 2do-mahna-mahna
+    - columns, a header, a footer, the proportions of the prim (1x1, 1.5x1 and 1x1.5 give different results)
+    - [ ] 2do board uses it
+    - [ ] the calendar of events (2do) and the destinations in world use it
+    - [ ] `textgen` becomes a simplified version of the same engine (`Assets\TextRendererInterface` is the place)
+    - [ ] `textgen.php` and its parameters stay as they are: hundreds of objects in world call them (`Api\Legacy::textgen()`)
 - [ ] Mega board: combine Teleport Board, 2d Events and Advertising/Communication, implement 2do Board server-side rendering on specific linked prims/faces for each
 - [ ] offline messaging: handle hypergrid/centralized (part of the exchanges are only between sender simulator and viewer, not querying either sender home grid or recipient home grid for proper helpers handling)
 - [ ] centralized NPC chatbot (avoid full chat script baked into NPC image, uneditable)
