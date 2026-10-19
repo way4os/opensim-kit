@@ -504,6 +504,8 @@ w4os plugin, once the features above are covered by the engine and the helpers:
 - the manager can stay a beta for the author's own use, and ship when mature with 3.0.x or 3.1
 - the management interface is rethought here, to be reapplied to w4os and to the CLI
 - `opensim-admin`: the complete admin interface (web), same procedures as the CLI; the architecture is being decided (engine actions, front-ends as adapters)
+- the web interface for what needs authentication (admin, registration, profile editing, servers) is a layer above the helpers, which give everything public: after the helpers
+    - [ ] name: "OpenSim Maui" (Management Admin and User Interface) is a candidate, to think over (.NET MAUI exists; no OpenSim project with this name found)
 
 - [ ] uses the engine instead of its own models
     - [ ] simulators and grids from the engine models
@@ -586,7 +588,15 @@ Installation:
     - Robust: `[Network] https_*` and `cert_path`, no converter (a `.p12` made with openssl)
     - [ ] base it on certbot, not on the certificate of Caddy (the `ExternalHostName` of a region is not always a site)
     - [ ] deploy hook: copy the PEM where `opensim` reads them (`/etc/letsencrypt` is root's), restart the instances (the conversion only happens at start)
-    - [ ] fully automated letsencrypt integration (through script or custom OpenSim module)
+    - [ ] fully automated letsencrypt integration: the grid admin does nothing once it is enabled (obtain, renew, convert, restart)
+        - the engine owns it: it knows the instances, their hostnames, their config, the restarts and the health; certbot is behind an interface, so it can move to a package of its own or be replaced
+        - [ ] the challenge is chosen for the host: webroot when a web server answers on port 80 (nothing is stopped), standalone when none does
+        - [ ] `opensim ssl enable <grid|simulator> <hostname>` gets the certificate once, the timer of certbot renews it
+        - [ ] `opensim ssl deploy` is its deploy hook: PEM copied where the instances read them, settings written, instances that use the hostname restarted
+            - simulator: `EnableCertConverter`, `PemCertPublicKey`, `PemCertPrivateKey`, `outputCertPassword` (the core converts at each start)
+            - Robust: the `.p12` made with openssl
+        - [ ] the expiry of each certificate in the health and the monitor
+        - [?] a custom OpenSim module doing the same inside OpenSim: independent of the kit, would popularize SSL, reload without restart; after the engine does it, which is its specification
     - [ ] check: the `SSL/` folders are made in the working directory of the process, and the cores are read-only
     - [ ] try first on a public host with podman
     - [ ] section in the setup of a grid
