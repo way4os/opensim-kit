@@ -27,13 +27,15 @@ use Symfony\Component\Console\Output\OutputInterface;
  *   opensim enable|disable <grid> search [<url prefix>]
  *   opensim enable|disable <grid> economy [beta|gloebit] [<url prefix>]
  *   opensim enable|disable <grid> profiles
+ *   opensim enable|disable <grid> offline [helpers|robust] [<url prefix>]
  */
 abstract class ToggleCommand extends EngineCommand
 {
     private const USAGE = "usage: opensim enable|disable <instance>...\n" .
         "       opensim enable|disable <grid> search [<url prefix>]\n" .
         "       opensim enable|disable <grid> economy [beta|gloebit] [<url prefix>]\n" .
-        "       opensim enable|disable <grid> profiles\n";
+        "       opensim enable|disable <grid> profiles\n" .
+        "       opensim enable|disable <grid> offline [helpers|robust] [<url prefix>]\n";
 
     /** `enable` or `disable`. */
     abstract protected function verb(): string;
@@ -42,7 +44,7 @@ abstract class ToggleCommand extends EngineCommand
     {
         $verb = $this->verb();
         $this->setName($verb)
-            ->setDescription(ucfirst($verb) . ' a grid or a simulator, or a feature of a grid (search, economy, profiles)')
+            ->setDescription(ucfirst($verb) . ' a grid or a simulator, or a feature of a grid (search, economy, profiles, offline)')
             ->addArgument('names', InputArgument::IS_ARRAY, 'the instances, or a grid and a feature [options]');
     }
 
@@ -151,6 +153,9 @@ abstract class ToggleCommand extends EngineCommand
         if ($feature === Features::ECONOMY && isset($more[0]) && !str_contains($more[0], '/')) {
             $options['money'] = strtolower(array_shift($more));
         }
+        if ($feature === Features::OFFLINE && isset($more[0]) && !str_contains($more[0], '/')) {
+            $options['mode'] = strtolower(array_shift($more));
+        }
         if (count($more) > 1 || ($more !== [] && $feature === Features::PROFILES)) {
             $error->write(self::USAGE, false, OutputInterface::OUTPUT_RAW);
 
@@ -168,7 +173,7 @@ abstract class ToggleCommand extends EngineCommand
             return Command::FAILURE;
         }
         $state = $verb . 'd';
-        $what = $feature . ($feature === Features::ECONOMY && $verb === 'enable' ? ' (' . ($options['money'] ?? 'beta') . ')' : '');
+        $what = $feature . ($feature === Features::ECONOMY && $verb === 'enable' ? ' (' . ($options['money'] ?? 'beta') . ')' : ($feature === Features::OFFLINE && $verb === 'enable' ? ' (' . ($options['mode'] ?? 'helpers') . ')' : ''));
         $touched = $result['simulators'];
         if ($touched === [] && !$result['grid'] && !$result['robust']) {
             $output->writeln(
