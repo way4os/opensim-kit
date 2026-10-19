@@ -206,18 +206,19 @@ The beta:
 - [ ] state of the refactoring frozen as a coherent beta of the family (the Unreleased list below)
     - [ ] `opensim setup` is intuitive and says nothing superfluous: the same questions whoever shows them (the terminal, `setup.sh`)
         - [ ] first who runs OpenSim: the dedicated users `opensim` and `www-data` (recommended), or the person who runs the setup, for everything
-        - [ ] then what to set up
-            - [ ] a grid
-            - [ ] a simulator that joins a grid that exists (OSGrid, Speculoos...)
-            - [ ] standalone: one simulator with its own services, no grid (simpler than joining one)
-        - [ ] then the basics: name of the grid, grid URL, grid owner, password, email (a simulator: the URL of the grid it joins, its owner account there)
+        - [ ] then what to set up: one list, whether it makes a grid or joins one: grid, standalone, then the presets (Speculoos, OSGrid, the custom ones)
+            - the engine does not treat them as presets yet (grid and standalone make, a preset joins): to align later, or not
+        - [ ] then the basics, which depend on the choice
+            - [ ] grid: name of the grid, login URI, Hypergrid (yes), avatar (name, password, email)
+            - [ ] standalone: name of the simulator (it is the grid), login URI, Hypergrid (yes), avatar (name, password, email)
+            - [ ] preset: name of the simulator, the avatar that owns its estate there (it exists), no login URI and no Hypergrid (the grid decides)
         - [ ] then the options, each with its default
-            - [ ] Hypergrid (yes)
             - [ ] search: internal (the helpers), shared (2do.directory) or none (internal)
             - [ ] currency: BetaGridLikeMoneyModule or Gloebit (BetaGridLikeMoneyModule)
             - [ ] more OSSL for parcel owners: NPC, animations, drawing... (no)
             - [ ] web: server (Caddy, Apache, nginx) and site (the helpers only, or the mini website) (the helpers only)
         - [ ] then quick setup (the defaults for the rest) or advanced config (every question, the answers proposed)
+        - [ ] the report at the end tells how to reach the engine from another machine: create an API key (`opensim api-key create <label>`)
         - the engine knows how to configure: it provides the questions and processes the answers (one source of truth, also for w4os, mini-web, the manager)
         - `setup.sh` shows the questions with `dialog` or plain prompts (`libexec/setup-frontend.sh`), the engine gives them through two pipes (internal: nothing to explain to the person)
         - [x] the scenario of packages that goes through the setup with the script (`wizardscript-grid-scenario.sh`): a grid made from the first question to a running region, with the real Hub
@@ -732,6 +733,7 @@ w4os plugin:
 
 Engine:
 
+- [ ] the minimum length of the password of an avatar is the admin's to set, in `opensim.conf` (6 characters today, OpenSimulator has no rule; the double quote stays forbidden, the implementations and the console do not agree on it)
 - [ ] full sqlite3 and pgsql compatibility check (including OpenSim install and all queries review). This is theorically the case thanks to the use of PDO, but it must be tested systematicaly to lift the mysql dependency
 - [ ] memory/CPU usage monitoring
     - notify admin and/or restart Sim above given thresholds
