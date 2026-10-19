@@ -26,6 +26,7 @@ Commands:
     enable|disable <grid> search [<url prefix>]
     enable|disable <grid> economy [beta|gloebit] [<url prefix>]
     enable|disable <grid> profiles
+    enable|disable <grid> offline [helpers|robust] [<url prefix>]
     console|screen <instance>
     command <instance> <text>|-
     ports [instance...] [--publish|--ufw]
