@@ -251,6 +251,11 @@ The beta:
 
 ### 3.0.0-beta.8 (safe for other grids)
 
+Resources/CPU usage protection:
+
+- [ ] Refuse to try starting a new simulator if CPU usage is critical
+- [ ] Log error and send mail notification when global CPU usage is critical, or when specific simulator usage is abnormal
+
 Security, for everything that is hosted for others:
 
 - [ ] Grief/Attacks detection
@@ -384,9 +389,12 @@ Kit, setup and configuration:
     - today `Installer` requires it and `setup.sh` installs it
 - [ ] standalone: one simulator with its own services (no Robust), made by the setup like a grid
     - [x] the engine knows it: `Standalone = true` in `<nick>.conf`, `Grid::isStandalone()`, run through its simulator, its services served by it
-    - [ ] made by the setup: the folder, `<nick>.conf`, the simulator with `Include-Architecture`, `StandaloneCommon.ini`, tested on a container with the core
-    - [ ] the architecture of the core for it (`StandaloneHypergrid.ini`), its database, its accounts, its estate
-    - [ ] the helpers and the options as for a grid
+    - [x] made by the setup: the folder, `<nick>.conf` (database included), the simulator with `Include-Architecture`, `StandaloneCommon.ini`, tested on a container with the core (`tests/Packaging/standalone-check.sh`)
+    - [x] the architecture of the core for it (`StandaloneHypergrid.ini`), its database (the one of the grid), its owner (made by OpenSim at its first start), its estate, its roles
+    - [x] a second simulator is refused
+    - [ ] the helpers and the options as for a grid (economy, search, profile, motd, guide in `[GridInfoService]` and `[LoginService]`, as `RobustConfig` writes them for a Robust)
+    - [ ] the questions of the setup: `standalone` is a field of the grid, the flows (terminal, `setup.sh`) do not ask it yet
+    - [ ] `opensim start|stop` of a standalone and its monitor, tried on the container
 - [x] offline messages on a grid without helpers
     - the choice is in the setup (`offline`), with what each gives: helpers (mails on request, no limit) / V2 module with the Robust service (no mails, 25 messages per avatar) / both
     - [ ] test with a viewer on each
@@ -654,6 +662,7 @@ w4os plugin:
     - [ ] the calendar of events (2do) and the destinations in world use it
     - [ ] `textgen` becomes a simplified version of the same engine (`Assets\TextRendererInterface` is the place)
     - [ ] `textgen.php` and its parameters stay as they are: hundreds of objects in world call them (`Api\Legacy::textgen()`)
+    - [ ] the picture of the monitor (`format=png`, square today) takes the proportions of the prim
 - [ ] Mega board: combine Teleport Board, 2d Events and Advertising/Communication, implement 2do Board server-side rendering on specific linked prims/faces for each
 - [ ] offline messaging: handle hypergrid/centralized (part of the exchanges are only between sender simulator and viewer, not querying either sender home grid or recipient home grid for proper helpers handling)
 - [ ] centralized NPC chatbot (avoid full chat script baked into NPC image, uneditable)
@@ -678,6 +687,8 @@ w4os plugin:
     - [ ] a page in other places than a menu (footer, sidebar...)
     - [ ] page builder
     - [ ] themes
+- [ ] Managed simulator pool: maintain a list of simulators assigned to grid's pool(s), to allow adding new regions to the less busy one (in CPU and/or or prim usage) (optional, manual selection or dedicated simulator creation still available). There could be a pool for mainland, a pool for estates or other region types, and maybe a pool by user/owner
+- [ ] Ticketing: functionalties similar to laravel magicoli/two-way-tickets, but independant from framework, issues linked to grid/simulator and can be linked by admin to the related github repo (not a single specific repo but the one involved in the issue)
 
 ## Backlog (no milestone), by package
 
