@@ -3,8 +3,8 @@
 namespace OpenSimKit\Setup;
 
 use OpenSim\Forms\FieldSet;
+use OpenSim\Models\Avatar;
 use OpenSim\Models\Grid;
-use OpenSim\Provisioning\GridAccounts;
 use OpenSim\Provisioning\GridPlanner;
 use OpenSim\Provisioning\Presets;
 use OpenSim\Provisioning\UiInterface;
@@ -71,7 +71,7 @@ final class StartSetup
                     'key' => 'owner',
                     'label' => _('Grid owner'),
                     'hint' => _('First Last: the first account, owner of the first estate'),
-                    'validate' => static fn(string $v): ?string => GridAccounts::validName(trim($v))
+                    'validate' => static fn(string $v): ?string => Avatar::validateName($v) === null
                         ? null
                         : _('First and last name, e.g. Jane Doe.'),
                 ],
@@ -155,7 +155,7 @@ final class StartSetup
         $owner = $this->ui->text(
             _('Grid owner'),
             '',
-            static fn(string $v): ?string => GridAccounts::validName(trim($v)) ? null : _('First and last name, e.g. Jane Doe.'),
+            static fn(string $v): ?string => Avatar::validateName($v) === null ? null : _('First and last name, e.g. Jane Doe.'),
             _('First Last: your account on that grid, owner of the estate'),
         );
         [$host, $port] = self::login($address) ?? ['', 0];
