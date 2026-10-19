@@ -205,3 +205,25 @@ describe('commands start, stop and restart', function () {
         expect($status)->toBe(0);
     });
 });
+
+describe('command api', function () {
+    test('calls the API of the engine with the words typed, prints the document, and fails with the problem', function () {
+        $machine = new Machine();
+        $command = new \OpenSimKit\Console\Commands\ApiCommand(static fn($reporter) => $machine->environment);
+        $tester = new \Symfony\Component\Console\Tester\CommandTester($command);
+
+        $tester->execute(['args' => ['GET', '/simulators/alpha']]);
+        $found = json_decode($tester->getDisplay(), true);
+        $failed = $tester->execute(['args' => ['/simulators/nobody']]);
+        $grid = $tester->execute(['args' => ['--grid=demo', 'GET', '/monitor', 'format=text']]);
+
+        expect($found['data']['type'])
+            ->toBe('simulators')
+            ->and($failed)
+            ->toBe(1)
+            ->and($grid)
+            ->toBe(0)
+            ->and($tester->getDisplay())
+            ->toContain('Demo');
+    });
+});
