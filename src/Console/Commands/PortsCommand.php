@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace OpenSimKit\Console\Commands;
 
-use OpenSim\Config\GridFileService;
 use OpenSim\Models\Grid;
-use OpenSim\Network\InstancePorts;
+use OpenSim\Controllers\OpenSimController;
+use OpenSim\Controllers\RobustController;
 use OpenSim\Provisioning\Slug;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * opensim ports: the ports the enabled instances listen on, with what each one is for and who has to reach it (see
- * OpenSim\Network\InstancePorts).
+ * the ports of OpenSim\Controllers\AbstractController).
  *
  *   opensim ports [instance...]               the table
  *   opensim ports --publish [instance...]     the -p options of podman or docker
@@ -42,7 +42,8 @@ final class PortsCommand extends ScriptCommand
             }
         }
 
-        $etc = $this->engine($out)->layout->etcRoot();
+        $engine = $this->engine($out);
+        $etc = $engine->layout->etcRoot();
         $instances = [];
         foreach (['robust' => 'robust.d', 'opensim' => 'opensim.d'] as $type => $folder) {
             foreach (glob("$etc/$folder/*.ini") ?: [] as $ini) {
@@ -60,7 +61,8 @@ final class PortsCommand extends ScriptCommand
 
         $rows = [];
         foreach ($instances as [$name, $type, $ini]) {
-            foreach (InstancePorts::of($ini, GridFileService::read(...)) as $use) {
+            $controller = $type === 'robust' ? new RobustController($engine, $ini) : new OpenSimController($engine, $ini);
+            foreach ($controller->ports() as $use) {
                 $rows[] = $use + ['instance' => $name, 'type' => $type];
             }
         }

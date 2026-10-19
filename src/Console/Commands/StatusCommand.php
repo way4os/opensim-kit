@@ -32,9 +32,10 @@ final class StatusCommand extends EngineCommand
     {
         $rows = [['INSTANCE', 'TYPE', 'PID', 'USER', '%CPU', '%MEM', 'RSS']];
         foreach ($status->instances as $item) {
-            $rows[] = $item->process === null
+            $process = $item->process();
+            $rows[] = $process === null
                 ? [$item->name(), $item->type(), '[down]']
-                : [$item->name(), $item->type(), (string) $item->process->pid, $item->process->user, self::number($item->process->cpu), self::number($item->process->memory), (string) $item->process->rss];
+                : [$item->name(), $item->type(), (string) $process->pid, $process->user, self::number($process->cpu), self::number($process->memory), (string) $process->rss];
         }
         $widths = [];
         foreach ($rows as $row) {

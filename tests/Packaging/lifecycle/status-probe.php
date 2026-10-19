@@ -7,7 +7,7 @@ $environment = OpenSim\OpenSim::environment();
 $status = OpenSim\OpenSim::status($environment);
 echo 'processes: ', count($status->processes), ', instances: ', count($status->instances), ', up: ', $status->up(), "\n";
 foreach ($status->instances as $item) {
-    echo $item->name(), ' ', $item->instance->ini(), ' ', $item->isRunning() ? 'up' : 'down', "\n";
+    echo $item->name(), ' ', $item->ini(), ' ', $item->isRunning() ? 'up' : 'down', "\n";
 }
 foreach ($status->processes as $process) {
     echo 'process ', $process->pid, ' ', $process->user, ' ', substr($process->arguments, 0, 90), "\n";
