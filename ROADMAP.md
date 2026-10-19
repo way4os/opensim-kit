@@ -55,15 +55,20 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
     - [ ] one layer of use cases; the command line, the HTTP API and the PHP library are adapters of it
         - [x] a first generic slice: `Api` lists and reads the grids, the simulators and the services as JSON:API, the errors are `Problem` (RFC 9457)
         - [x] the other resources: avatars, regions, parcels, estates (`/grids/{grid}/...`), tasks, forms; the writes that exist (an avatar is made and changed, what is enabled is enabled)
-        - [ ] backups and archives as resources, the health checks (`Health` still has the function style of the helpers)
-        - [ ] the standard of the web services whose format is the engine's own (`GET /motd`, `POST /search/hosts`, `POST /offline-messages`, `GET /destinations`, `GET /text-images`): the handlers, and the adapter for their old scripts
+        - [x] the health of a grid as an endpoint (`GET /grids/{grid}/health`)
+        - [ ] backups and archives as resources
+        - [ ] `Health` still has the function style of the helpers: classes
+        - [x] the standard of the web services whose format is the engine's own (`GET /motd`, `GET /destinations`, `GET /text-images`, the tasks `search-parse` and `events-parse`): the handlers, and `Legacy` for the old parameters of `textgen.php`
+        - [x] `register` (`GET /search/register`) and `offline` (`POST /offline-messages/SaveMessage/`, `RetrieveMessages/`) are of a fixed format, like `query`, `currency` and `landtool`: the engine serves them
+        - [x] a grid with no guide has its popular places and its places shown in search (ten of each), as sections or as the lines the boards read
         - [x] the fixed ones (`query`, `currency`, `landtool`) are in the catalog of `Service` with their format fixed and their address configurable
-        - [ ] a PSR-7 / PSR-15 adapter (`Response` is the answer without a framework), the command line and the PHP library as the other two
+        - [x] a PSR-7 / PSR-15 adapter (`Api\Handler`: the application brings the implementation of the messages and calls `terminate()` once the response is sent)
+        - [ ] the command line and the PHP library as the other two adapters
     - [ ] the OpenAPI document is the contract, checked against the code by tests
         - [x] `Contract::document()` for the first slice, checked against `detail()` of the models
-        - [ ] the endpoints the core and the viewers call (`query`, `currency`, `landtool`), described as endpoints of their own with their fixed format
+        - [x] the endpoints the core and the viewers call (`query`, `register`, `offline`, `currency`, `landtool`, `get_grid_info`) and the pages of the helpers, described as endpoints of their own with their fixed format (`docs/api/`)
         - [x] the documentation is made from it (`composer docs`: `docs/api/`), a test fails when it is not the one of the contract
-    - [ ] what the core of OpenSimulator and the viewers call (`query.php`, `register.php`, `offline.php`, `currency.php`, `landtool.php`, `get_grid_info`...) keeps the format they expect: described in the contract as endpoints of their own, not reshaped
+    - [x] what the core of OpenSimulator and the viewers call (`query.php`, `register.php`, `offline.php`, `currency.php`, `landtool.php`, `get_grid_info`...) keeps the format they expect: described in the contract as endpoints of their own, not reshaped
     - [ ] to bring to it first: `Collection::json()`, the errors of the helpers, the fields of the setup, the line protocol of `ScriptUi` (the questions of the setup become a resource of the API)
     - the engine is cleaned first, as a library on its own; its consumers (the helpers, the kit, the manager) are put in order after
         - [x] the classes and functions of the WordPress plugin that nothing here uses are gone (the plugin has its own copy of the engine)
@@ -148,7 +153,7 @@ Kit:
         - [x] hypergrid groups: `HGGroupsServiceConnector` and the HG service connector of `[Groups]`
         - [x] profiles: `UserProfilesServiceConnector` and `[UserProfiles]`
         - [ ] estates of a grid that exists: move the estates of the simulators to the grid (until then the grid keeps them where they are)
-        - [ ] [?] offline messages: the simulators use the service of the helpers; `OfflineIMServiceConnector` goes with the module V2 (one or the other)
+        - [x] offline messages: the setup offers the helpers (module V1), Robust (module V2 and `OfflineIMServiceConnector`) or both; `opensim enable|disable <grid> offline [helpers|robust]`
         - [ ] the package scenario run with all this (the machine of the containers was not reachable)
     - [ ] map tiles: `GenerateMaptiles`, `MapImageModule`, `MaptileRefresh`, `TextureOnMapTile`, `DrawPrimOnMapTile`, `TexturePrims`
         - [ ] `MapImageModule = "Warp3DImageModule"` by default: it crashed on watta.world, find why (libgdiplus 6.1 of the distribution?) with a scenario that makes a tile
@@ -379,10 +384,9 @@ Kit, setup and configuration:
     - [ ] made by the setup: the folder, `<nick>.conf`, the simulator with `Include-Architecture`, `StandaloneCommon.ini`, tested on a container with the core
     - [ ] the architecture of the core for it (`StandaloneHypergrid.ini`), its database, its accounts, its estate
     - [ ] the helpers and the options as for a grid
-- [ ] offline messages on a grid without helpers
-    - the setup writes no `[Messaging]`
-    - the `OfflineIMService` of Robust, which the V2 module needs, is not enabled
-    - options: helpers (mails, no limit) / V2 module with the Robust service (no mails, 25 messages) / both
+- [x] offline messages on a grid without helpers
+    - the choice is in the setup (`offline`), with what each gives: helpers (mails on request, no limit) / V2 module with the Robust service (no mails, 25 messages per avatar) / both
+    - [ ] test with a viewer on each
 - [ ] old global names of the engine as aliases (`legacy/`), helpers and w4os on the new names
 - [ ] test the clone mode of `setup.sh`
 
