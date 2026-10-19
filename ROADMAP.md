@@ -585,7 +585,7 @@ Installation:
 
 - [ ] SSL management for the OpenSim servers (0.9.3 supports it)
     - simulator: `http_listener_ssl` and a PKCS12 certificate; `EnableCertConverter` makes it from the PEM files of the CA (`fullchain.pem`, `privkey.pem`) at each start
-        - the example ini of 0.9.2.2 has no converter: on 0.9.2 the `.p12` is made with openssl (the code of 0.9.2 not read)
+        - added on 2024-09-16 (commit `52c77b2f12` of the core, in `OpenSimBase.cs`, so the simulator only): 0.9.3.0 has it, 0.9.2 does not, there the `.p12` is made with openssl
     - Robust: `[Network] https_listener`, `https_port`, `https_main`, `cert_path` and `cert_pass` (a PKCS12), no converter for the certificate of a CA
         - [ ] Robust takes the `.p12` a simulator of the machine converted (`SSL/ssl/<outputCertName>.p12`), else it is made with openssl
         - [ ] test that the .NET of each core loads what openssl writes (openssl 3 changed the default encryption of a `.p12`)
