@@ -39,6 +39,8 @@ Dates (2026):
 The whole ecosystem speaks standards, no part is left out (the helpers included), and no format is made for the need of the day:
 
 - [ ] services belong to the grid, served by controllers
+    - [x] what a grid says of itself is the engine's (`Grid::gridInfo()`: the running Robust first, its config when it does not answer); the helpers and the pages use it, the live values win over a config changed since
+    - [ ] the block "Grid Info" of the helpers (name and login) keeps its label and takes a key of its own, so that it is not taken for the /get_grid_info of Robust
     - [x] `Service` model: `Grid::services()`, `Simulator::service('profile')` (its own config, else its grid's)
     - [x] a Robust is a controller (`RobustController`), so is a simulator (`OpenSimController`); `Grid::robusts()` lists the Robust instances of a grid
     - [ ] several Robust instances in a grid folder (`Robust.<role>.ini`), each with its own launcher name, its own connectors: two asset servers, a mixed local and external grid
