@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+use OpenSim\Api\Api;
+use OpenSim\Api\Router;
 use OpenSim\Models\Grid;
+use OpenSim\Scheduling\Scheduler;
 use OpenSim\OpenSim;
 use OpenSim\Provisioning\DatabaseService;
 use OpenSim\Provisioning\GridPlanner;
@@ -20,6 +23,9 @@ use OpenSim\Exceptions\SetupFailedException;
  *   standalone-driver.php grid       the grid, with no Robust
  *   standalone-driver.php simulator  its simulator and its first region, started
  *   standalone-driver.php again      a second simulator, which is refused
+ *   standalone-driver.php monitor    the monitor of the grid, as text
+ *   standalone-driver.php stop       stop the grid, now
+ *   standalone-driver.php start      start the grid
  *
  * The layout comes from the environment (OPENSIM_ETC_ROOT...), the answers from TEST_* variables.
  */
@@ -109,7 +115,11 @@ try {
                 'hostname' => 'localhost',
                 'public_port' => (int) $value('TEST_PORT', '9000'),
                 'console' => 'rest',
-                'helpers' => false,
+                'helpers' => (bool) $value('TEST_HELPERS'),
+                'helpers_path' => '/helpers',
+                'web_url' => 'https://www.example.org',
+                'hypergrid' => true,
+                'offline' => $value('TEST_OFFLINE', getenv('TEST_HELPERS') ? 'helpers' : 'robust'),
                 'database_host' => 'localhost',
                 'database_name' => $value('TEST_DB_NAME', 'solo'),
                 'database_user' => 'os',
@@ -147,8 +157,23 @@ try {
             (new SimulatorProvisioner($ui))->apply($plan, $environment);
             break;
 
+        case 'monitor':
+            $router = new Router(new Api($environment, Scheduler::for($environment)), grid: $value('TEST_NICK', 'solo'));
+            echo $router->get('/monitor', ['format' => 'text'])->body();
+            break;
+
+        case 'stop':
+        case 'start':
+            $results = $argv[1] === 'stop'
+                ? OpenSim::stop($value('TEST_NICK', 'solo'), true, $environment)
+                : OpenSim::start($value('TEST_NICK', 'solo'), $environment);
+            foreach ($results as $result) {
+                echo ($result->ok() ? 'ok' : 'failed') . ': ' . json_encode($result->message ?? '') . "\n";
+            }
+            exit(array_filter($results, static fn($r): bool => !$r->ok()) === [] ? 0 : 1);
+
         default:
-            fwrite(STDERR, "usage: standalone-driver.php grid|simulator|again [engine]\n");
+            fwrite(STDERR, "usage: standalone-driver.php grid|simulator|again|monitor|stop|start [engine]\n");
             exit(64);
     }
 } catch (SetupFailedException $e) {

@@ -392,9 +392,11 @@ Kit, setup and configuration:
     - [x] made by the setup: the folder, `<nick>.conf` (database included), the simulator with `Include-Architecture`, `StandaloneCommon.ini`, tested on a container with the core (`tests/Packaging/standalone-check.sh`)
     - [x] the architecture of the core for it (`StandaloneHypergrid.ini`), its database (the one of the grid), its owner (made by OpenSim at its first start), its estate, its roles
     - [x] a second simulator is refused
-    - [ ] the helpers and the options as for a grid (economy, search, profile, motd, guide in `[GridInfoService]` and `[LoginService]`, as `RobustConfig` writes them for a Robust)
-    - [ ] the questions of the setup: `standalone` is a field of the grid, the flows (terminal, `setup.sh`) do not ask it yet
-    - [ ] `opensim start|stop` of a standalone and its monitor, tried on the container
+    - [x] the helpers and the options as for a grid: economy, search, profile, motd, guide, welcome and gatekeeper in the `StandaloneCommon.ini` of the grid (`GridServices`, the same code as `RobustConfig`), `opensim enable|disable` search, economy, profiles, offline write there
+    - [x] groups and offline messages (module V2) kept by the simulator itself, no address to give
+    - [x] the questions: `standalone` is a field of the grid, what a Robust only has (private port, console of the grid) is not asked, nor the port and the database of its simulator, `offline` refuses `both`, a file with two simulators is refused
+    - [ ] the flows (terminal, `setup.sh`) ask it
+    - [x] `opensim start|stop` of a standalone by the name of the grid, and its monitor (its regions are the ones its simulator describes), tried on the container
 - [x] offline messages on a grid without helpers
     - the choice is in the setup (`offline`), with what each gives: helpers (mails on request, no limit) / V2 module with the Robust service (no mails, 25 messages per avatar) / both
     - [ ] test with a viewer on each

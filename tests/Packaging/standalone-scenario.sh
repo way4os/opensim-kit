@@ -77,5 +77,35 @@ ts "a second simulator"
 driver again >/tmp/again.out
 check "it is refused, and the grid is as it was" "grep -q 'problem: name' /tmp/again.out && [ \$(ls $grid/sims/*.ini | wc -l) = 1 ]"
 
+ts "its monitor, its stop and its start"
+php /work/standalone-driver.php monitor /work/engine >/tmp/monitor.out 2>&1
+check "the monitor shows the simulator that is the whole grid, up, with its region" "grep -q 'solo_welcome *simulator *up *1/1' /tmp/monitor.out"
+dump /tmp/monitor.out 6
+driver stop >/tmp/stop.out
+check "the grid is stopped with its simulator" "grep -q 'exit code: 0' /tmp/stop.out && ! pgrep -f 'inifile=/work/etc/opensim.d/solo_welcome.ini' >/dev/null"
+php /work/standalone-driver.php monitor /work/engine >/tmp/monitor-down.out 2>&1
+check "the monitor says it is down" "grep -q 'down' /tmp/monitor-down.out"
+driver start >/tmp/start.out
+wait_check 120 "the grid is back with its own accounts" "curl -fs http://localhost:9000/get_grid_info | grep -q '<gridname>Solo</gridname>'"
+dump /tmp/stop.out 4
+
+ts "its welcome message"
+check "the login says the welcome of the grid" "grep -q 'Welcome to Solo, Ada Love!' /tmp/login.out"
+
+ts "a standalone with the helpers, the hypergrid and the offline messages of the module V2"
+mysql -e "CREATE DATABASE duo; GRANT ALL ON duo.* TO 'os'@'localhost';"
+driver() { TEST_GRID=Duo TEST_NICK=duo TEST_PORT=9100 TEST_DB_NAME=duo TEST_HELPERS=1 TEST_OFFLINE=robust php /work/standalone-driver.php "$1" /work/engine 2>&1; echo "exit code: $?"; }
+driver grid >/tmp/duo-grid.out
+check "the grid is made, its common settings tell the viewers where the helpers are" "grep -q 'exit code: 0' /tmp/duo-grid.out && grep -q 'economy = \"\${Const|WebURL}/helpers\"' /work/etc/grids/duo/config-include/StandaloneCommon.ini"
+driver simulator >/tmp/duo-simulator.out
+check "its simulator is started" "grep -q 'exit code: 0' /tmp/duo-simulator.out"
+wait_check 120 "get_grid_info says the helpers, the profile page and the gatekeeper" "curl -fs http://localhost:9100/get_grid_info >/tmp/duo-info.xml && grep -q '<economy>https://www.example.org/helpers</economy>' /tmp/duo-info.xml && grep -q '<web_profile_url>' /tmp/duo-info.xml && grep -q '<gatekeeper>http://localhost:9100</gatekeeper>' /tmp/duo-info.xml && grep -q '<search>https://www.example.org' /tmp/duo-info.xml"
+log=$(ls /work/logs/duo_welcome.log 2>/dev/null)
+check "the offline messages are kept by the simulator itself" "grep -q 'Offline messages enabled by Offline Message Module V2' $log"
+check "the groups messaging runs" "grep -q 'GroupsMessagingModule enabled' $log"
+check "no error in the log of the simulator" "! grep -q ' ERROR ' $log"
+grep -E ' (ERROR|FATAL) ' $log | head -8 | cut -c1-220
+dump /tmp/duo-info.xml 4
+
 pkill -f OpenSim.dll
 exit $FAILED
