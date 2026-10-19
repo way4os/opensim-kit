@@ -40,7 +40,7 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
 
 - [ ] services belong to the grid, served by controllers
     - [x] what a grid says of itself is the engine's (`Grid::gridInfo()`: the running Robust first, its config when it does not answer); the helpers and the pages use it, the live values win over a config changed since
-    - [x] every address of a grid in one call, wherever it is said (`Grid::addresses()`, `helpersUri()`, `searchApi()`...: for the code, no endpoint): the running grid first, then the config, then where the helpers answer
+    - [x] every address of a grid in one call, wherever it is said (`Grid::addresses()`, `helpersUrl()`, `searchApi()`...: for the code, no endpoint): the running grid first, then the config, then where the helpers answer
     - [x] assets: `Asset` for every type, `Image` (every type of picture) converted for the web, resized when asked, and cached (`WebAssets`)
         - [ ] JPEG 2000 on the development machine: the ImageMagick of this Mac has no JPEG 2000 coder, the real conversion of a texture is tested where it has (the test image of the containers)
         - [ ] the other types as the web needs them (the text of a notecard, the source of a script), as classes that extend `Asset`
