@@ -209,6 +209,11 @@ The beta:
         - [ ] then what to set up: one list, whether it makes a grid or joins one: grid, standalone, then the presets (Speculoos, OSGrid, the custom ones)
             - the engine does not treat them as presets yet (grid and standalone make, a preset joins): to align later, or not
         - [ ] then the basics, which depend on the choice
+            - names are Latin letters without accents, in every alphabet: the engine transliterates, the person validates the change
+                - why: Firestorm drops the accents of a destination, of the link in the chat and of the display, the console accepts them
+                - avatar: two words of letters, digits and hyphens; no `.` nor `@` (hypergrid: First.Last@grid), no `_` (taken for a space in many places of OpenSimulator)
+                - region: letters, digits, space, `.` and `-`; no `_` (Ma Region and Ma_Region would be the same `Region_Ma_Region`)
+                - login URI: lower case, no transliteration (a domain name may be in unicode)
             - [ ] grid: name of the grid, login URI, Hypergrid (yes), avatar (name, password, email)
             - [ ] standalone: name of the simulator (it is the grid), login URI, Hypergrid (yes), avatar (name, password, email)
             - [ ] preset: name of the simulator, login URI and Hypergrid shown but read-only (the preset gives them), the avatar that owns its estate there (it exists)
@@ -583,6 +588,9 @@ Features:
 - [ ] ready to use default avatars
 - [ ] default Inventory package
 - [ ] nat/port forwarding instructions or presets (with standard tools or third-party provides like ngrok, cloudflare...)
+- [ ] test a simulator behind a firewall or on a VPS with `ResolveAddress = True`
+    - the console says it resolves the hostname to an IP once, at start (it exists for Docker), it is not a DNS question at each request
+    - [ ] which setups it makes possible (a simulator whose public name is a host name, behind NAT or on a VPS)
 - [ ] opensim tools installation-agnostic (kit installs and custom/standard OpenSim installs)
     - `/etc/opensim/opensim.conf` becomes only a reference pointing to the user's actual core installation and configuration files location (e.g. `/opt/osgrid`, `~/diva`, `~/opensim/opensim-0.9.3.0/bin`...)
     - [ ] a grid follows the profile of its own install, the default profile is only the default of the new grids
