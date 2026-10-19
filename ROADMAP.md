@@ -40,6 +40,10 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
 
 - [ ] services belong to the grid, served by controllers
     - [x] what a grid says of itself is the engine's (`Grid::gridInfo()`: the running Robust first, its config when it does not answer); the helpers and the pages use it, the live values win over a config changed since
+    - [x] every address of a grid in one call, wherever it is said (`Grid::addresses()`, `GET /grids/{grid}/addresses`): the running grid first, then the config, then where the helpers answer
+    - [x] assets: `Asset` for every type, `Texture` converted for the web and cached (`WebAssets`), moved from w4os (`assets-render.php`, `class-helpers-assets.php`)
+        - [ ] w4os asks the engine for its pictures (its copy of the engine is old: it keeps its own until it is updated)
+        - [ ] the other types as the web needs them (the text of a notecard, the source of a script), as classes that extend `Asset`
     - [ ] the block "Grid Info" of the helpers (name and login) keeps its label and takes a key of its own, so that it is not taken for the /get_grid_info of Robust
     - [x] `Service` model: `Grid::services()`, `Simulator::service('profile')` (its own config, else its grid's)
     - [x] a Robust is a controller (`RobustController`), so is a simulator (`OpenSimController`); `Grid::robusts()` lists the Robust instances of a grid
