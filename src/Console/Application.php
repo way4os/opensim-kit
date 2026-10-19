@@ -14,6 +14,7 @@ use OpenSimKit\Console\Commands\DisableCommand;
 use OpenSimKit\Console\Commands\EnableCommand;
 use OpenSimKit\Console\Commands\RestartCommand;
 use OpenSimKit\Console\Commands\ApiCommand;
+use OpenSimKit\Console\Commands\ApiKeyCommand;
 use OpenSimKit\Console\Commands\BackupCommand;
 use OpenSimKit\Console\Commands\BanCommand;
 use OpenSimKit\Console\Commands\ImportCommand;
@@ -77,6 +78,7 @@ final class Application extends ConsoleApplication
 
         return [
             new ApiCommand($environment),
+            new ApiKeyCommand($environment),
             new StartCommand($environment),
             new StopCommand($environment),
             new RestartCommand($environment),

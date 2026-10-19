@@ -64,6 +64,9 @@ The whole ecosystem speaks standards, no part is left out (the helpers included)
         - [x] the fixed ones (`query`, `currency`, `landtool`) are in the catalog of `Service` with their format fixed and their address configurable
         - [x] a PSR-7 / PSR-15 adapter (`Api\Handler`: the application brings the implementation of the messages and calls `terminate()` once the response is sent)
         - [x] the command line (`opensim api`) and the PHP library (`Api\Router`) as the other two adapters
+        - [x] the API is closed: global API keys (`opensim api-key create|list|revoke`, `Authorization: Bearer`), what the viewers, simulators and visitors call is open, the contract says which and a test checks the router agrees; `docs/api/try.html` tries it with a key
+        - [ ] keys restricted to categories, models or users (later: a global key is enough for now)
+        - [ ] the keys as a resource of the API (made and revoked from the manager)
     - [ ] the OpenAPI document is the contract, checked against the code by tests
         - [x] `Contract::document()` for the first slice, checked against `detail()` of the models
         - [x] the endpoints the core and the viewers call (`query`, `register`, `offline`, `currency`, `landtool`, `get_grid_info`) and the pages of the helpers, described as endpoints of their own with their fixed format (`docs/api/`)

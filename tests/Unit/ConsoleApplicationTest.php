@@ -227,3 +227,40 @@ describe('command api', function () {
             ->toContain('Demo');
     });
 });
+
+describe('command api-key', function () {
+    test('makes a key shown once, lists the keys without what opens them, and revokes one', function () {
+        $machine = new Machine();
+        $command = new \OpenSimKit\Console\Commands\ApiKeyCommand(static fn($reporter) => $machine->environment);
+        $tester = new \Symfony\Component\Console\Tester\CommandTester($command);
+
+        $created = $tester->execute(['args' => ['create', 'the', 'manager']], ['capture_stderr_separately' => true]);
+        $key = trim($tester->getDisplay());
+        $said = $tester->getErrorOutput();
+        $tester->execute(['args' => ['list']]);
+        $list = $tester->getDisplay();
+        $revoked = $tester->execute(['args' => ['revoke', 'the manager']]);
+        $tester->execute(['args' => ['list']]);
+
+        expect($created)
+            ->toBe(0)
+            ->and($key)
+            ->toStartWith('osk_')
+            ->and($said)
+            ->toContain("made for 'the manager'", 'not shown again')
+            ->and($list)
+            ->toContain('the manager')
+            ->toContain('active')
+            ->not->toContain($key)
+            ->and($revoked)
+            ->toBe(0)
+            ->and($tester->getDisplay())
+            ->toContain('revoked')
+            ->and($tester->execute(['args' => ['create']]))
+            ->toBe(2)
+            ->and($tester->execute(['args' => ['revoke', 'nobody']]))
+            ->toBe(1)
+            ->and($tester->execute(['args' => ['frobnicate']]))
+            ->toBe(2);
+    });
+});

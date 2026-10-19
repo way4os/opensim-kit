@@ -31,6 +31,7 @@ Commands:
     command <instance> <text>|-
     ports [instance...] [--publish|--ufw]
     api [GET|POST|PATCH|DELETE] PATH [key=value...] [--data=JSON|@FILE|-] [--grid=NICK]
+    api-key create LABEL|list|revoke ID|LABEL
 
 Grids
     setup
