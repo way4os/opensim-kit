@@ -214,7 +214,7 @@ The beta:
                     - why: Firestorm drops the accents of a destination, of the link in the chat and of the display, the console accepts them
                 - Avatar: name of two words of letters, digits and hyphens; no `.` nor `@` (hypergrid: First.Last@grid), no `_` (taken for a space in many places of OpenSimulator)
                 - Avatar: password of 6 characters at least (to make configurable in opensim.conf), no double quote; email without space, quote nor backslash
-                - Region: letters, digits, space, `.` and `-`; no `_` (Ma Region and Ma_Region would be the same `Region_Ma_Region`)
+                - Region: letters, digits, space and `-`; no `.` (the viewer takes it for a host name), no `_` (Ma Region and Ma_Region would be the same `Region_Ma_Region`)
                 - Grid: name transliterated; login URI with or without the scheme (http only), host in lower case, no transliteration (a domain name may be in unicode); web URL http or https
             - [ ] grid: name of the grid, login URI, Hypergrid (yes), avatar (name, password, email)
             - [ ] standalone: name of the simulator (it is the grid), login URI, Hypergrid (yes), avatar (name, password, email)
