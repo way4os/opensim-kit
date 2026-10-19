@@ -592,6 +592,11 @@ Installation:
         - [ ] test whether a running instance serves a new `.p12` without a restart: that decides between the converter of 0.9.3 and ours (the code says no: `BaseHttpServer` loads the certificate when the server is made and gives it to the listener at start, the converter only runs at start)
         - [ ] one certificate for all the hostnames of the grid (several names, or a wildcard through DNS-01), so that the `.p12` is shared
     - changes the `BaseURL`, the URI of the hypergrid, the login URL and the behavior of Robust of a grid that exists: for 3.1, easy only for a new grid
+        - [ ] the old `http://` login URI of the viewers
+            - `GatekeeperURIAlias` and `HomeURIAlias` (given in get_grid_info as `gatekeeperalias` and `homealias`) are for the hypergrid side, the gatekeeper knows itself by them (`GridInfo.cs`, `GatekeeperService.cs`); whether they ignore the scheme: not read
+            - they do nothing for a viewer whose stored login URI is `http://host:8002/`: with `https_main` the main port answers https only, the viewer cannot even fetch get_grid_info there, refreshing does not help
+            - [ ] keep http on the old port and add https beside it (`https_listener`, `https_port`): does that second server serve the services of Robust? handlers are registered per port, not read
+            - [ ] test with a viewer still on the old URI, without refreshing the grid info
     - [ ] our own certificate from certbot, never the one of the web server (Caddy keeps it elsewhere than certbot): `--webroot` with the aliases wanted, `--allow-subset-of-names` so that an alias that cannot be verified does not fail the others
     - [ ] `ExternalHostName` of the regions: `SYSTEMIP` is the recommended value (a name forces DNS lookups, slower), but with `http_listener_ssl` the core checks it against the certificate for each region and refuses the region otherwise (`OpenSimBase.cs`, `BaseHttpServer.CheckSSLCertHost`)
         - the check compares an IPv4 address with the DNS names and the CN of the certificate, never with its IP addresses (read for IPv6 only): a named certificate refuses `SYSTEMIP`, and an IP certificate would not pass either (reading of the code, to confirm by a test)
