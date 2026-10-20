@@ -247,7 +247,8 @@ The beta:
                 - [x] `share/presets/<name>/` for the ones of the kit, `<etc>/presets/<name>/` for the administrator's (wins); a new folder is a new option, offered by the setup when it says `Offer = true`
                 - [x] shipped: search, helpers (what the viewers are told), bakes, groups (four variants), profiles, offline-helpers, offline-robust, economy-beta, economy-gloebit, ossl-extended
                 - [x] the ones that are not listed in the setup are the base of the grid (`Offer = false`), applied when the grid can have them, the same mechanism
-                - [x] offline messages: the module V2 is the base (`Fallback = true`), the helpers take its place when they are on; never both
+                - [x] offline messages: the module V2 is the base and the default (`Fallback = true`), the helpers (V1) take its place when they are asked; never both
+                - [ ] the offline messages reviewed (V2 works on speculoos but for the mail relay, which is not implemented): then the default is chosen again
                 - [x] at the setup and later (`opensim enable|disable <grid> <option>`); a group has one option at a time; disabling comments the settings out; the options of a grid are in its description (`Options`)
                 - [x] the dependencies are in the `option.conf`: modules (OpenSimSearch, Gloebit), the helpers, the settings to give (the Gloebit keys)
                 - [x] `Helpers.ini` and the files of the web server (Caddy, nginx, Apache) are presets too: copied with their variables when the grid has none, so the text to change is in the presets folder
