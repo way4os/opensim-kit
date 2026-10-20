@@ -245,10 +245,12 @@ The beta:
             - [ ] SSL is not implemented (3.1); Cross-grid Search, Gloebit and Extended OSSL write their files, Gloebit still needs its keys (the settings screen)
             - [x] each option is a preset, one place for all their settings: a folder with an `option.conf` and the ini files it changes, laid over the files of the grid that have the same name (`GridOptions`, `OptionTemplate`)
                 - [x] `share/presets/<name>/` for the ones of the kit, `<etc>/presets/<name>/` for the administrator's (wins); a new folder is a new option, offered by the setup when it says `Offer = true`
-                - [x] shipped: search, economy-beta, economy-gloebit, profiles, offline-helpers, offline-robust, offline-both, ossl-extended
+                - [x] shipped: search, helpers (what the viewers are told), bakes, groups (four variants), profiles, offline-helpers, offline-robust, economy-beta, economy-gloebit, ossl-extended
+                - [x] the ones that are not listed in the setup are the base of the grid (`Offer = false`), applied when the grid can have them, the same mechanism
+                - [x] offline messages: the module V2 is the base (`Fallback = true`), the helpers take its place when they are on, V2 comes back when they are off; never both
                 - [x] at the setup and later (`opensim enable|disable <grid> <option>`); a group has one option at a time; disabling comments the settings out; the options of a grid are in its description (`Options`)
                 - [x] the dependencies are in the `option.conf`: modules (OpenSimSearch, Gloebit), the helpers, the settings to give (the Gloebit keys)
-                - [ ] still in code: the helpers themselves (Helpers.ini, the web server), the web search settings of `GridServices`, the bakes and the groups of the Robust connectors (`SimulatorConfig::connectorsLayer`), the MoneyServer
+                - [ ] still in code: `Helpers.ini` and the web server files (whole files with their comments, not settings), the names and the hypergrid addresses of the grid (`GridServices`), the connectors Robust serves (`RobustConfig::connectors`)
                 - [ ] the preset of an administrator tried on a real install (enable at the setup, enable later, disable)
                 - [ ] the settings screens: the Gloebit keys, the search provider
         - [ ] the report at the end tells how to reach the engine from another machine: create an API key (`opensim api-key create <label>`)
