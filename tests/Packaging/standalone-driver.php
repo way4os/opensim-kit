@@ -15,6 +15,7 @@ use OpenSim\Provisioning\SimulatorPlanner;
 use OpenSim\Provisioning\SimulatorProvisioner;
 use OpenSim\Provisioning\UiInterface;
 use OpenSim\Provisioning\UiReporter;
+use OpenSim\Exceptions\InstanceFailed;
 use OpenSim\Exceptions\SetupFailedException;
 
 /**
@@ -167,10 +168,10 @@ try {
             $results = $argv[1] === 'stop'
                 ? OpenSim::stop($value('TEST_NICK', 'solo'), true, $environment)
                 : OpenSim::start($value('TEST_NICK', 'solo'), $environment);
-            foreach ($results as $result) {
-                echo ($result->ok() ? 'ok' : 'failed') . ': ' . json_encode($result->message ?? '') . "\n";
+            foreach ($results as $name => $result) {
+                echo ($result instanceof InstanceFailed ? 'failed' : 'ok') . ': ' . json_encode($name . ' ' . ($result instanceof InstanceFailed ? $result->getMessage() : $result->value)) . "\n";
             }
-            exit(array_filter($results, static fn($r): bool => !$r->ok()) === [] ? 0 : 1);
+            exit(array_filter($results, static fn($r): bool => $r instanceof InstanceFailed) === [] ? 0 : 1);
 
         default:
             fwrite(STDERR, "usage: standalone-driver.php grid|simulator|again|monitor|stop|start [engine]\n");
