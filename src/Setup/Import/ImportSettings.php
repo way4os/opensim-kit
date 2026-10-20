@@ -119,7 +119,7 @@ final class ImportSettings
 
         $customizations = RobustImporter::customizations(
             $raw,
-            ConfigReader::parse(RobustImporter::generate($plan)),
+            ConfigReader::parse(RobustImporter::generate($plan, InstallConfig::environmentOf($profile))),
             ConfigReader::load($exampleFile, [], false, true),
             dirname($path),
             (string) file_get_contents($exampleFile),

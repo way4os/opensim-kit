@@ -251,8 +251,8 @@ The beta:
                 - [x] at the setup and later (`opensim enable|disable <grid> <option>`); a group has one option at a time; disabling comments the settings out; the options of a grid are in its description (`Options`)
                 - [x] the dependencies are in the `option.conf`: modules (OpenSimSearch, Gloebit), the helpers, the settings to give (the Gloebit keys)
                 - [x] `Helpers.ini` and the files of the web server (Caddy, nginx, Apache) are presets too: copied with their variables when the grid has none, so the text to change is in the presets folder
-                - [ ] still in code: the names and the hypergrid addresses of the grid (`GridServices`), the connectors Robust serves (`RobustConfig::connectors`)
-                - [ ] the preset of an administrator tried on a real install (enable at the setup, enable later, disable)
+                - [x] everything the setup writes is a preset, the code collects the choices and puts the values in: the description of the grid, the config of Robust (names, hypergrid, connectors, log), the corrections of the folders copied from the core, the simulator and its region, the master of the simulators, a grid that runs elsewhere
+                - [ ] the presets of an administrator tried on a real install (enable at the setup, enable later, disable)
                 - [ ] the settings screens: the Gloebit keys, the search provider
         - [ ] the report at the end tells how to reach the engine from another machine: create an API key (`opensim api-key create <label>`)
         - the engine knows how to configure: it provides the questions and processes the answers (one source of truth, also for w4os, mini-web, the manager)
