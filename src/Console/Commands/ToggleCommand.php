@@ -8,7 +8,7 @@ use OpenSim\Archives\Instances;
 use OpenSim\Interfaces\Enablable;
 use OpenSim\Models\Grid;
 use OpenSim\Runtime\Environment;
-use OpenSim\Provisioning\Features;
+use OpenSim\Provisioning\GridOptions;
 use OpenSim\Provisioning\Slug;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -22,20 +22,15 @@ use Symfony\Component\Console\Output\OutputInterface;
  *
  *   opensim enable|disable <instance>...
  *
- * And with a feature after the grid, what the feature needs in the files of the grid (see Features):
+ * And with an option after the grid, what the option needs in the files of the grid (see GridOptions, the presets that have an
+ * option.conf):
  *
- *   opensim enable|disable <grid> search [<url prefix>]
- *   opensim enable|disable <grid> economy [beta|gloebit] [<url prefix>]
- *   opensim enable|disable <grid> profiles
- *   opensim enable|disable <grid> offline [helpers|robust] [<url prefix>]
+ *   opensim enable|disable <grid> <option> [<variant>] [<url prefix>]
  */
 abstract class ToggleCommand extends EngineCommand
 {
     private const USAGE = "usage: opensim enable|disable <instance>...\n" .
-        "       opensim enable|disable <grid> search [<url prefix>]\n" .
-        "       opensim enable|disable <grid> economy [beta|gloebit] [<url prefix>]\n" .
-        "       opensim enable|disable <grid> profiles\n" .
-        "       opensim enable|disable <grid> offline [helpers|robust] [<url prefix>]\n";
+        "       opensim enable|disable <grid> <option> [<variant>] [<url prefix>]    (search, economy gloebit, profiles, offline robust, ossl-extended...)\n";
 
     /** `enable` or `disable`. */
     abstract protected function verb(): string;
@@ -44,7 +39,7 @@ abstract class ToggleCommand extends EngineCommand
     {
         $verb = $this->verb();
         $this->setName($verb)
-            ->setDescription(ucfirst($verb) . ' a grid or a simulator, or a feature of a grid (search, economy, profiles, offline)')
+            ->setDescription(ucfirst($verb) . ' a grid or a simulator, or an option of a grid (search, economy, profiles, offline, ossl-extended...)')
             ->addArgument('names', InputArgument::IS_ARRAY, 'the instances, or a grid and a feature [options]');
     }
 
@@ -61,9 +56,10 @@ abstract class ToggleCommand extends EngineCommand
         $environment = $this->engine($output);
         $etc = $environment->layout->etcRoot();
 
-        // A feature of a grid: the grid, then the word of the feature
-        if (isset($names[1]) && Features::isFeature($names[1])) {
-            return $this->feature($names, $environment, $etc, $output, $error);
+        // An option of a grid: the grid, then the word of the option
+        $grid = isset($names[1]) ? $this->gridOf($names[0], $environment, $etc) : null;
+        if ($grid !== null && (new GridOptions($grid))->resolve($names[1]) !== null) {
+            return $this->feature($names, $grid, $output, $error);
         }
 
         // The grids and the simulators the setup made, by the name of their instance
@@ -127,69 +123,67 @@ abstract class ToggleCommand extends EngineCommand
         return $done;
     }
 
-    /**
-     * A feature of a grid.
-     *
-     * @param list<string> $names the grid, the feature, its options
-     */
-    private function feature(array $names, Environment $environment, string $etc, OutputInterface $output, OutputInterface $error): int
+    /** The grid of this nick on this machine, null when there is none. */
+    private function gridOf(string $name, Environment $environment, string $etc): ?Grid
     {
-        $verb = $this->verb();
-        $nick = null;
         foreach (Instances::grids($etc) as $candidate) {
-            if (strcasecmp($candidate, $names[0]) === 0) {
-                $nick = $candidate;
+            if (strcasecmp($candidate, $name) === 0) {
+                return Grid::find($environment, $candidate);
             }
         }
-        $grid = $nick === null ? null : Grid::find($environment, $nick);
-        if ($grid === null) {
-            $error->writeln("$verb: no grid called {$names[0]}", OutputInterface::OUTPUT_RAW);
+
+        return null;
+    }
+
+    /**
+     * An option of a grid.
+     *
+     * @param list<string> $names the grid, the option, its variant and its options
+     */
+    private function feature(array $names, Grid $grid, OutputInterface $output, OutputInterface $error): int
+    {
+        $verb = $this->verb();
+        $more = array_slice($names, 2);
+        $variant = isset($more[0]) && !str_contains($more[0], '/') ? strtolower(array_shift($more)) : '';
+        $options = new GridOptions($grid);
+        $option = $options->resolve($names[1], $variant);
+        if ($option === null) {
+            $error->writeln("$verb: no option {$names[1]}" . ($variant !== '' ? " $variant" : '') . ' (' . implode(', ', array_keys($options->templates())) . ')', OutputInterface::OUTPUT_RAW);
 
             return Command::FAILURE;
         }
-        $feature = strtolower($names[1]);
-        $options = [];
-        $more = array_slice($names, 2);
-        if ($feature === Features::ECONOMY && isset($more[0]) && !str_contains($more[0], '/')) {
-            $options['money'] = strtolower(array_shift($more));
-        }
-        if ($feature === Features::OFFLINE && isset($more[0]) && !str_contains($more[0], '/')) {
-            $options['mode'] = strtolower(array_shift($more));
-        }
-        if (count($more) > 1 || ($more !== [] && $feature === Features::PROFILES)) {
+        if (count($more) > 1) {
             $error->write(self::USAGE, false, OutputInterface::OUTPUT_RAW);
 
             return 2;
         }
-        if ($more !== []) {
-            $options['prefix'] = $more[0];
-        }
+        $params = $more !== [] ? ['prefix' => $more[0]] : [];
 
-        $features = new Features($grid);
-        $result = $verb === 'enable' ? $features->enable($feature, $options) : $features->disable($feature);
+        $result = $verb === 'enable' ? $options->enable($option->name(), $params) : $options->disable($option->name());
         if ($result['error'] !== null) {
             $error->writeln("$verb: {$result['error']}", OutputInterface::OUTPUT_RAW);
 
             return Command::FAILURE;
         }
         $state = $verb . 'd';
-        $what = $feature . ($feature === Features::ECONOMY && $verb === 'enable' ? ' (' . ($options['money'] ?? 'beta') . ')' : ($feature === Features::OFFLINE && $verb === 'enable' ? ' (' . ($options['mode'] ?? 'helpers') . ')' : ''));
+        $what = $option->name();
         $touched = $result['simulators'];
-        if ($touched === [] && !$result['grid'] && !$result['robust']) {
+        if ($touched === [] && !$result['grid'] && !$result['robust'] && $result['files'] === []) {
             $output->writeln(
-                "nothing to change: $what is already $state for {$grid->nick()}" . ($features->simulators() === [] ? ' (the grid has no simulator on this machine)' : ''),
+                "nothing to change: $what is already $state for {$grid->nick()}" . ($options->simulators() === [] ? ' (the grid has no simulator on this machine)' : ''),
                 OutputInterface::OUTPUT_RAW,
             );
         } else {
             // What the simulators and Robust read at their start; the OpenSim.ini of the grid is read by the helpers each time
             $restart = $touched;
             if ($result['robust']) {
-                array_unshift($restart, Slug::snake($grid->nick()));
+                array_unshift($restart, $grid->robustInstance());
             }
             $parts = array_filter([
                 $touched === [] ? null : count($touched) . ' simulator' . (count($touched) === 1 ? '' : 's'),
                 $result['robust'] ? 'Robust' : null,
                 $result['grid'] ? 'the OpenSim.ini of the grid' : null,
+                $result['files'] === [] ? null : count($result['files']) . ' other file' . (count($result['files']) === 1 ? '' : 's'),
             ]);
             $changed = count($parts) > 1 ? implode(', ', array_slice($parts, 0, -1)) . ' and ' . end($parts) : (string) reset($parts);
             $output->writeln(
