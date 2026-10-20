@@ -223,11 +223,18 @@ The beta:
             - [ ] standalone: name of the simulator (it is the grid), login URI, Hypergrid (yes), avatar (name, password, email)
             - [ ] preset: name of the simulator, login URI and Hypergrid shown but read-only (the preset gives them), the avatar that owns its estate there (it exists)
                 - later: its password, to check the avatar is theirs (to think over: who may do it, the admin or not)
-        - [ ] then the options, each with its default
-            - [ ] search: internal (the helpers), shared (2do.directory) or none (internal)
-            - [ ] currency: BetaGridLikeMoneyModule or Gloebit (BetaGridLikeMoneyModule)
-            - [ ] more OSSL for parcel owners: NPC, animations, drawing... (no)
-            - [ ] web: server (Caddy, Apache, nginx) and site (the helpers only, or the mini website) (the helpers only)
+        - [ ] then the options, one screen of check boxes: SSL, Hypergrid, Cross-grid Search, Economy: Gloebit, Extended OSSL (the engine lists them, with what it does not apply yet)
+            - the modules are named, not their function: Gloebit is one money module among others, OpenSimSearch one search module
+            - everything else is on in a quick setup: the helpers, the OpenSimSearch module, the offline messages, the profiles, the destination guide, the grid status
+            - cross-grid search on: the URLs are the ones of 2do.directory; off: the ones of the domain of the grid
+            - the report to confirm lists all of it, the chosen and the on by default, in the form (it scrolls)
+        - [ ] advanced config: the helpers are a choice, none | provide | external
+            - choosing Gloebit or the OpenSimSearch module disables none, the next one is chosen
+            - a screen of settings for the cross-grid search (external: 2do.directory by default, with its query and web search URLs) and one for Gloebit (the defaults of the grid until advanced is on)
+        - [ ] a Simulator that joins another grid, and the presets, in the first screen of the setup (listed now, not implemented)
+            - the presets are in `share/presets` of the kit: the engine, run by the CLI, does not find them (the application says where its root is, see `ResourceRegistry`)
+        - [ ] the options of the setup are defined in one place (`QuickSetup`), what reads the config does not know them
+            - today an option is also in the fields of `Grid`, the plan, the planner, the setup file and the provisioner: changing the type of one touches about thirty places
         - [ ] then quick setup (the defaults for the rest) or advanced config (every question, the answers proposed)
         - [ ] the report at the end tells how to reach the engine from another machine: create an API key (`opensim api-key create <label>`)
         - the engine knows how to configure: it provides the questions and processes the answers (one source of truth, also for w4os, mini-web, the manager)
