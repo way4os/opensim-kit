@@ -236,6 +236,12 @@ The beta:
         - [ ] the options of the setup are defined in one place (`QuickSetup`), what reads the config does not know them
             - today an option is also in the fields of `Grid`, the plan, the planner, the setup file and the provisioner: changing the type of one touches about thirty places
         - [ ] then quick setup (the defaults for the rest) or advanced config (every question, the answers proposed)
+            - [x] the quick setup is the scenario of the engine (`POST /setups/steps`, `QuickSetup::next`): the screens, the checks, the corrections, Back and Quit; a client draws a screen, sends it back filled and does the action it gets
+            - [x] Install makes the folders and writes the files of the grid and of its first simulator (nothing else)
+            - [ ] after the files: the databases (created, their access checked), the account of the avatar, enable and start
+            - [ ] the options flagged not implemented in the form (SSL: 3.1); Cross-grid Search, Gloebit and Extended OSSL write their files, Gloebit still needs its keys (the settings screen)
+            - [ ] each option linked to a template and a target file (`resources/options/<option>.ini`, `;; target:` in its first line, combined by `GridOptions`): only Extended OSSL is one today, search, Gloebit and the helpers are written by `Grid`, `Features` and the provisioners
+            - [ ] the setup of a simulator that joins another grid, and of the presets (listed in the first screen, planned)
         - [ ] the report at the end tells how to reach the engine from another machine: create an API key (`opensim api-key create <label>`)
         - the engine knows how to configure: it provides the questions and processes the answers (one source of truth, also for w4os, mini-web, the manager)
         - `setup.sh` shows the questions with `dialog` or plain prompts (`libexec/setup-frontend.sh`), the engine gives them through two pipes (internal: nothing to explain to the person)
