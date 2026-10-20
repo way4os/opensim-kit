@@ -239,6 +239,9 @@ The beta:
             - assets: only a Robust serves them, no override in the simulators; Robust says where they are in `AssetLoaderArgs` of `[AssetService]` (`./assets/AssetSets.xml`)
             - library: Robust (`[LibraryService]` `DefaultLibrary`, `./inventory/Libraries.xml`) gives the library skeleton at login; the simulator (the same section in the config-include of its architecture, with `LibraryModule = true`) serves its content to the viewer; both read their own, they must agree (to settle: the simulators of another server need the same files, or the library module off)
             - `./` is the folder the program is launched from (the `bin` of the core), the copies need absolute paths
+            - [ ] test the library with three different versions: one for Robust, one for each of two simulators on separate servers
+                - what the viewer shows at login (the skeleton comes from Robust) and after a teleport from one simulator to the other (the content comes from the simulator it is in)
+                - what a simulator that is not ours does when its library is not Robust's (a grid with guest simulators)
         - [ ] the options are ini files merged or included (see above), the same whoever asks
     - parked: the setup in the browser (`opensim setup --web`), it comes back later and changes
     - [ ] `opensim import <setup file> --apply` full setup from YAML file, with no questions
