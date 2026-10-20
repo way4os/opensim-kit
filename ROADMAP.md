@@ -247,10 +247,11 @@ The beta:
                 - [x] `share/presets/<name>/` for the ones of the kit, `<etc>/presets/<name>/` for the administrator's (wins); a new folder is a new option, offered by the setup when it says `Offer = true`
                 - [x] shipped: search, helpers (what the viewers are told), bakes, groups (four variants), profiles, offline-helpers, offline-robust, economy-beta, economy-gloebit, ossl-extended
                 - [x] the ones that are not listed in the setup are the base of the grid (`Offer = false`), applied when the grid can have them, the same mechanism
-                - [x] offline messages: the module V2 is the base (`Fallback = true`), the helpers take its place when they are on, V2 comes back when they are off; never both
+                - [x] offline messages: the module V2 is the base (`Fallback = true`), the helpers take its place when they are on; never both
                 - [x] at the setup and later (`opensim enable|disable <grid> <option>`); a group has one option at a time; disabling comments the settings out; the options of a grid are in its description (`Options`)
                 - [x] the dependencies are in the `option.conf`: modules (OpenSimSearch, Gloebit), the helpers, the settings to give (the Gloebit keys)
-                - [ ] still in code: `Helpers.ini` and the web server files (whole files with their comments, not settings), the names and the hypergrid addresses of the grid (`GridServices`), the connectors Robust serves (`RobustConfig::connectors`)
+                - [x] `Helpers.ini` and the files of the web server (Caddy, nginx, Apache) are presets too: copied with their variables when the grid has none, so the text to change is in the presets folder
+                - [ ] still in code: the names and the hypergrid addresses of the grid (`GridServices`), the connectors Robust serves (`RobustConfig::connectors`)
                 - [ ] the preset of an administrator tried on a real install (enable at the setup, enable later, disable)
                 - [ ] the settings screens: the Gloebit keys, the search provider
         - [ ] the report at the end tells how to reach the engine from another machine: create an API key (`opensim api-key create <label>`)

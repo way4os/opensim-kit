@@ -40,7 +40,7 @@ final class WebCommand extends ScriptCommand
             return $code;
         };
 
-        $options = ['grid' => '', 'docroot' => Snippets::DOCROOT, 'socket' => Snippets::SOCKET];
+        $options = ['grid' => '', 'docroot' => '', 'socket' => ''];
         $words = [];
         for ($i = 0; $i < count($args); $i++) {
             if (preg_match('/^--(grid|docroot|socket)(?:=(.*))?$/', $args[$i], $m)) {
@@ -130,7 +130,7 @@ final class WebCommand extends ScriptCommand
         self::say($out, "Grid:      $nick\n");
         self::say($out, 'Web URL:   ' . ($webUrl !== '' ? $webUrl : '(none: WebURL of the Robust config)') . "\n");
         self::say($out, "Helpers:   {$services->base()}  (the economy of the Robust config, the path of the services by default)\n");
-        self::say($out, 'Docroot:   ' . $options['docroot'] . (is_dir(Snippets::WEBROOT) ? '' : '  (the helpers are not installed: apt install opensim-helpers)') . "\n\n");
+        self::say($out, 'Docroot:   ' . ($options['docroot'] !== '' ? $options['docroot'] : '(the one of the preset webroot-helpers)') . (is_dir(Snippets::WEBROOT) ? '' : '  (the helpers are not installed: apt install opensim-helpers)') . "\n\n");
         foreach ($rows as $service => [$url, $script]) {
             self::say($out, sprintf("  %-15s %s\n", $service, $url));
         }
