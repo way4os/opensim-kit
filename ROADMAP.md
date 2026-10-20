@@ -211,11 +211,14 @@ The beta:
         - [ ] then the basics, which depend on the choice
             - the rules, their messages and the corrections are the models' (Avatar, Region, Grid, Simulator): the setup, the API and the other apps ask their fields, none has a rule of its own
                 - names are Latin letters without accents, in every alphabet: the model transliterates, the person validates the change
-                    - why: Firestorm drops the accents of a destination, of the link in the chat and of the display, the console accepts them
-                - Avatar: name of two words of letters, digits and hyphens; no `.` nor `@` (hypergrid: First.Last@grid), no `_` (taken for a space in many places of OpenSimulator)
-                - Avatar: password of 6 characters at least (to make configurable in opensim.conf), no double quote; email without space, quote nor backslash
-                - Region: letters and digits, three words at most (Second Life, Linden Lab naming private regions), 3 characters at least (the map search needs 3), 50 at most (the maximum of Second Life is 25: to confirm); no punctuation: the viewer takes `.` for a host name, Robust takes `_` for a space (Ma Region and Ma_Region would be the same `Region_Ma_Region`)
-                - Grid: letters, digits, space, `-` and `'`, no dot; the grid of a standalone has the name of a region; login URI with or without the scheme (http only), host in lower case, no transliteration (a domain name may be in unicode); web URL http or https
+                    - why: the login box and the start location of the viewers take ASCII only, and Firestorm drops the accents of a destination and of the link in the chat; the console accepts them
+                - Avatar: name of two words of letters, digits and hyphens, 63 characters at most each (the login box takes 128 for both); no `.` nor `@` (hypergrid: First.Last@grid), no `_` (taken for a space in many places of OpenSimulator), and the viewers take space, `.` and `_` for what separates the first name from the last
+                - Avatar: password of 6 to 16 characters (6 is ours, to make configurable in opensim.conf; 16 is the password box of the login panel of the viewers), no double quote; email without space, quote nor backslash
+                - Region: letters and digits, three words at most (Second Life, Linden Lab naming private regions), 3 characters at least (the map search of the viewers and of the core needs 3), 128 at most (what the database holds; Second Life has 25: not applied); no punctuation: the chat links of the viewers (`secondlife:///app/region/[A-Za-z0-9()_%]+`) stop at it, the map search of the core gives `. ! + | : %` a meaning, and Robust takes `_` for a space (Ma Region and Ma_Region would be the same `Region_Ma_Region`)
+                - Parcel: name of 63 bytes at most and description of 255 (the land panel of the viewers; the core limits nothing, the database holds 255); an accent takes two bytes
+                - Grid: letters, digits, space, `.`, `-` and `'`; the grid of a standalone gives its simulator and its region its name with the dots as spaces (a region has no dot), and that name follows the rule of a region
+                - login URI: with or without the scheme (http only), host in lower case, ASCII only (the viewers refuse any other character in the address of a grid; the punycode conversion will be looked at if someone needs it); web URL http or https
+                - source: the code of Firestorm (`phoenix-firestorm`: `panel_login.xml`, `llpanellogin.cpp`, `llurlentry.cpp`, `fsgridhandler.cpp`, `floater_about_land.xml`) and `MapSearchModule.cs` of the core
             - [ ] grid: name of the grid, login URI, Hypergrid (yes), avatar (name, password, email)
             - [ ] standalone: name of the simulator (it is the grid), login URI, Hypergrid (yes), avatar (name, password, email)
             - [ ] preset: name of the simulator, login URI and Hypergrid shown but read-only (the preset gives them), the avatar that owns its estate there (it exists)
@@ -230,6 +233,12 @@ The beta:
         - the engine knows how to configure: it provides the questions and processes the answers (one source of truth, also for w4os, mini-web, the manager)
         - `setup.sh` shows the questions with `dialog` or plain prompts (`libexec/setup-frontend.sh`), the engine gives them through two pipes (internal: nothing to explain to the person)
         - [x] the scenario of packages that goes through the setup with the script (`wizardscript-grid-scenario.sh`): a grid made from the first question to a running region, with the real Hub
+        - [ ] the assets and the library of the core are copied for the grid when it has none or when they are empty, and the config points to them
+            - why: the library shared with the users (a later release) is added to these copies, the core stays untouched
+            - where: `var`, not `etc`: it grows, and the engine will maintain it (rules to follow, references to carry over)
+            - assets: only a Robust serves them, no override in the simulators; Robust says where they are in `AssetLoaderArgs` of `[AssetService]` (`./assets/AssetSets.xml`)
+            - library: Robust (`[LibraryService]` `DefaultLibrary`, `./inventory/Libraries.xml`) gives the library skeleton at login; the simulator (the same section in the config-include of its architecture, with `LibraryModule = true`) serves its content to the viewer; both read their own, they must agree (to settle: the simulators of another server need the same files, or the library module off)
+            - `./` is the folder the program is launched from (the `bin` of the core), the copies need absolute paths
         - [ ] the options are ini files merged or included (see above), the same whoever asks
     - parked: the setup in the browser (`opensim setup --web`), it comes back later and changes
     - [ ] `opensim import <setup file> --apply` full setup from YAML file, with no questions
