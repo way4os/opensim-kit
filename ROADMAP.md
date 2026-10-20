@@ -231,17 +231,19 @@ The beta:
         - [ ] advanced config: the helpers are a choice, none | provide | external
             - choosing Gloebit or the OpenSimSearch module disables none, the next one is chosen
             - a screen of settings for the cross-grid search (external: 2do.directory by default, with its query and web search URLs) and one for Gloebit (the defaults of the grid until advanced is on)
-        - [ ] a Simulator that joins another grid, and the presets, in the first screen of the setup (listed now, not implemented)
+        - [x] a Simulator that joins another grid and the presets are in the first screen of the setup and work
             - the presets are in `share/presets` of the kit: the engine, run by the CLI, does not find them (the application says where its root is, see `ResourceRegistry`)
         - [ ] the options of the setup are defined in one place (`QuickSetup`), what reads the config does not know them
             - today an option is also in the fields of `Grid`, the plan, the planner, the setup file and the provisioner: changing the type of one touches about thirty places
         - [ ] then quick setup (the defaults for the rest) or advanced config (every question, the answers proposed)
             - [x] the quick setup is the scenario of the engine (`POST /setups/steps`, `QuickSetup::next`): the screens, the checks, the corrections, Back and Quit; a client draws a screen, sends it back filled and does the action it gets
-            - [x] Install makes the folders and writes the files of the grid and of its first simulator (nothing else)
-            - [ ] after the files: the databases (created, their access checked), the account of the avatar, enable and start
-            - [ ] the options flagged not implemented in the form (SSL: 3.1); Cross-grid Search, Gloebit and Extended OSSL write their files, Gloebit still needs its keys (the settings screen)
+            - [x] Install checks and makes the databases (the administrator of the server is asked only when the setup cannot reach it), writes the grid and its first simulator, starts them and makes the account of the avatar; tried for real on a grid made and removed (Robust and OpenSim up, region ready, account made)
+            - [x] the assets and the library of the core are copied into the data folder of the grid (`var`) and the config of Robust and of the simulators reads them there
+            - [x] a simulator can join the grid of a preset (Speculoos, OSGrid: shipped with the engine in `share/presets`) or a grid given by its address; tried with stand-ins, not against a real grid
+            - [ ] the presets are still in `share/presets` of the kit too: one copy to remove
+            - [ ] the .NET MySQL connector failed once to authenticate over SSL on the local server at the first start of Robust (an I/O error), then worked: to watch, `SslMode` of the connection string if it comes back
+            - [ ] SSL is not implemented (3.1); Cross-grid Search, Gloebit and Extended OSSL write their files, Gloebit still needs its keys (the settings screen)
             - [ ] each option linked to a template and a target file (`resources/options/<option>.ini`, `;; target:` in its first line, combined by `GridOptions`): only Extended OSSL is one today, search, Gloebit and the helpers are written by `Grid`, `Features` and the provisioners
-            - [ ] the setup of a simulator that joins another grid, and of the presets (listed in the first screen, planned)
         - [ ] the report at the end tells how to reach the engine from another machine: create an API key (`opensim api-key create <label>`)
         - the engine knows how to configure: it provides the questions and processes the answers (one source of truth, also for w4os, mini-web, the manager)
         - `setup.sh` shows the questions with `dialog` or plain prompts (`libexec/setup-frontend.sh`), the engine gives them through two pipes (internal: nothing to explain to the person)
@@ -284,6 +286,8 @@ The beta:
     - [ ] `opensim restore`
 
 ### 3.0.0-beta.8 (safe for other grids)
+
+- [ ] Mac: all dependencies check and Homebrew receipts
 
 Tests:
 
@@ -764,6 +768,7 @@ w4os plugin:
     - [ ] themes
 - [ ] Managed simulator pool: maintain a list of simulators assigned to grid's pool(s), to allow adding new regions to the less busy one (in CPU and/or or prim usage) (optional, manual selection or dedicated simulator creation still available). There could be a pool for mainland, a pool for estates or other region types, and maybe a pool by user/owner
 - [ ] Ticketing: functionalties similar to laravel magicoli/two-way-tickets, but independant from framework, issues linked to grid/simulator and can be linked by admin to the related github repo (not a single specific repo but the one involved in the issue)
+- [ ] Mac: alternative MacPorts support
 
 ## Backlog (no milestone), by package
 
