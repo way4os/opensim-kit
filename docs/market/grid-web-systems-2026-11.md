@@ -97,6 +97,54 @@ Among the 50 grids with at least 100 active users: 13 custom code, 12 grid web U
 | Moodle + Modlos | 1 | 103 | Japan Open Grid |
 | Own platforms | 2 | 976 | Kitely (GWT), AvatarLife (SvelteKit, Web3) |
 
+## Hosting4Opensim (H4HUB / H4OS), a closer look
+
+Read on 2026-11-15 from public pages only: [hosting4opensim.com](https://hosting4opensim.com/) (home, [H4OS overview](https://hosting4opensim.com/h4os.html), [about](https://hosting4opensim.com/help.html)), the [H4HUB store](https://store.h4hub.com/index.php/store/grid-packages), the [demo grid site](https://testsite.hosting4opensim.com) and the customer grids' home pages. No login, no sign-up.
+
+**What it is.** A hosting company, not a software product. Founded in December 2022 by two friends (CEO in Mexico, CTO in Brazil), it says it hosts "10+" grids. H4OS is its in-house management system: a Laravel site (`XSRF-TOKEN` + per-site session cookie, Bootstrap 5, jQuery, TinyMCE, reCAPTCHA) installed for each grid on the company's servers. 8 of the 9 customer sites and the demo resolve to the same Hetzner address (5.9.111.110), the 9th to a second Hetzner address; LinkUp sits behind Cloudflare. The store is WHMCS. It also sells AviWorlds region rentals, so AviWorlds and H4HUB are closely linked.
+
+**How a grid gets it.** Only with the hosting: the website comes inside the grid package, it is not sold or distributed on its own.
+
+- Grid package (Robust + region server): **from $100/month**. That buys 20 GB RAM, 4 cores, 200 GB NVMe, 200 GB object storage for assets, 1 TB backup drive, hourly backups with 14-day rollback, SSH/RDP access, 2 free regions up to 8×8, own domain, unlimited support.
+- Extra regions: $12.50/month per 5 regions (any size up to 8×8), only for grids hosted there. Everything is non-refundable.
+
+**Open source?** No. There is no public repository for H4OS, Hosting4Opensim or H4HUB on GitHub (repo and code searches on the names and on its menu labels found nothing), and no license is stated. The only open piece is the **registration page**: a separate PHP app that reuses [djphil/osregister](https://github.com/djphil/osregister) ("OpenSim Register v0.1", same template, comments and avatar-model picker). That project is GPL-3.0 in its LICENSE file but CC-BY-NC-SA 4.0 in its README. Its last commit is from 2020-08-20, it has 4 stars and 7 forks, and it creates accounts by writing straight into the Robust database (`UserAccounts`, `auth`, inventory tables).
+
+**How it talks to OpenSim.** The code is closed, so this is inferred from the features:
+- direct access to the Robust database (account login with the grid username and password, registration through osregister, the stats in `/api/gridstatus`);
+- a server-side agent on the region servers, which it controls (region reboot, OAR save/load, map generation, HTTPS certificates, "Region Guardian" health checks).
+
+That works because H4HUB runs every server itself. It is not a model a third party can install.
+
+**Features seen** (the 9 grids' menus, the demo and the H4OS page):
+
+- **Public site**: home with slideshow and news, events, gallery, blog, forum, how to connect, map, free parcels, grid status with a JSON endpoint, terms/privacy/DMCA, dark/light theme, PWA manifest.
+- **Accounts**: registration with a starting avatar picker (male/female/neutral preview), login with the grid credentials, password reset, reCAPTCHA.
+- **Residents and region owners**: "My regions", Region Panel (reboot, backup/restore, map), Parcel Reservation system, friends, groups and offline IMs, support tickets, partner system (marriage/divorce), money module (Podex, Gloebit or private currency).
+- **Grid owner (UserLevel 250+)**: Deploy Region on a coordinate grid that shows free spaces and buffers, OAR manager (save, upload, place, strip ownership for publishing), crashed/offline region cleanup, ROBUST logs and "login finder", MAC/URL access control, registration access, maintenance status, email campaigns with unsubscribe, page and news editing.
+
+**Lessons for w4os**
+
+What it does well, to match or beat:
+- **One package, nothing to assemble.** Site, admin, region tools and backups arrive together. This is what made 9 grids with 2,692 actives choose it, several of them among the 25 biggest.
+- **Region-owner self-service.** Reboot, backup/restore and map generation without asking staff. w4os has nothing like it today, and the engine API is the right place for it.
+- **Placing a region on the map:** free coordinates, collision and buffer checks. Small, very useful, rarely seen elsewhere.
+- **Avatar choice at signup**, land and parcel reservations, events, tickets, maintenance banner, mailing campaigns: the "running a grid" layer, not only the "showing a grid" layer.
+- **A public JSON grid-status endpoint.**
+
+What it lacks:
+- **Openness.** It is closed and only exists inside one host's hosting: a grid that leaves H4HUB leaves without its website, its accounts flow and its tools.
+- **A real design system.** All sites share one template with the same menu and footer, so there is little brand freedom.
+- **Real multilingual content**: none visible, only the English UI.
+- **Hypergrid-friendly search and profiles shared across grids**: none visible.
+- **Its foundations are dated:** registration on a 2020 PHP app writing raw SQL, Bootstrap 5.2 beta, jQuery 3.4.
+
+Where w4os can stand apart:
+- **Open source and no lock-in.** Install it anywhere, move hosts, keep the site.
+- **One engine API for everything.** The same accounts, regions, search, profiles and currency behind w4os-wp, the light w4os-site and w4os-app, instead of one closed portal per host.
+- **A light install for the ~120 grids with no real site**, and a full app (w4os-app) that can offer the same region-owner and grid-owner tools to any host, including H4HUB's own customers if they leave.
+- **Proper i18n**, brand freedom (any WordPress theme, Grav theme or app theme), and hypergrid-wide services (search, profiles, helpers) that a single-host panel does not try to provide.
+
 ## What grids need from a website
 
 Keyword scan of the home page and one registration page of the 243 grids whose pages had content. It only sees what is public, so features behind a login are under-counted.
