@@ -820,6 +820,11 @@ Build and release:
     - [ ] betas published in `stable` to move to `unstable` (cleanup, later)
 - [ ] rename composer packages to match github account GuduleLapointe
 
+Backups:
+
+- [ ] codenames of the series sort alphabetically: 3.x is `charm`, the 4.x one must sort after it (a word starting with d or later)
+    - the backup type folder is named after it: `opensim-charm`
+
 Other projects:
 
 - [ ] install instructions in the README of `lsl-ossl-zed`
