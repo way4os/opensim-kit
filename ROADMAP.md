@@ -86,10 +86,11 @@ The w4os names:
 - the light site anyone can install on any server: its own project, with its own apt package and installer
     - [ ] its name: `w4os-site`, `w4os-minisite` or `w4os-basic-ui` (open)
 - w4os is the main brand: it cannot be the name of the WordPress plugin
-- the plugins: `grav-plugin-w4os` (`~/Projects/grav-plugin-w4os`) and the new WordPress plugin
-    - the current WordPress plugin, `w4os-opensim-web-interface`, stays on v2 and shows an admin notice that points to the new plugin
-    - [ ] the name of the new WordPress plugin (open): the same on wordpress.org and in direct distribution, and it must say that it is the WordPress one
-    - wordpress.org refuses "wordpress" and "plugin" in a slug and may flag "wp"
+- the plugins: `grav-plugin-w4os` (`~/Projects/grav-plugin-w4os`) and the new WordPress plugin `w4os-wp`
+    - `w4os-wp` is the same name everywhere (wordpress.org and direct distribution), and says that it is the WordPress one
+    - wordpress.org refuses "wordpress" and "plugin" in a slug and may flag "wp": accepted
+    - the current WordPress plugin, `w4os-opensim-web-interface`, stays on v2 and shows an admin notice that points to `w4os-wp`
+- the suite: `w4os-app` (later), the light site (name open), `grav-plugin-w4os`, `w4os-wp`
 
 In parallel, once 3 starts:
 
