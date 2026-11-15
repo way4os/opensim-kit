@@ -58,6 +58,12 @@ Priorities, in this order:
 - [ ] 4. w4os migrated to the new engine and the new helpers, for OSCC: a simplification and a cleanup of the plugin, not a new build
     - [ ] the plugin is a thin bridge between the engine API and WordPress
 
+The rule: look at w4os first.
+
+- the w4os plugin (`~/Projects/w4os`, branch `speculoos`) is the reference for the methods: a lot is already developed there, even if it is no longer what provides it
+- before coding a feature, look at how w4os does it and follow that method, unless the engine already has a better one
+- example: the avatar models (the patterns, where the picture comes from) in `class-w4os3-model.php` and `v2/class-avatar-model.php`
+
 The rule: the engine API is the single source.
 
 - the CLI, the site bridge and the WordPress plugin only consume it: no logic of their own, very quick to prototype
