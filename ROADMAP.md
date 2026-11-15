@@ -34,6 +34,26 @@ Dates (2026):
 | the 5 crashed simulators of hal                | a new stable beta                                                  |
 | 3.0 before OSCC                                | all of the above (the manager can stay a beta)                     |
 
+### Before OSCC (12-05/06): the order of the work
+
+The kit itself (`opensim-kit`, its items below) is suspended: it comes back after all of this.
+
+Priorities, in this order:
+
+- [ ] 1. engine and CLI working, to move every simulator of Speculoos to v3/podman (grandplace already runs v3)
+    - [ ] read-only inventory of the simulators to move: redoutable, residences, grandplace, the welcome simulator of grid
+    - [ ] a first test simulator, a backup before each one
+    - [ ] restore command, `opensim ports --ufw --from`, systemd supervision (`opensim.service`)
+- [ ] 2. helpers working, to move the Robust server grid.speculoos.world
+    - [ ] w4os 2.x keeps working: same database, same helper URLs (contract test on a copy of the grid database)
+- [ ] 3. a simple web UI for the administration (Grav? the manager? a page of the helpers over the engine API?)
+- [ ] 4. w4os migrated to the new engine and the new helpers
+
+In parallel, once 3 starts:
+
+- [ ] A. engine and tools on an existing install, without converting to the `/etc` `/var` `/usr/share` structure
+- [ ] B. import of a region from an OAR, or from a database backup and its config (the OSGrid case)
+
 ### Rules, from now on (not waiting for a release)
 
 The whole ecosystem speaks standards, no part is left out (the helpers included), and no format is made for the need of the day:
