@@ -85,8 +85,11 @@ The w4os names:
 - w4os-app: the full-featured app (Laravel, rich, PWA, native...), for later; what `opensim-manager` becomes
 - the light site anyone can install on any server: its own project, with its own apt package and installer
     - [ ] its name: `w4os-site`, `w4os-minisite` or `w4os-basic-ui` (open)
-- the plugins: `grav-plugin-w4os` (`~/Projects/grav-plugin-w4os`) and the WordPress plugin
-    - the WordPress.org slug stays `w4os`: existing sites update in place (WordPress.org refuses "wordpress" in a slug and may flag "wp")
+- w4os is the main brand: it cannot be the name of the WordPress plugin
+- the plugins: `grav-plugin-w4os` (`~/Projects/grav-plugin-w4os`) and the new WordPress plugin
+    - the current WordPress plugin, `w4os-opensim-web-interface`, stays on v2 and shows an admin notice that points to the new plugin
+    - [ ] the name of the new WordPress plugin (open): the same on wordpress.org and in direct distribution, and it must say that it is the WordPress one
+    - wordpress.org refuses "wordpress" and "plugin" in a slug and may flag "wp"
 
 In parallel, once 3 starts:
 
