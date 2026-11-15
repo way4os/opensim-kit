@@ -385,8 +385,8 @@ Import and restore:
     - [ ] the databases
     - [ ] the data
     - [ ] check what the archive holds
-- [ ] try live: `opensim save oar` for every region (cron backup)
-    - [ ] oar backup rotation (`--keep N`)
+- [x] try live: `opensim save oar` for every region (cron backup)
+    - [x] oar backup rotation (`--keep N`)
 - [ ] OAR of a region that belongs to a user who is not the owner of the grid (what the owners of regions can ask for themselves)
 
 Checks on real installs:
