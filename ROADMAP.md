@@ -45,9 +45,17 @@ Priorities, in this order:
     - [ ] a first test simulator, a backup before each one
     - [ ] restore command, `opensim ports --ufw --from`, systemd supervision (`opensim.service`)
 - [ ] 2. helpers working, to move the Robust server grid.speculoos.world
+    - [x] the v3 helpers run on watta.world (live)
     - [ ] w4os 2.x keeps working: same database, same helper URLs (contract test on a copy of the grid database)
-- [ ] 3. a simple web UI for the administration (Grav? the manager? a page of the helpers over the engine API?)
-- [ ] 4. w4os migrated to the new engine and the new helpers
+    - [ ] what watta.world does not cover: a grid with real users, w4os 2.x as the client, the data of an existing grid
+- [ ] 3. minimal web UI: a small website of its own (not the helpers, not the manager)
+    - it is a website: registration, one or two presentation/help pages (`.md`), user management for the managers
+    - built on the engine API and the blocks of the helpers (splash, profile, search)
+    - light: little space, few resources, a simple install
+    - the manager (Laravel) is the big kit app, for 3.1/3.2 or later
+    - [ ] Grav with a plugin for the engine API (flat files, `.md` pages; the author's Grav sites and plugins are the base)
+    - [ ] the engine API lacks what the site needs: create an avatar, check a password, list and manage users (nothing of the kind in `Endpoints.php` yet)
+- [ ] 4. w4os migrated to the new engine and the new helpers, for OSCC: a simplification and a cleanup of the plugin, not a new build
 
 In parallel, once 3 starts:
 
