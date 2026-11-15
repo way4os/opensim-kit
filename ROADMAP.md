@@ -80,6 +80,14 @@ The rule: the engine API is the single source.
     - [ ] start, stop, restart (the CLI uses the API for it)
     - [ ] make a region in an existing grid, write estates and parcels, make and restore a backup
 
+The w4os names:
+
+- w4os-app: the full-featured app (Laravel, rich, PWA, native...), for later; what `opensim-manager` becomes
+- the light site anyone can install on any server: its own project, with its own apt package and installer
+    - [ ] its name: `w4os-site`, `w4os-minisite` or `w4os-basic-ui` (open)
+- the plugins: `grav-plugin-w4os` (`~/Projects/grav-plugin-w4os`) and the WordPress plugin
+    - the WordPress.org slug stays `w4os`: existing sites update in place (WordPress.org refuses "wordpress" in a slug and may flag "wp")
+
 In parallel, once 3 starts:
 
 - [ ] A. engine and tools on an existing install, without converting to the `/etc` `/var` `/usr/share` structure
