@@ -23,7 +23,11 @@ final class ConsoleCommand extends EngineCommand
         $this->setName('console')
             ->setAliases(['screen'])
             ->setDescription('Attach to the console of a running instance')
-            ->addArgument('instance', InputArgument::REQUIRED, 'the instance (a simulator, the Robust of a grid by its name)');
+            ->addArgument(
+                'instance',
+                InputArgument::REQUIRED,
+                'the instance (a simulator, the Robust of a grid by its name)',
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -50,7 +54,7 @@ final class ConsoleCommand extends EngineCommand
 
             return Command::FAILURE;
         }
-        $engine->reporter->info("remote console of {$instance->name()}, Ctrl-D to leave it running");
+        $engine->reporter->info("Connected to {$instance->name()}, Ctrl-D to leave the console safely");
         while (true) {
             $output->write($session->prompt !== '' ? $session->prompt : '> ');
             $line = fgets(STDIN);
