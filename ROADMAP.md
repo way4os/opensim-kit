@@ -781,6 +781,15 @@ w4os plugin:
 - [ ] Ticketing: functionalties similar to laravel magicoli/two-way-tickets, but independant from framework, issues linked to grid/simulator and can be linked by admin to the related github repo (not a single specific repo but the one involved in the issue)
 - [ ] Mac: alternative MacPorts support
 - [ ] Setup: disambiguate Simulators and Regions in default naming convention (Welcome -> "Welcome Simulator" to distinguish it from its region "Welcome")
+- [ ] Guest simulators (outside users connecting a simulator to our grids), after the v3 release
+    - the private port is never public: an open private port lets anyone connect a simulator unverified (what OSGrid met)
+    - until then, the private ports are open to known servers only (ours first, then local machines such as vonda or amy)
+    - the guest must be identified: confirm that the connecting IP is the guest's
+    - one of (to analyse, combinable):
+        - [ ] Robust's own authentication (already in the OpenSim code)
+        - [ ] a secondary Robust for guests only: the private services only, on the same databases (exhaustive tests first)
+        - [ ] a sands/dyndns2 identity (account on sands, hostname kept on the current IP) feeding the allow list of the firewall
+    - first case: a friend's simulator refused on the Robust private port of speculoos.world (2026-11-14)
 
 ## Backlog (no milestone), by package
 
