@@ -50,12 +50,26 @@ Priorities, in this order:
     - [ ] what watta.world does not cover: a grid with real users, w4os 2.x as the client, the data of an existing grid
 - [ ] 3. minimal web UI: a small website of its own (not the helpers, not the manager)
     - it is a website: registration, one or two presentation/help pages (`.md`), user management for the managers
+    - any flat-file `.md` system will do, Grav is the preferred one; no admin UI for the pages, no page builder
     - built on the engine API and the blocks of the helpers (splash, profile, search)
     - light: little space, few resources, a simple install
     - the manager (Laravel) is the big kit app, for 3.1/3.2 or later
-    - [ ] Grav with a plugin for the engine API (flat files, `.md` pages; the author's Grav sites and plugins are the base)
-    - [ ] the engine API lacks what the site needs: create an avatar, check a password, list and manage users (nothing of the kind in `Endpoints.php` yet)
+    - [ ] the Grav plugin: a thin bridge between the engine API and Grav
 - [ ] 4. w4os migrated to the new engine and the new helpers, for OSCC: a simplification and a cleanup of the plugin, not a new build
+    - [ ] the plugin is a thin bridge between the engine API and WordPress
+
+The rule: the engine API is the single source.
+
+- the CLI, the Grav plugin and the WordPress plugin only carry the engine to their own interface: no logic of their own, very quick to prototype
+- what one of them needs and the engine does not give is added to the engine, not to the bridge
+- API of the engine, state of what the bridges need (checked in the contract and the code):
+    - exists in the API: avatars (list, get, make, change with password, email, level, home, profile fields, delete), regions and simulators and grids (enable, disable), parcels, estates, archives (read), destinations, assets, tasks (list, run), addresses, info, monitor, health, blocks, profile, search, grid status, setups (quick)
+    - [ ] sign in (check a name and a password): in the engine (`OpenSim\SignIn`), not in the API
+    - [ ] choose an avatar at registration (the models, their outfits): not in the engine nor in the API
+    - [ ] the person: email of an account is there, a person with several avatars is not
+    - [ ] registration of a person (confirmation by email): not in the engine
+    - [ ] start, stop, restart: the CLI only, not in the API
+    - [ ] make a region in an existing grid, write estates and parcels, make a backup: the CLI or the engine, not in the API
 
 In parallel, once 3 starts:
 
