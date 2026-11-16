@@ -60,7 +60,7 @@ Priorities, in this order:
 
 The rule: look at w4os first.
 
-- the w4os plugin (`~/Projects/w4os`, branch `speculoos`) is the reference for the methods: a lot is already developed there, even if it is no longer what provides it
+- the w4os plugin (`~/Projects/w4os-wp`, branch `speculoos`) is the reference for the methods: a lot is already developed there, even if it is no longer what provides it
 - before coding a feature, look at how w4os does it and follow that method, unless the engine already has a better one
 - example: the avatar models (the patterns, where the picture comes from) in `class-w4os3-model.php` and `v2/class-avatar-model.php`
 
