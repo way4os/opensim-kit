@@ -30,7 +30,8 @@ depends:
   - bsdextrautils | bsdmainutils
   - curl
   - default-mysql-client | virtual-mysql-client
-  - opensim-engine
+  # The first engine with everything the kit calls (651be32: every option is a preset)
+  - opensim-engine (>= 3.0.0~beta.6.290)
   - opensim-helpers
   - opensim-rest-php
   - php-cli (>= 2:8.2)
