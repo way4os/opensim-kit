@@ -314,6 +314,7 @@ The beta:
                 - [ ] the offline messages reviewed (V2 works on speculoos but for the mail relay, which is not implemented): then the default is chosen again
                 - [x] at the setup and later (`opensim enable|disable <grid> <option>`); a group has one option at a time; disabling comments the settings out; the options of a grid are in its description (`Options`)
                 - [x] the dependencies are in the `option.conf`: modules (OpenSimSearch, Gloebit), the helpers, the settings to give (the Gloebit keys)
+                - [ ] a module added to `EnabledModules` after the first install (with the option that needs it, or a command of its own): today it is written only the first time (`PackagedProfiles`), so the operator edits `opensim.conf` by hand (OpenSimSearch on ursull, 2026-11-16)
                 - [x] `Helpers.ini` and the files of the web server (Caddy, nginx, Apache) are presets too: copied with their variables when the grid has none, so the text to change is in the presets folder
                 - [x] everything the setup writes is a preset, the code collects the choices and puts the values in: the description of the grid, the config of Robust (names, hypergrid, connectors, log), the corrections of the folders copied from the core, the simulator and its region, the master of the simulators, a grid that runs elsewhere
                 - [ ] the presets of an administrator tried on a real install (enable at the setup, enable later, disable)
