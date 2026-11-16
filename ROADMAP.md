@@ -331,6 +331,7 @@ The beta:
                     - what each place shows of a profile that is not public, and in which words (the helpers say "This profile is not public.")
                     - whether the viewers of today still show the Interests tab (wants, skills, languages) for OpenSim grids: Firestorm, and the SL viewer since the profiles it redesigned in 2023 (Olivier does not find these fields in his viewer any more)
                         - Olivier's Firestorm for OpenSim (2026-11-16) has the tabs Vie SL, Flux, Favoris, Annonces, Vie RL, Notes: no Interests
+                        - the viewers no longer show it since 2023 (the sites say so, `interests_removed`); it stays a feature of w4os, which the manager of a grid can turn off (later: for 3.0.0 the note only, Olivier)
                 - [x] `Helpers.ini` and the files of the web server (Caddy, nginx, Apache) are presets too: copied with their variables when the grid has none, so the text to change is in the presets folder
                 - [x] everything the setup writes is a preset, the code collects the choices and puts the values in: the description of the grid, the config of Robust (names, hypergrid, connectors, log), the corrections of the folders copied from the core, the simulator and its region, the master of the simulators, a grid that runs elsewhere
                 - [ ] the presets of an administrator tried on a real install (enable at the setup, enable later, disable)
