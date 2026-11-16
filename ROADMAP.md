@@ -72,10 +72,10 @@ The rule: the engine API is the single source.
 - a person's avatars are linked by the email of the account, as today: nothing to decide
 - exists in the API: avatars (list, get, make, change with password, email, level, home, profile fields, delete), regions, simulators and grids (enable, disable), parcels, estates, archives (read), destinations, assets, tasks (list, run), addresses, info, monitor, health, blocks, profile, search, grid status, setups (quick)
 - what the engine API still lacks, for OSCC:
-    - [ ] sign in (check a name and a password): in the engine (`OpenSim\SignIn`), to expose in the API
-    - [ ] choose an avatar model (outfit) at registration
-    - [ ] confirmation of a registration by email, usable from any site and from the CLI
-    - [ ] forgotten password, the same
+    - [x] sign in (check a name and a password): in the engine (`OpenSim\SignIn`), to expose in the API
+    - [x] choose an avatar model (outfit) at registration
+    - [x] confirmation of a registration by email, usable from any site and from the CLI
+    - [x] forgotten password, the same
 - what the engine API lacks, after OSCC:
     - [ ] start, stop, restart (the CLI uses the API for it)
     - [ ] make a region in an existing grid, write estates and parcels, make and restore a backup
@@ -584,15 +584,15 @@ What w4os has and the suite lacks (`W4OS-PARITY.md`):
 - [x] web assets server: serve `/assets/<uuid>.<format>`
     - [x] textures of the grid converted for the web, read from the asset service of Robust
     - [x] a cache
-- [ ] picture of the avatar profile (needs the web assets)
+- [x] picture of the avatar profile (needs the web assets)
 - [x] avatar models: the rule that makes a model (a name pattern, first or last name, or a fixed list of avatars)
     - [x] list to choose from at registration, with name and profile picture
     - [x] copy of the model's appearance and inventory into a new avatar
-- [ ] rules of the avatar names: accents out, letters and digits only, first letter capital
+- [x] rules of the avatar names: accents out, letters and digits only, first letter capital
     - [x] restricted names (Default, Test, Admin, the model pattern)
     - [x] a taken name is refused
 - [x] changing the password of an avatar
-- [ ] new-users block
+- [x] new-users block
 - [x] translations w4os already has (cy, de, fr, it, nl, pt_BR) carried to the engine and the helpers for the strings that move (the new ones are translated as they are written)
 - [ ] payments, conditional actions in the engine: restrict some actions of features based on conditions (payment, role...)
     - [ ] usable by consumer apps like w4os or the manager app
