@@ -562,19 +562,19 @@ The engine gives the data (the manager, the plugin and the CLI only show it):
 
 What w4os has and the suite lacks (`W4OS-PARITY.md`):
 
-- [ ] web assets server: serve `/assets/<uuid>.<format>`
-    - [ ] textures of the grid converted for the web, read from the asset service of Robust
-    - [ ] a cache
+- [x] web assets server: serve `/assets/<uuid>.<format>`
+    - [x] textures of the grid converted for the web, read from the asset service of Robust
+    - [x] a cache
 - [ ] picture of the avatar profile (needs the web assets)
-- [ ] avatar models: the rule that makes a model (a name pattern, first or last name, or a fixed list of avatars)
-    - [ ] list to choose from at registration, with name and profile picture
-    - [ ] copy of the model's appearance and inventory into a new avatar
+- [x] avatar models: the rule that makes a model (a name pattern, first or last name, or a fixed list of avatars)
+    - [x] list to choose from at registration, with name and profile picture
+    - [x] copy of the model's appearance and inventory into a new avatar
 - [ ] rules of the avatar names: accents out, letters and digits only, first letter capital
-    - [ ] restricted names (Default, Test, Admin, the model pattern)
-    - [ ] a taken name is refused
-- [ ] changing the password of an avatar
+    - [x] restricted names (Default, Test, Admin, the model pattern)
+    - [x] a taken name is refused
+- [x] changing the password of an avatar
 - [ ] new-users block
-- [ ] translations w4os already has (cy, de, fr, it, nl, pt_BR) carried to the engine and the helpers for the strings that move (the new ones are translated as they are written)
+- [x] translations w4os already has (cy, de, fr, it, nl, pt_BR) carried to the engine and the helpers for the strings that move (the new ones are translated as they are written)
 - [ ] payments, conditional actions in the engine: restrict some actions of features based on conditions (payment, role...)
     - [ ] usable by consumer apps like w4os or the manager app
     - [ ] calling the engine's actions when a payment comes in or stops
