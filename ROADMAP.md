@@ -906,7 +906,10 @@ Kit:
 
 Helpers:
 
-- [ ] a block that tells the viewer whether an update of it is available: its version read from its user agent, compared with the last release of that viewer; shown on the splash page for example (Olivier, 2026-11-16)
+- [ ] the viewer and its updates (Olivier, 2026-11-16)
+    - [ ] a block that tells the viewer whether an update of it is available: its version read from its user agent, compared with the last release of that viewer; optional, in the splash page by default
+    - [ ] what it does is the manager's to set: the last version shown in the block or not, and an update notice posted to the zone of notifications or not
+    - the zone of notifications is being built now (2026-11-16, the mini site, in the site and the helpers): a message at the beginning of the content of any page of the site and of the helpers, for an update of the viewer, an error, anything to tell the person
 
 Build and release:
 
