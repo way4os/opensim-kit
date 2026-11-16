@@ -259,6 +259,7 @@ Kit:
 
 Helpers:
 
+- [ ] the picks and the classifieds of an avatar made, changed and deleted from the web, as the viewer does (3.0.0: the edit page of a site lists them, read only)
 - [ ] popular places block asks the search URL of the grid, never fetches the results itself
     - the search service can be external, it is even the recommended setup (2do directory)
 - [ ] popular places block has the details and the layout of the w4os block (the reference)
