@@ -77,6 +77,7 @@ The rule: the engine API is the single source.
     - [x] confirmation of a registration by email, usable from any site and from the CLI
     - [x] forgotten password, the same
 - what the engine API lacks, after OSCC:
+    - [ ] w4os 3.x: the picks of an avatar as a list of destinations, in the lines of the Gudz Teleport Board (`DestinationList::format()`, `format=list`: "Name|Region URL|x,y,z", a category by its name alone), at an address of its own, so that it can be the `GuideSource` of a guide or the source of a board; built after the current queue
     - [ ] start, stop, restart (the CLI uses the API for it)
     - [ ] make a region in an existing grid, write estates and parcels, make and restore a backup
     - [ ] where a simulator runs: a `runtime` attribute (`host`, `podman`, `docker`), told by the cgroup of its process (`/proc/<pid>/cgroup` names libpod or docker), a file read for each running simulator of a list, nothing asked of podman; Linux only, `host` elsewhere
