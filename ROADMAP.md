@@ -76,6 +76,11 @@ The rule: the engine API is the single source.
     - [x] choose an avatar model (outfit) at registration
     - [x] confirmation of a registration by email, usable from any site and from the CLI
     - [x] forgotten password, the same
+- later: a matrix of compatibility tests, a v3 simulator working with a v2 Robust and the other way round
+    - [ ] simulators × Robust, each on 0.9.2 and 0.9.3
+    - [ ] helpers and installs: vanilla (by the OpenSimulator book), v2, v3
+    - [ ] for each pair: profiles, groups, search, economy, offline messages
+    - the case that asks for it: on Speculoos, the profiles come back empty seen from the v3 simulators on the v2 Robust, and work from the v2 Residences (being diagnosed)
 - what the engine API lacks, after OSCC:
     - [ ] w4os 3.x: the picks of an avatar as a list of destinations, in the lines of the Gudz Teleport Board (`DestinationList::format()`, `format=list`: "Name|Region URL|x,y,z", a category by its name alone), at an address of its own, so that it can be the `GuideSource` of a guide or the source of a board; built after the current queue
     - [ ] start, stop, restart (the CLI uses the API for it)
