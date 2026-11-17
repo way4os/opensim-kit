@@ -112,6 +112,11 @@ Rollback (new one not good): `opensim stop GRID.SIM`, `opensim disable GRID.SIM`
   `EstateDataService` with `EstateConnectionString = ...Database=osestate` on `estate.speculoos.world` (resolves to the grid host, 95.217.6.1): one shared database `osestate`, in the
   MariaDB of the grid, outside Robust.
 - Wanted (owner): three estates (mainland, residences, one private for redoutable, owned by Susannah Avonside), served by Robust for the whole grid.
-- To do before moving there: count the estates and region links in `osestate` and in the estate tables of `osrobust` (a read of the databases, needs the owner's go),
-  then either copy the estates into Robust's tables or point Robust's estate connector at the same data; only then enable `EstateDataRemoteConnector` in the simulators
-  (all at the same time, one grid-wide change, not per migrated simulator). Until then, the migrated simulators keep the `osestate` connection as it is.
+- Counted 2026-11-17 (SELECT only, as `magic` on the grid host): `osestate` (the live one, what the simulators use) has 9 estates, 99 region links, 8 managers, 1 user, 114 bans:
+  100 Speculoos (78 links), 101 Diverse City (1), 102 Michellie (1), 106 Gudule Privates (3), 107 Speculoos Residences (8), 112 My Estate (0), 117 Speculoos Estate (7),
+  118 (no name, 0), 119 Susannah Estate (1, owner 09b77a1c-..., Redoutable). `osrobust` holds an older copy of the same tables: 7 estates (no 118, no 119), 98 links;
+  Residences has 9 links there (8 in osestate), Speculoos Estate 6 (7), and Redoutable is in estate 107 there, 119 in `osestate`.
+  The grid has 25 regions in its region table, so most of the 99 links are regions that no longer exist.
+- To do before moving there: bring `osestate` into Robust's tables (estates 100/107/119 and the links of the 25 live regions at least; the empty and dead ones can go),
+  or point Robust's estate connector at the `osestate` data; then enable `EstateDataRemoteConnector` in the simulators
+  (all at the same time, one grid-wide change, not per migrated simulator), after a backup of both databases. Until then, the migrated simulators keep the `osestate` connection as it is.
