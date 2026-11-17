@@ -23,14 +23,25 @@ Read on residences 2026-11-17 (read-only, Olivier's go typed in the session): th
   (reaction 1.7 GB, residences 1.3 GB, rebelle 0.9 GB, refraction 0.5 GB, regain 0.4 GB, reality 0.1 GB, recital and rehab 41 MB each), the databases 49-60 MB each.
 - The script state (`ScriptEngines` of the old cache folder) is copied to the new simulator's data folder; `--no-scripts` skips it. It needs the read access of step 1
   on `/opt/opensim/var/cache`.
-- `import-module-missing`: the kept `*Module` settings are checked against the core and the modules folder. For residences, three modules the new
-  install does not have: `OpenSimSearch` ([Search] Module), `DTLNSLMoneyModule` ([Economy] EconomyModule), `Gloebit` ([Economy] economymodule). Their DLLs
-  are in the grid folder of the old install (`etc/grids/Speculoos/OpenSimSearch.Modules.dll`, `Gloebit.dll`): copy them to the modules folder of the new install
-  (the OpenSimSearch fork has a DLL per OpenSim version) before enabling the new simulator, or leave the settings out. Each of the 8 reports the same three.
+- Modules (engine 2806044): `import-module-found` / `import-module-missing` name the destination `/usr/share/opensim-modules/<core>/<Module>/`
+  (here `0.9.3.0`) and say to add the module to `EnabledModules` of `opensim.conf`. A module is built for a version of OpenSimulator: the DLL of the
+  old install (core 0.9.2.2) is copied only if the new core has the same version, else a build for the new core is needed. For residences, each of
+  the 8 sims reports the same three:
+  - `OpenSimSearch` ([Search] Module): found at `/opt/opensim/etc/grids/Speculoos/OpenSimSearch.Modules.dll` (the old build, for 0.9.2.2). Source: the
+    OpenSimSearch fork (`modules/OpenSimSearch`), a DLL per OpenSim version as release assets: take the one for the new core.
+  - `Gloebit` ([Economy] economymodule): found at `/opt/opensim/etc/grids/Speculoos/Gloebit.dll` (old build). Source: the Gloebit module build for the new core
+    (to be provided; the old DLL only if the cores match).
+  - `DTLNSLMoneyModule` ([Economy] EconomyModule): not found in the old install (neither next to the config nor in the BinDir), so no DLL to copy: it
+    comes from elsewhere or the setting is left out. To decide by the owner before the real run.
+  Until the destination folders hold a build, the new simulator would not load the module (or must have the setting left out).
+- Shared databases (`osestate`, `osgloebit`) are dumped once per import; each simulator's backup keeps its own copy.
 - `opensim start` refuses a simulator whose http port is still taken (`port-taken`): a second guard after step 2.4.
 
 ## 1. Read access for the import (user `opensim` reads files of `magic`)
 
+What the import reads (all checked first; unreadable paths are listed in the plan, none on the local copy): the simulator's ini and its includes
+(`/opt/opensim/etc/grids/<Grid>/*.ini`, `config-include/*.ini`), its region files (`sims/<sim>/regions/*.ini`), the module DLLs of the old install (next to the
+config, or its BinDir), `/opt/opensim/var/cache/<Grid>/<sim>` (script state), and the databases named by the ini (read with its credentials, nothing from `magic`'s account).
 Residences: nothing to grant. The config files are mode 644 and the folders 755 (`/opt/opensim/etc`, `var/cache`, `var/data`, the sims'
 configs and regions, the DLLs of the grid folder), owner `magic:magic`; `setfacl`/`getfacl` are installed; the user and group `opensim` do not
 exist yet (the v3 packages create them). Do the check below once the packages are installed; the ACL is the answer for a server where the
