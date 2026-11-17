@@ -117,6 +117,10 @@ Rollback (new one not good): `opensim stop GRID.SIM`, `opensim disable GRID.SIM`
   118 (no name, 0), 119 Susannah Estate (1, owner 09b77a1c-..., Redoutable). `osrobust` holds an older copy of the same tables: 7 estates (no 118, no 119), 98 links;
   Residences has 9 links there (8 in osestate), Speculoos Estate 6 (7), and Redoutable is in estate 107 there, 119 in `osestate`.
   The grid has 25 regions in its region table, so most of the 99 links are regions that no longer exist.
-- To do before moving there: bring `osestate` into Robust's tables (estates 100/107/119 and the links of the 25 live regions at least; the empty and dead ones can go),
-  or point Robust's estate connector at the `osestate` data; then enable `EstateDataRemoteConnector` in the simulators
-  (all at the same time, one grid-wide change, not per migrated simulator), after a backup of both databases. Until then, the migrated simulators keep the `osestate` connection as it is.
+- Done 2026-11-17 (owner's go): Robust's `[DatabaseService]` got `EstateConnectionString` (the `osestate` one, as the simulators have it), backup `Robust.HG.ini.bak-<stamp>`;
+  fresh dumps of `osestate` and `osrobust` made first (`/var/backups/grid/magic/opensim-charm/speculoos/grid-osestate-20261117-171726.sql.gz`, `grid-osrobust-...`); Robust restarted
+  (console `shutdown`, `opensim start speculoos`): `EstateDataRobustConnector` now serves `osestate` on 8003. In the simulators the effective setting is
+  decided by `config-include/GridHypergrid.ini` (not by `GridCommon.ini`, whose line is commented): its `[EstateDataStore] LocalServiceModule` is now
+  `OpenSim.Services.Connectors.dll:EstateDataRemoteConnector` on residences, redoutable, grid and grandplace (`.bak-<stamp>` beside each). It takes effect when each simulator restarts.
+- Left: the three estates wanted (clean `osestate`: the empty estates 112 and 118, the links to regions that no longer exist), and the region that moved estate (Redoutable is 119 in `osestate`).
+- A migrated (imported) simulator keeps whatever the grid's includes say: the migration must check `EstateDataStore` in the effective config of the plan.
