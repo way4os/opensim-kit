@@ -104,7 +104,7 @@ Rollback (new one not good): `opensim stop GRID.SIM`, `opensim disable GRID.SIM`
 - One server per day; no change on the grid (Robust) and its welcome simulator until the helpers move.
 - A simulator restored alone keeps the grid's databases (engine), with a check of the estates: read the plan's notice.
 
-## Estates (read 2026-11-17, config only, no database queried)
+## Estates (read 2026-11-17)
 
 - The grid's Robust (grid.speculoos.world, 2.x era, core 0.9.3.0) provides the estate service: `EstateDataService = ...EstateDataRobustConnector` on the
   private port 8003 (log: "Loading EstateDataRobustConnector on port 8003", stored in `osrobust`, EstateStore migrations at revision 36); `ufw` already opens 8003 to the simulator hosts.
