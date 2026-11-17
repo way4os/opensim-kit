@@ -109,3 +109,15 @@ Rollback (new one not good): `opensim stop GRID.SIM`, `opensim disable GRID.SIM`
 - A simulator at a time, the smallest first (recital, rehab), then the others of the same server; `residences` last (the one that carries most).
 - One server per day; no change on the grid (Robust) and its welcome simulator until the helpers move.
 - A simulator restored alone keeps the grid's databases (engine), with a check of the estates: read the plan's notice.
+
+## Estates (read 2026-11-17, config only, no database queried)
+
+- The grid's Robust (grid.speculoos.world, 2.x era, core 0.9.3.0) provides the estate service: `EstateDataService = ...EstateDataRobustConnector` on the
+  private port 8003 (log: "Loading EstateDataRobustConnector on port 8003", stored in `osrobust`, EstateStore migrations at revision 36); `ufw` already opens 8003 to the simulator hosts.
+- The simulators do not use it: `[EstateDataStore] LocalServiceModule = ...EstateDataRemoteConnector` is commented out in `GridCommon.ini`, so each uses the local
+  `EstateDataService` with `EstateConnectionString = ...Database=osestate` on `estate.speculoos.world` (resolves to the grid host, 95.217.6.1): one shared database `osestate`, in the
+  MariaDB of the grid, outside Robust.
+- Wanted (owner): three estates (mainland, residences, one private for redoutable, owned by Susannah Avonside), served by Robust for the whole grid.
+- To do before moving there: count the estates and region links in `osestate` and in the estate tables of `osrobust` (a read of the databases, needs the owner's go),
+  then either copy the estates into Robust's tables or point Robust's estate connector at the same data; only then enable `EstateDataRemoteConnector` in the simulators
+  (all at the same time, one grid-wide change, not per migrated simulator). Until then, the migrated simulators keep the `osestate` connection as it is.
