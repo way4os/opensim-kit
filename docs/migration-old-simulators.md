@@ -125,5 +125,7 @@ Rollback (new one not good): `opensim stop GRID.SIM`, `opensim disable GRID.SIM`
 - Cleaned 2026-11-17 (owner's go): the 77 links of `osestate.estate_map` to regions absent from Robust's region table deleted (dump before: `grid-osestate-20261117-204850-before-cleanup.sql.gz`);
   22 links remain: 100 Speculoos 7, 106 Gudule Privates 3, 107 Residences 8, 117 (dev, still named "Speculoos Estate") 3, 119 Susannah 1. Long Loris, Petite Place and Something Something
   are test regions of v3 servers, in no estate on purpose. Empty estates still there: 101 Diverse City (1 manager), 102 Michellie (3 managers), 112 My Estate, 118 (no name).
+- Then (owner's go): estate 117 renamed "Speculoos Beta" (its regions Alicia, Beta, Dev), the four empty estates 101, 102, 112, 118 deleted with their managers, users, groups and bans.
+  `osestate` now holds 5 estates: 100 Speculoos (7 links), 106 Gudule Privates (3), 107 Speculoos Residences (8), 117 Speculoos Beta (3), 119 Susannah Estate (1); 4 managers, 65 bans.
 - Left: the three estates wanted (clean `osestate`: the empty estates 112 and 118, the links to regions that no longer exist), and the region that moved estate (Redoutable is 119 in `osestate`).
 - A migrated (imported) simulator keeps whatever the grid's includes say: the migration must check `EstateDataStore` in the effective config of the plan.
