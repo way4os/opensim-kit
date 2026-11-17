@@ -6,7 +6,7 @@ Facts known (inventory 2026-11-15, residences): Debian 12, core 0.9.2.2 on mono,
 (mode 640), one `screen` session per simulator as user `magic`, no systemd unit for the simulators, an hourly cron
 (`/etc/cron.hourly/opensim` running `opensim start`) that restarts what is down.
 
-Marked **verify** = not yet read on the server, to check read-only before the real run.
+Read on residences 2026-11-17 (read-only, Olivier's go typed in the session): the facts below marked "residences". Marked **verify** = still to check.
 
 ## 0. Before
 
@@ -19,7 +19,8 @@ Marked **verify** = not yet read on the server, to check read-only before the re
 - The plan starts with a backup of the source (`backup` in the plan): the databases named by the ini (here the simulator's own, `osestate`,
   `osgloebit`), with the credentials of the ini, the config and its includes, the region files, in
   `/var/backups/opensim/<grid>/<sim>/<grid>-<sim>-<stamp>-source.tar.gz`. A source alone: `opensim backup --simulator FILE [GRID]`.
-  The disk needs the room: check `df` on `/var/backups` before (residences: 8 databases of 49-60 MB, a few MB of config).
+  The disk needs the room: residences has 24 GB free on `/` (13 GB used; `/var/backups` is on it), `var/cache` of the 8 sims is 4.8 GB in total
+  (reaction 1.7 GB, residences 1.3 GB, rebelle 0.9 GB, refraction 0.5 GB, regain 0.4 GB, reality 0.1 GB, recital and rehab 41 MB each), the databases 49-60 MB each.
 - The script state (`ScriptEngines` of the old cache folder) is copied to the new simulator's data folder; `--no-scripts` skips it. It needs the read access of step 1
   on `/opt/opensim/var/cache`.
 - `import-module-missing`: the kept `*Module` settings are checked against the core and the modules folder. For residences, three modules the new
@@ -29,6 +30,11 @@ Marked **verify** = not yet read on the server, to check read-only before the re
 - `opensim start` refuses a simulator whose http port is still taken (`port-taken`): a second guard after step 2.4.
 
 ## 1. Read access for the import (user `opensim` reads files of `magic`)
+
+Residences: nothing to grant. The config files are mode 644 and the folders 755 (`/opt/opensim/etc`, `var/cache`, `var/data`, the sims'
+configs and regions, the DLLs of the grid folder), owner `magic:magic`; `setfacl`/`getfacl` are installed; the user and group `opensim` do not
+exist yet (the v3 packages create them). Do the check below once the packages are installed; the ACL is the answer for a server where the
+files are 640. Other servers: **verify** the modes the same way (`stat -c '%A %U:%G %n'`).
 
 The import reads: `/opt/opensim/etc` (opensim.d, grids/<Grid>/ with its includes and `sims/<sim>/regions`), and, for the copy of
 the script state, `/opt/opensim/var/cache/<Grid>/<sim>` and `/opt/opensim/var/data/<Grid>/<sim>`.
@@ -47,7 +53,7 @@ sudo setfacl -R -x u:opensim /opt/opensim/etc /opt/opensim/var/cache /opt/opensi
 getfacl -R /opt/opensim/etc | grep -c 'user:opensim'   # 0
 ```
 
-- Needs the `acl` package (**verify**: `command -v setfacl`). If absent, `sudo apt install acl`, or the fallback below.
+- Needs the `acl` package (installed on residences). If absent, `sudo apt install acl`, or the fallback below.
 - Fallback without ACL: `sudo usermod -aG magic opensim` (the files are group `magic`, 640 gives the group read; directories need `x` for
   the group, **verify** they are 750 or more). Remove with `sudo gpasswd -d opensim magic`. A group stays in effect for new logins of
   `opensim` only: the engine API running as `opensim` must be restarted.
@@ -55,25 +61,31 @@ getfacl -R /opt/opensim/etc | grep -c 'user:opensim'   # 0
 
 ## 2. Stopping an old simulator (one at a time) and keeping it stopped
 
-Per simulator `SIM` (residences: 8 of them, one region each), as `magic`:
+How it runs on residences: 8 `screen` sessions of user `magic`, named as the simulator (`residences`, `reaction`, `reality`, `rebelle`, `recital`,
+`refraction`, `regain`, `rehab`), each `mono OpenSim.exe -inifile=/opt/opensim/etc/opensim.d/<sim>.ini`; no systemd unit, no crontab;
+`/etc/cron.hourly/opensim` (a symlink to `/opt/opensim/lib/cron.hourly/opensim`) runs `sudo -u magic /opt/opensim/bin/opensim start >> var/logs/cron.log`.
+`opensim start` (no argument) starts every `etc/opensim.d/*.ini` and `etc/simulators-enabled/*.ini` (that last folder does not exist) whose
+`screen` session is not already running. So a simulator is kept from restarting by taking its `opensim.d/<sim>.ini` out of the `*.ini` glob.
+`opensim stop SIM` (the old script) warns the users, sends `shutdown` to the console and then runs `screen -x`, which attaches interactively:
+do not use it from a script; send `shutdown` through the screen instead.
 
-1. Ask for the shutdown through its console, then wait for the process to end (the log ends with the shutdown lines):
-   `screen -S SIM -X stuff "shutdown"$'\r'` then `tail -f /opt/opensim/var/logs/SIM.log` until it ends, `pgrep -f "SIM"` empty.
-   (A `screen -X stuff` line is cut near 100 characters: only short commands.)
-2. Keep it from restarting: the hourly cron runs `opensim start` and would bring it back. **verify** how `opensim start` picks the
-   simulators (read `/etc/cron.hourly/opensim` and the old `opensim` script). If it starts every `opensim.d/*.ini`, move the entry out:
-   `mv /opt/opensim/etc/opensim.d/SIM.ini /opt/opensim/etc/opensim.d/SIM.ini.migrated` (it is a symlink to `grids/<Grid>/sims/SIM.ini`; the
-   target stays). If the cron is the only starter, a stopped file `/etc/cron.hourly/opensim` (`chmod -x`) for the whole install is the
-   alternative when all 8 move the same day.
-3. Check that the ports are free: `ss -ltnup | grep -E ':(HTTPPORT|REGIONPORT)\b'` (empty), and no `screen -ls` session called SIM.
+Per simulator `SIM`, as `magic`:
+
+1. Keep it from restarting first (the cron may fire during the stop): `mv /opt/opensim/etc/opensim.d/SIM.ini /opt/opensim/etc/opensim.d/SIM.ini.migrated`
+   (a symlink to `../grids/Speculoos/sims/SIM.ini`; the target stays untouched; `.migrated` is not matched by `*.ini`).
+2. Warn, then shut down through the console, and wait for the end of the process:
+   `screen -S SIM -X stuff "alert The simulator restarts in 5 minutes"$'\r'`, later `screen -S SIM -X stuff "shutdown"$'\r'`; wait until
+   `screen -ls | grep -w SIM` and `pgrep -f "opensim.d/SIM.ini"` are empty. (A `screen -X stuff` line is cut near 100 characters: short commands only.)
+3. Check that the ports are free: `ss -ltnup | grep -E ':(HTTPPORT|REGIONPORT)\b'` (empty). Ports: residences 9044/9079, reaction 9033/9075,
+   rebelle 9034/9076, refraction 9035/9158, reality 9041/9087, regain 9037/9082, rehab 9042/9083, recital 9040/9077.
 4. Enable and start the new one: `opensim enable GRID.SIM`, `opensim start GRID.SIM`; check `opensim status`, the log, a login on the region.
 
-Rollback (new one not good): `opensim stop GRID.SIM`, `opensim disable GRID.SIM`, `mv SIM.ini.migrated SIM.ini`, start the old one from the
-cron or by hand. The database is the same: nothing to restore unless the new one wrote bad data (then the dump of step 0).
+Rollback (new one not good): `opensim stop GRID.SIM`, `opensim disable GRID.SIM`, `mv SIM.ini.migrated SIM.ini`; the next hourly cron starts the old one, or
+`/opt/opensim/bin/opensim start SIM` as `magic`. The database is the same: nothing to restore unless the new one wrote bad data (then the dump of step 0).
 
 ## 3. After
 
-- Remove the ACL (step 1).
+- Remove the ACL if one was granted (step 1).
 - Old install kept untouched for a while (rollback); the cron stays disabled for the migrated simulators.
 - Delete the scratch copies of the config (they hold DB passwords).
 
