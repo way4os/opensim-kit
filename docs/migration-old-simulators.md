@@ -122,5 +122,8 @@ Rollback (new one not good): `opensim stop GRID.SIM`, `opensim disable GRID.SIM`
   (console `shutdown`, `opensim start speculoos`): `EstateDataRobustConnector` now serves `osestate` on 8003. In the simulators the effective setting is
   decided by `config-include/GridHypergrid.ini` (not by `GridCommon.ini`, whose line is commented): its `[EstateDataStore] LocalServiceModule` is now
   `OpenSim.Services.Connectors.dll:EstateDataRemoteConnector` on residences, redoutable, grid and grandplace (`.bak-<stamp>` beside each). It takes effect when each simulator restarts.
+- Cleaned 2026-11-17 (owner's go): the 77 links of `osestate.estate_map` to regions absent from Robust's region table deleted (dump before: `grid-osestate-20261117-204850-before-cleanup.sql.gz`);
+  22 links remain: 100 Speculoos 7, 106 Gudule Privates 3, 107 Residences 8, 117 (dev, still named "Speculoos Estate") 3, 119 Susannah 1. Long Loris, Petite Place and Something Something
+  are test regions of v3 servers, in no estate on purpose. Empty estates still there: 101 Diverse City (1 manager), 102 Michellie (3 managers), 112 My Estate, 118 (no name).
 - Left: the three estates wanted (clean `osestate`: the empty estates 112 and 118, the links to regions that no longer exist), and the region that moved estate (Redoutable is 119 in `osestate`).
 - A migrated (imported) simulator keeps whatever the grid's includes say: the migration must check `EstateDataStore` in the effective config of the plan.
