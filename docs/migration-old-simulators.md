@@ -27,13 +27,17 @@ Read on residences 2026-11-17 (read-only, Olivier's go typed in the session): th
   (here `0.9.3.0`) and say to add the module to `EnabledModules` of `opensim.conf`. A module is built for a version of OpenSimulator: the DLL of the
   old install (core 0.9.2.2) is copied only if the new core has the same version, else a build for the new core is needed. For residences, each of
   the 8 sims reports the same three:
-  - `OpenSimSearch` ([Search] Module): found at `/opt/opensim/etc/grids/Speculoos/OpenSimSearch.Modules.dll` (the old build, for 0.9.2.2). Source: the
-    OpenSimSearch fork (`modules/OpenSimSearch`), a DLL per OpenSim version as release assets: take the one for the new core.
-  - `Gloebit` ([Economy] economymodule): found at `/opt/opensim/etc/grids/Speculoos/Gloebit.dll` (old build). Source: the Gloebit module build for the new core
-    (to be provided; the old DLL only if the cores match).
-  - `DTLNSLMoneyModule` ([Economy] EconomyModule): not found in the old install (neither next to the config nor in the BinDir), so no DLL to copy: it
-    comes from elsewhere or the setting is left out. To decide by the owner before the real run.
-  Until the destination folders hold a build, the new simulator would not load the module (or must have the setting left out).
+  - `OpenSimSearch` ([Search] Module): the module exists as a package for the new core: `sudo apt install opensim-0.9.3.0-opensimsearch` (apt.magiiic.com,
+    the fork, built for 0.9.3.0: packaging/opensim-modules.versions). Do not copy the old DLL (`etc/grids/Speculoos/OpenSimSearch.Modules.dll`, a 0.9.2.2 build).
+  - `Gloebit` ([Economy] economymodule): `sudo apt install opensim-0.9.3.0-gloebit` (the official Gloebit build for 0.9.3.0, build 88, checked by hash).
+    Do not copy the old `Gloebit.dll` (0.9.2.2).
+  - `DTLNSLMoneyModule` ([Economy] EconomyModule): leave this setting out of the import. The old install has no DLL for it (neither next to the config nor in
+    the BinDir), so it never loaded there: the economy ran through Gloebit. Only if the plan shows that the two keys conflict in a way that matters
+    does it need a decision of the owner.
+  The packages install into `/usr/share/opensim-modules/0.9.3.0/opensimsearch` and `/gloebit` (lowercase, one folder per module, not loaded until enabled): add each
+  to `EnabledModules` of `opensim.conf`. The import notice names the folder with the module's class name (`.../OpenSimSearch`, `.../Gloebit`) and looks for the
+  class in the DLLs under the modules root (not by folder name), so the notice goes away once the packages are installed; do not create the folder it names by hand.
+  Until a build is installed, the new simulator would not load the module.
 - Shared databases (`osestate`, `osgloebit`) are dumped once per import; each simulator's backup keeps its own copy.
 - `opensim start` refuses a simulator whose http port is still taken (`port-taken`): a second guard after step 2.4.
 
