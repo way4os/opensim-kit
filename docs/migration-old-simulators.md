@@ -14,6 +14,20 @@ Marked **verify** = not yet read on the server, to check read-only before the re
 - v3 packages installed on the server (they create the user and group `opensim`); the target grid exists on the machine (plan against it, not against a test grid).
 - Plan read and accepted: `opensim import --simulator FILE [--simulator FILE …] GRID` (plan only, nothing written).
 
+## 0b. What the plan does before writing (engine f6478f4, CLI fe35af0)
+
+- The plan starts with a backup of the source (`backup` in the plan): the databases named by the ini (here the simulator's own, `osestate`,
+  `osgloebit`), with the credentials of the ini, the config and its includes, the region files, in
+  `/var/backups/opensim/<grid>/<sim>/<grid>-<sim>-<stamp>-source.tar.gz`. A source alone: `opensim backup --simulator FILE [GRID]`.
+  The disk needs the room: check `df` on `/var/backups` before (residences: 8 databases of 49-60 MB, a few MB of config).
+- The script state (`ScriptEngines` of the old cache folder) is copied to the new simulator's data folder; `--no-scripts` skips it. It needs the read access of step 1
+  on `/opt/opensim/var/cache`.
+- `import-module-missing`: the kept `*Module` settings are checked against the core and the modules folder. For residences, three modules the new
+  install does not have: `OpenSimSearch` ([Search] Module), `DTLNSLMoneyModule` ([Economy] EconomyModule), `Gloebit` ([Economy] economymodule). Their DLLs
+  are in the grid folder of the old install (`etc/grids/Speculoos/OpenSimSearch.Modules.dll`, `Gloebit.dll`): copy them to the modules folder of the new install
+  (the OpenSimSearch fork has a DLL per OpenSim version) before enabling the new simulator, or leave the settings out. Each of the 8 reports the same three.
+- `opensim start` refuses a simulator whose http port is still taken (`port-taken`): a second guard after step 2.4.
+
 ## 1. Read access for the import (user `opensim` reads files of `magic`)
 
 The import reads: `/opt/opensim/etc` (opensim.d, grids/<Grid>/ with its includes and `sims/<sim>/regions`), and, for the copy of
