@@ -81,6 +81,13 @@ The rule: the engine API is the single source.
     - [ ] make a region in an existing grid, write estates and parcels, make and restore a backup
     - [ ] where a simulator runs: a `runtime` attribute (`host`, `podman`, `docker`), told by the cgroup of its process (`/proc/<pid>/cgroup` names libpod or docker), a file read for each running simulator of a list, nothing asked of podman; Linux only, `host` elsewhere
     - [ ] a simulator of another machine: an `ssh` connection (`connections.ssh`, none, configured, ok, failed), configured when an SSH host of the install names its machine, tried on its page alone
+    - [ ] the ban of an avatar, as a whole: a plan, then its apply (as an import or a restore: `mode` plan by default, a god's, asked first), in the engine API; the CLI and the sites only consume it
+        - [ ] whom: a name or a UUID, the account of the grid and the visitors of other grids (`First.Last@grid`), a UUID nobody here has (`Avatar::lookup`, `unknown`, `visitor`: in the engine already)
+        - [ ] how: a hard ban (an account of the grid: status `banned`, in the engine already) or a ban by estate (an account of the grid or a visitor), with the choice of the estates (`estateBans`, `Estate::ban`: in the engine already)
+        - [ ] the objects: return or delete what they own in the regions, what they made (the prims by OwnerID in the database of each simulator, the assets by CreatorID: `Avatar::leftovers` finds them already), by the console of a running simulator or by statements
+        - [ ] the land and the regions: their parcels back to the owner of the estate, the regions they own given to another
+        - [ ] their data: the statements that delete it, for review (`Avatar::purgeSql`, `travelingData`: in the engine already); a hard ban keeps the account, its name and its UUID
+        - [ ] the base to port, adapted to the conventions of the engine (models, plan and apply, notices): `opensim ban` of the CLI (`~/Projects/opensim-cli`, `libexec/ban`, `src/php/BanPlan.php`) and of the kit (`src/Console/BanPlan.php`, `tests/Unit/BanPlanTest.php`, `BanCommandTest.php`, `tests/Packaging/ban-scenario.sh`): reviewable SQL, nothing changed until it is run
 
 The w4os names:
 
