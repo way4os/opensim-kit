@@ -79,6 +79,8 @@ The rule: the engine API is the single source.
 - what the engine API lacks, after OSCC:
     - [ ] start, stop, restart (the CLI uses the API for it)
     - [ ] make a region in an existing grid, write estates and parcels, make and restore a backup
+    - [ ] where a simulator runs: a `runtime` attribute (`host`, `podman`, `docker`), told by the cgroup of its process (`/proc/<pid>/cgroup` names libpod or docker), a file read for each running simulator of a list, nothing asked of podman; Linux only, `host` elsewhere
+    - [ ] a simulator of another machine: an `ssh` connection (`connections.ssh`, none, configured, ok, failed), configured when an SSH host of the install names its machine, tried on its page alone
 
 The w4os names:
 
