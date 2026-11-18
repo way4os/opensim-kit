@@ -746,6 +746,9 @@ Features:
     - [ ] the system user to run the instances as is per profile, not only `SystemUser` of `[Defaults]`
     - [ ] the setup offers to register an install (the core menu)
     - [ ] no script assumes `/etc/opensim`, `/var/lib/opensim` or `/usr/share/opensim` (review, one fix per file, with a test)
+- [ ] the site (`grav-plugin-w4os`, `w4os-site`): the title of the site beside its logo, or the logo alone, a setting of the site (Olivier, 2026-11-18)
+    - applied through each theme's own option where it has one (the way the logo and the favicon of the site are), nothing for a theme without it
+    - 3.0: the theme decides; the admin of the site (Tabler) shows the logo alone, the title as its text
 
 Installation:
 
