@@ -557,6 +557,7 @@ Kit, setup and configuration:
 The engine gives the data (the manager, the plugin and the CLI only show it):
 
 - [ ] the teleport links HG (`secondlife://host:port:Region`) and V3HG (`secondlife://http|!!host|port`), deprecated: they failed in every viewer tried (2026-11), hop:// won; decide whether they are dropped or a request for them is answered with a hop:// link or a secondlife:// one (the local link, the teleport of the viewer)
+- [ ] the links of the login screen of a viewer: try the location with its grid (`Destination::GRID`, `secondlife://host:port/secondlife/Region/x/y/z`) there; the local link was the only form that set the landing of the login, so `AUTO_LINKS` gives LOCAL for the grid itself on the splash if GRID does not
 - [ ] standard model contract: `OpenSimModelInterface`
     - [ ] column names mapped to the standard names, per model
     - [ ] relations
@@ -699,6 +700,7 @@ w4os plugin, once the features above are covered by the engine and the helpers:
 Features:
 
 - [ ] world maps (navigable map on the web)
+- [ ] a link that opens the map of the viewer at a place of another grid (llMapDestination() does it, never found from the chat): Firestorm takes `secondlife:///app/worldmap/<region>/<x>/<y>/<z>` (LLWorldMapHandler of llfloaterworldmap.cpp: the region name and its point, the grid of the link not read, the map tracked by the name), so try the name as the map search box takes it, `secondlife:///app/worldmap/host:port:Region%20Name/x/y/z`, and `secondlife://host:port/app/worldmap/...`; then a format of the engine (`Destination::MAP`, not implemented)
 - [ ] avatar picker
 - [ ] user inventory management (provided by engine, for UI), provided ready to display as a tree (folders, subfolders, items...)
 - [ ] shared library (pick folders from grid owners inventory and add to grid library)
