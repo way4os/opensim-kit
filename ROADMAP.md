@@ -751,6 +751,7 @@ Features:
     - 3.0: the theme decides; the admin of the site (Tabler) shows the logo alone, the title as its text
 - [ ] `grav-plugin-w4os` in Grav's admin (admin2) for a complete Grav site: its pages (settings, the grid's sections) as a page of admin2 at `/admin/plugin/w4os/...` (a web component and the routes of Grav's API, admin2's own accounts), beside its own admin at `/w4os` (Olivier, 2026-11-18)
     - admin2 takes all of `/admin/*` (its app, then `exit`), so the plugin's own pages never live there; the classic admin is Grav 1.7 only
+- [ ] `grav-plugin-w4os`: the admin pages (Tabler) independent of the theme of the site: a fixed, minimal Grav theme of their own under them, so that nothing of the front-end theme reaches them (its accent color, its assets, its Twig overrides); the logo already comes from the brand of the site (Olivier, 2026-11-18)
 
 Installation:
 
