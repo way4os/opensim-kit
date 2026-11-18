@@ -707,6 +707,7 @@ Features:
     - a possible entry: add the grid to the viewer (its login address, the way the grid manager of the viewer takes it)
 - [ ] world maps (navigable map on the web)
 - [ ] a link that opens the map of the viewer at a place of another grid (llMapDestination() does it, never found from the chat): Firestorm takes `secondlife:///app/worldmap/<region>/<x>/<y>/<z>` (LLWorldMapHandler of llfloaterworldmap.cpp: the region name and its point, the grid of the link not read, the map tracked by the name), so try the name as the map search box takes it, `secondlife:///app/worldmap/host:port:Region%20Name/x/y/z`, and `secondlife://host:port/app/worldmap/...`; then a format of the engine (`Destination::MAP`, not implemented)
+- [ ] viewer actions, a set of formats given by the engine like the teleport links (`Destination`): the profile of an avatar, a place, the map, a grid to add to the viewer (`hop:///app/gridmanager/addgrid/...`, OpenSimWorld's "Add Grid")...; the app commands of Firestorm, their forms and where each works (a web page, the viewer, its login page) in [docs/proposals/viewer-links.md](docs/proposals/viewer-links.md)
 - [ ] avatar picker
 - [ ] user inventory management (provided by engine, for UI), provided ready to display as a tree (folders, subfolders, items...)
 - [ ] shared library (pick folders from grid owners inventory and add to grid library)
