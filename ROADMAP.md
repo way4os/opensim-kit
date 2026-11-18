@@ -701,6 +701,10 @@ w4os plugin, once the features above are covered by the engine and the helpers:
 Features:
 
 - [ ] the kind of the teleport links a preference of the user that `AUTO` reads: auto (as now), hop://, secondlife://, or a menu on the link that offers the choices
+    - a link is shown in the format auto (or the one the user chose), with a small icon beside it that opens its other forms (OpenSimWorld does it more heavily: the address of the region in a box, then buttons Hop, V3HG, HG, Local Grid and "Add this grid to Firestorm")
+    - the engine gives, for each destination, the main link (`AUTO`, or the preferred one) and the list of the others: HOP, GRID, LOCAL, MAP, and the URI as text, to copy
+    - the bridges show the main link and the icon; its menu lists the other forms and a "copy" action
+    - a possible entry: add the grid to the viewer (its login address, the way the grid manager of the viewer takes it)
 - [ ] world maps (navigable map on the web)
 - [ ] a link that opens the map of the viewer at a place of another grid (llMapDestination() does it, never found from the chat): Firestorm takes `secondlife:///app/worldmap/<region>/<x>/<y>/<z>` (LLWorldMapHandler of llfloaterworldmap.cpp: the region name and its point, the grid of the link not read, the map tracked by the name), so try the name as the map search box takes it, `secondlife:///app/worldmap/host:port:Region%20Name/x/y/z`, and `secondlife://host:port/app/worldmap/...`; then a format of the engine (`Destination::MAP`, not implemented)
 - [ ] avatar picker
