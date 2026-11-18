@@ -80,6 +80,7 @@ The rule: the engine API is the single source.
     - [ ] simulators × Robust, each on 0.9.2 and 0.9.3
     - [ ] helpers and installs: vanilla (by the OpenSimulator book), v2, v3
     - [ ] for each pair: profiles, groups, search, economy, offline messages
+    - [ ] the formats of the teleport links (`Destination`: HOP, GRID, LOCAL, APPTP, LSL, MAP) across the systems (Windows, macOS, Linux), the versions of Firestorm and the ways it is installed, and the other viewers (Singularity, Cool VL Viewer, Alchemy...): what was tried (2026-11) holds for one setup only
     - the case that asks for it: on Speculoos, the profiles come back empty seen from the v3 simulators on the v2 Robust, and work from the v2 Residences (being diagnosed)
 - what the engine API lacks, after OSCC:
     - [ ] w4os 3.x: the picks of an avatar as a list of destinations, in the lines of the Gudz Teleport Board (`DestinationList::format()`, `format=list`: "Name|Region URL|x,y,z", a category by its name alone), at an address of its own, so that it can be the `GuideSource` of a guide or the source of a board; built after the current queue
@@ -557,7 +558,7 @@ Kit, setup and configuration:
 The engine gives the data (the manager, the plugin and the CLI only show it):
 
 - [ ] the teleport links HG (`secondlife://host:port:Region`) and V3HG (`secondlife://http|!!host|port`), deprecated: they failed in every viewer tried (2026-11), hop:// won; decide whether they are dropped or a request for them is answered with a hop:// link or a secondlife:// one (the local link, the teleport of the viewer)
-- [ ] the links of the login screen of a viewer: try the location with its grid (`Destination::GRID`, `secondlife://host:port/secondlife/Region/x/y/z`) there; the local link was the only form that set the landing of the login, so `AUTO_LINKS` gives LOCAL for the grid itself on the splash if GRID does not
+- [x] the links of the login screen of a viewer: the location with its grid (`Destination::GRID`, `secondlife://host:port/secondlife/Region/x/y/z`) works there too (tried 2026-11), `AUTO` gives it on every page of a viewer
 - [ ] standard model contract: `OpenSimModelInterface`
     - [ ] column names mapped to the standard names, per model
     - [ ] relations
@@ -699,6 +700,7 @@ w4os plugin, once the features above are covered by the engine and the helpers:
 
 Features:
 
+- [ ] the kind of the teleport links a preference of the user that `AUTO` reads: auto (as now), hop://, secondlife://, or a menu on the link that offers the choices
 - [ ] world maps (navigable map on the web)
 - [ ] a link that opens the map of the viewer at a place of another grid (llMapDestination() does it, never found from the chat): Firestorm takes `secondlife:///app/worldmap/<region>/<x>/<y>/<z>` (LLWorldMapHandler of llfloaterworldmap.cpp: the region name and its point, the grid of the link not read, the map tracked by the name), so try the name as the map search box takes it, `secondlife:///app/worldmap/host:port:Region%20Name/x/y/z`, and `secondlife://host:port/app/worldmap/...`; then a format of the engine (`Destination::MAP`, not implemented)
 - [ ] avatar picker
