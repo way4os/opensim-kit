@@ -556,6 +556,7 @@ Kit, setup and configuration:
 
 The engine gives the data (the manager, the plugin and the CLI only show it):
 
+- [ ] the teleport links HG (`secondlife://host:port:Region`) and V3HG (`secondlife://http|!!host|port`), deprecated: they failed in every viewer tried (2026-11), hop:// won; decide whether they are dropped or a request for them is answered with a hop:// link or a secondlife:// one (the local link, the teleport of the viewer)
 - [ ] standard model contract: `OpenSimModelInterface`
     - [ ] column names mapped to the standard names, per model
     - [ ] relations
