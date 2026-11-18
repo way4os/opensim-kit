@@ -806,6 +806,7 @@ Installation:
 
 Helpers:
 
+- [ ] the place of a picture that is not there: each display that shows a picture (the guide, the popular places, the profiles, the picks, the search...) reviewed one by one, to leave the place out when there is no picture where it makes sense, and keep it (the picture of nothing, half seen: `--helpers-placeholder-opacity` of `assets/css/blocks.css`) where the layout needs it; not a general rule
 - [ ] search categories as sub-paths
 - [ ] guide topics as sub-paths (`/guide/<topic>/`)
 - [ ] `GridStatus` and `GridStatusRSS` of `[GridInfoService]`
