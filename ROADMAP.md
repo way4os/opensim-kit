@@ -862,6 +862,10 @@ w4os plugin:
         - [ ] a service in the helpers and a module of our own
         - [ ] the same API, so that their module works with ours
 - [ ] classifieds: handle hypergrid/centralized (might require an OpenSim module, as it does not seem to expose a way to query an external source)
+    - Olivier, 2026-11-19: the viewer asks Robust for classifieds directly, and the settings cannot send places and classifieds
+      to different search engines. A local search engine reads Robust's database and finds them; an external one (2do.directory)
+      cannot, so a grid using an external search engine has no classifieds in its results.
+    - [ ] (3.1 or 3.2) a grid publishes its classifieds to the external search engine, so it returns them in its results
 - [ ] one rendering engine for the pictures of text: the one of 2do-mahna-mahna
     - columns, a header, a footer, the proportions of the prim (1x1, 1.5x1 and 1x1.5 give different results)
     - [ ] 2do board uses it
