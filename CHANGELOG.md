@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (packaging): opensim-kit depends on opensim-cli, which took the place of opensim-tools (it conflicts with it, replaces and provides it); the releases suggest it
 - update: `setup.sh` shows the questions of the setup with `dialog`, or with plain prompts
 - update: `opensim setup` asks what to set up, the basics, the options with their default, then quick or advanced
 - new: options of a new grid: search (own, shared 2do.directory, none), currency, more OSSL, web server and site

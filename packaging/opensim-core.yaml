@@ -34,7 +34,7 @@ depends:
 recommends:
   - dotnet-runtime-8.0 | dotnet-runtime-9.0 | dotnet-runtime-10.0
 suggests:
-  - opensim-tools
+  - opensim-cli
 
 contents:
   - src: build/opensim-core
