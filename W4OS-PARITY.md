@@ -174,7 +174,10 @@ the five pages ported from w4os-wp v2, who handles a service (`meta.service`), t
    economy database; each a small commit once decided.
 
 After the beta: the connections through the console of Robust (E, if time allows), bulk actions and the bases of the helpers and
-assets as routes (P, low), the installation wizard (not a priority), the WP bridge (its column).
+assets as routes (P, low), the installation wizard (not a priority), the WP bridge (its column), a cache of the settings
+choices (maybe per user: pending changes, restart needed) and the case of an engine without write access to the ini, a
+dashboard whose cards can be rearranged, shown, hidden and taken from any defined block, the pick list of an avatar as a
+source of the destination guide.
 
 ## Money for the grid owner (new)
 
