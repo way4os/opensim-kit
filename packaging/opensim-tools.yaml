@@ -31,7 +31,7 @@ depends:
   - curl
   - default-mysql-client | virtual-mysql-client
   # The first engine with everything the kit calls (651be32: every option is a preset)
-  - opensim-engine (>= 3.0.0~beta.6.290)
+  - opensim-engine (>= 3.0.0~beta.7)
   - opensim-helpers
   - opensim-rest-php
   - php-cli (>= 2:8.2)
