@@ -29,7 +29,7 @@ charm-dev of opensim-engine (fed8e40), opensim-helpers (125d12b) and grav-plugin
 | Feature | Home | State | Grav | WP | Milestone |
 | --- | --- | --- | --- | --- | --- |
 | Grid info, grid status, web search | H blocks | ✓ | ✓ `[w4os block=…]`, the home page laid out like the splash | ✗ | |
-| Popular places, as w4os-wp 2.x (`blocks/popular-places.php`): the parcels with the most visitors as a grid of cards, as many rows as needed, the picture of the parcel (its snapshot in the search) with its name over it and its region under it | H (`PopularPlacesBlock`, `assets/css/places.css`, `SearchData`) | ✓ a place without a picture has the grid's placeholder (2.x left it out); how many (`count`, 10 by default, 2.x 5); ✗ the options of 2.x for the hypergrid and the land for sale | ✓ `[w4os block="popular_places"]`, its styles brought by the block (`View::blockFiles()`) | ✗ | 3.0 |
+| Popular places, as w4os-wp 2.x (`blocks/popular-places.php`): the parcels with the most visitors as a grid of cards, as many rows as needed, the picture of the parcel (its snapshot in the search) with its name over it and its region under it | H (`PopularPlacesBlock`, `assets/css/places.css`), E (`Grid::popularPlaces()`) | ✓ a place without a picture has the grid's placeholder (2.x left it out); `count` (10 by default, 2.x 5); `include_hypergrid`, `include_landsales` (shown unless told not; 2.x left them out by default) | ✓ `[w4os block="popular_places"]`, its styles brought by the block (`View::blockFiles()`) | ✗ | 3.0 |
 | Destinations guide | H | ✓ read from `GuideSource` of `Helpers.ini` only, no address from the request | ✓ `[w4os block="destination_guide"]` | ✗ | 3.0 |
 | Destinations guide, as the 2.x guide, same format as Gudz Teleport Board ("Name\|host:port:Region\|x,y,z", a name alone a title, `#` and `//` comments, `-` a column, `\|` alone a spacer, the old 5-column format), the same categories, order and links, cards with the picture of the parcel | H (`DestinationGuideBlock`, `DestinationGuideTest`), E (`DestinationList`, `Destination`) | ✓ the lines read as the board reads them (the old 5-column format, an address once); the list for the boards (`format=list`) keeps the landing point and the markers | ✓ through the block | ✗ | 3.0 |
 | Avatar profile (page, block, mini profile) | H (block), E (data: picks, classifieds, groups, `GET /avatars/{id}/picks`, `/classifieds`, `/groups`) | ✓ the viewer's tabs, always all (2nd Life, Web, Interests, Picks, Classifieds, 1st Life; None. when empty); picture in its proportions; name, key, birth and age, account, partner, groups; picks and classifieds as the viewer (list, picture, place, teleport link); public only when published; tab in the address | ✓ `/profile/First.Last` (the helpers' block, bare for a viewer), Edit button for its owner or a manager | ✗ | 3.0 |
@@ -107,7 +107,7 @@ Grav).
 | Settings › Developer: debug HTML, self-signed certificates | `class-w4os3-settings.php:49-58` dev | | Grav's debugger | W |
 | v2 Settings: grid info (login URI, name, status) | `v2/class-settings.php:143-169` legacy, misplaced | ✓ `getInfo`, `getMonitor` | ✓ on the dashboard | none |
 | Permalinks: profile, assets and helpers bases | `v1/profile-page.php:189`, `v2/class-helpers-assets.php:187`, `v2/class-helpers.php:113` | | ◐ profile and every page route; the helpers' base `/helpers`, assets fixed | P (low): the helpers' and assets' bases as routes |
-| Installation wizard: config method, grid connection, grid info, helpers, economy, save | `class-w4os3-installation-wizard.php:45-131`, `helpers/engine/class-installation-wizard.php:77-702` dev, mostly not impl | ✓ `quickSetup`, `setupStep`, `applySetupFile`, `importSetup`, `getLayout` | ✗ (only `w4os-site setup` on the command line) | P: a setup page driving `setupStep`; E: the steps described for a form (an `x-form` of each step) so no bridge writes them |
+| Installation wizard: config method, grid connection, grid info, helpers, economy, save | `class-w4os3-installation-wizard.php:45-131`, `helpers/engine/class-installation-wizard.php:77-702` dev, mostly not impl | ✓ `quickSetup`, `setupStep`, `applySetupFile`, `importSetup`, `getLayout` | ✗ (only `w4os-site setup` on the command line) | not a priority (Olivier, 2026-11-18). Later, a choice: (a) the screens of `setupStep` (the machine's quick setup) in the field format of `x-form` with catalog keys, or (b) a setup of a site on a grid, as w4os-wp's wizard, over the settings pages; (b) for the bridges, (a) for a web installer |
 | Shortcodes page: each shortcode, live preview, options | `v2/admin-helpers/templates/shortcodes.php:11-74` | | ✓ `/w4os/shortcodes`: each shortcode, its options, the block it shows | none |
 | Settings test and validation pages, 2to3 migration | `wordpress/admin/settings-test.php`, `settings-validation.php` dev | | n/a | W (migration of WP options) |
 
@@ -165,16 +165,14 @@ Done since 2026-11-17: the Health page, the avatar models (rule and page), the a
 settings of the services in the engine, New avatar, the parcels of a region, presence and port of the regions, the dashboard cards and
 blocks, the shortcodes page. Left, engine and command line first, then the helpers, then the web admin:
 
-1. **Installation wizard** (E): the steps of `setupStep` described for a form (an `x-form` of each step), so no bridge writes them;
-   then a setup page (P).
-2. **Connections through the console of Robust** (E, to confirm): a grid on another machine reached without its databases.
-3. **Posts of the grid** (E): the list of all the posts (Author column), for the Flux admin list; milestone 3.2.
-4. **Popular places as 2.x** (H): its options for the hypergrid and the land for sale.
-5. **Settings pages of the services** (P): economy, search, guide, offline messages, assets, from the engine's forms; the search tasks
+1. **Connections through the console of Robust** (E, to confirm for 3.0): a grid on another machine reached without its databases.
+2. **Posts of the grid** (E): the list of all the posts (Author column), for the Flux admin list; milestone 3.2.
+3. **Settings pages of the services** (P): economy, search, guide, offline messages, assets, from the engine's forms; the search tasks
    beside them (last run, run now).
-6. **Dashboard notice** (P, low): the errors of `getHealth` on the dashboard.
-7. **Bulk actions** (P, low: not implemented in w4os-wp either; a message to avatars needs E), the bases of the helpers and the assets
+4. **Dashboard notice** (P, low): the errors of `getHealth` on the dashboard.
+5. **Bulk actions** (P, low: not implemented in w4os-wp either; a message to avatars needs E), the bases of the helpers and the assets
    as routes (P, low).
+6. **Installation wizard**: not a priority (Olivier, 2026-11-18); see its row for the choice to make later.
 
 ## Money for the grid owner (new)
 
