@@ -129,3 +129,14 @@ Rollback (new one not good): `opensim stop GRID.SIM`, `opensim disable GRID.SIM`
   `osestate` now holds 5 estates: 100 Speculoos (7 links), 106 Gudule Privates (3), 107 Speculoos Residences (8), 117 Speculoos Beta (3), 119 Susannah Estate (1); 4 managers, 65 bans.
 - Left: the three estates wanted (clean `osestate`: the empty estates 112 and 118, the links to regions that no longer exist), and the region that moved estate (Redoutable is 119 in `osestate`).
 - A migrated (imported) simulator keeps whatever the grid's includes say: the migration must check `EstateDataStore` in the effective config of the plan.
+
+## Lessons from grandplace (2026-11-19)
+
+- A simulator moved to the packages must get the plugin build made for its core version (`opensim-0.9.3.0-opensimsearch`): the old DLL fails to load on 0.9.3.0
+  (Mono.Addins version) and every search ends in "Unable to search".
+- Settings of the old config to report in the new files: `[Search]` (Module, SearchURL), `[DataSnapshot]` (one `DATA_SRV_<name>` per register.php, the name is free),
+  `[Economy]`/Gloebit (key and secret in a separate include with restricted rights, included once), `[Messaging]` (offline module and its URL).
+- After a restart, the simulator registers itself with each `register.php` at startup and the helper then pulls its data: a search made within the first minutes finds nothing.
+  Check the web server log for a 200 on `register.php`, then search again later.
+- A leftover `DTLNSLMoneyModule` can remain in the interpreted `[Economy]` of an old install (residences): to clean up separately.
+- Never test a development build (`beta.x+y`) on a live simulator; live ones take the apt `stable unstable` packages only.
