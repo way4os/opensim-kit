@@ -22,7 +22,7 @@ depends:
   # in the repository, not installed automatically
   - opensim-${OPENSIM_VERSION}-opensimsearch
   - opensim-${OPENSIM_VERSION}-gloebit
-  # The command line, opensim-cli: it took the place of opensim-tools (it conflicts with it, replaces and provides it)
+  # The command line, opensim-cli: the approach after opensim-tools, which it removes (they never go together)
   - opensim-cli
   # OpenSim cannot run without a database: everything on this machine
   - default-mysql-server | virtual-mysql-server
