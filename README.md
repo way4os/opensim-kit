@@ -21,7 +21,8 @@ Three ways, the same wizard at the end: `opensim setup` asks about your grid.
 ```bash
 ## Add the Magiiic APT repository (once)
 curl -fsSL https://apt.magiiic.com/magiiic-packaging.asc | sudo gpg --dearmor -o /usr/share/keyrings/magiiic-packaging.gpg
-echo "deb [signed-by=/usr/share/keyrings/magiiic-packaging.gpg] https://apt.magiiic.com stable main" | sudo tee /etc/apt/sources.list.d/magiiic.list
+printf '%s\n' "deb [signed-by=/usr/share/keyrings/magiiic-packaging.gpg] https://apt.magiiic.com charm stable" \
+  "deb [signed-by=/usr/share/keyrings/magiiic-packaging.gpg] https://apt.magiiic.com main stable" | sudo tee /etc/apt/sources.list.d/magiiic.list
 sudo apt update
 
 ## Install the packages, then the .NET runtime if the system has no package for it

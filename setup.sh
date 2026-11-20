@@ -19,7 +19,9 @@
 set -euo pipefail
 
 MAGIIIC_KEY=https://apt.magiiic.com/magiiic-packaging.asc
-MAGIIIC_REPOSITORY="deb [signed-by=/usr/share/keyrings/magiiic-packaging.gpg] https://apt.magiiic.com stable main"
+# The OpenSim packages (charm) and the general ones they need (main: w4os-site, bash-tools)
+MAGIIIC_REPOSITORY="deb [signed-by=/usr/share/keyrings/magiiic-packaging.gpg] https://apt.magiiic.com charm stable
+deb [signed-by=/usr/share/keyrings/magiiic-packaging.gpg] https://apt.magiiic.com main stable"
 # What the tools need on a machine that does not have the packages (a clone): the same as the package opensim-tools
 PHP_PACKAGES=(php-cli php-curl php-intl php-mbstring php-mysql php-xml)
 TOOL_PACKAGES=(ca-certificates curl git unzip screen sudo default-mysql-client)
@@ -50,7 +52,7 @@ die() {
 # A question for the person at the terminal, even when this script comes from a pipe; yes when nobody can answer
 ask() {
 	[[ -n "$ASSUME_YES" ]] && return 0
-	[[ -r /dev/tty ]] || return 0
+	(: </dev/tty) 2>/dev/null || return 0
 	local answer
 	read -r -p "$1 [Y/n] " answer </dev/tty
 	[[ ! $answer =~ ^[Nn] ]]
@@ -89,7 +91,7 @@ start_setup() { # the library of the questions, then the command to run, which g
 		frontend_run "$@" || status=$?
 		exit "$status"
 	fi
-	if [[ ! -t 0 && -r /dev/tty ]]; then
+	if [[ ! -t 0 ]] && (: </dev/tty) 2>/dev/null; then
 		exec "$@" </dev/tty
 	fi
 	exec "$@"
