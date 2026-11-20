@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- doc: OPENSIM-TOOLS-PORTING.md, what opensim-tools does and where each feature is now, before its code goes
+- fix (setup): the packages come from charm stable and main stable (the address of before has no Release file); no terminal, no /dev/tty
 - change (packaging): opensim-kit installs opensim-cli and the website of a grid (w4os-site); opensim-tools and opensim-web are no longer built
 - fix (setup): `setup.sh` runs the setup of opensim-cli once the packages are installed
 - fix (packaging): opensim-tools depends on the release of the engine that has what it calls (3.0.0-beta.7), not on a build of development (3.0.0~beta.6.290), which build-tools refuses now
