@@ -171,7 +171,8 @@ route). Left for the beta:
    ([W4OS-ADMIN-COMPARISON.md](W4OS-ADMIN-COMPARISON.md)).
 2. **A live test** on a disposable v3 simulator connected to Speculoos (Sandbox, never Grand Place), Gloebit purchases included.
 3. **The rename to w4os** ("Ways for OpenSim", decided 2026-11-20): packages and projects, once the tests under way are conclusive, before
-   the public release. Not during the tests.
+   the public release. Not during the tests. It includes the suite config: /etc/w4os/w4os.conf instead of
+   /etc/opensim/opensim.conf (migrated at upgrade), /etc/opensim keeping what belongs to OpenSim.
 4. **The release**: versions, changelogs, packages and zips.
 
 After the beta: the connections through the console of Robust (E, if time allows), bulk actions and the bases of the helpers and
