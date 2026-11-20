@@ -1,9 +1,0 @@
-# Exclude list for the 'opensim-modules' module.
-# Only contrib/currency/ and contrib/OpenSimSearch/ are synced;
-# everything else is excluded.
-
-/*
-!/contrib/
-/contrib/*
-!/contrib/currency/
-!/contrib/OpenSimSearch/

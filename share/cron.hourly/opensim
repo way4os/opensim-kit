@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-PGM=$(realpath $0)
-BASEDIR=$(dirname $PGM | sed "s:/lib/.*::")
-user=$(stat -c %U $(realpath $0))
-
-# execute as $user
-sudo -u $user $BASEDIR/bin/opensim start >> /opt/opensim/var/logs/cron.log

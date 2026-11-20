@@ -1,8 +1,0 @@
-# Test system with systemd, for tests/Packaging/run, with the database, sudo
-# and what the setup of the Magiiic repository needs
-ARG BASE=docker.io/library/debian:bookworm
-FROM ${BASE}
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    systemd systemd-sysv dbus ca-certificates curl gpg mariadb-server sudo && apt-get clean
-STOPSIGNAL SIGRTMIN+3
-CMD ["/sbin/init"]

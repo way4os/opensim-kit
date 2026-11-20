@@ -1,44 +1,18 @@
 # Developers
 
-## Architecture
+## What this project is
 
-This kit is a collection of tools and services to manage OpenSim grids.
+The packages of OpenSimulator for Debian and Ubuntu, and the metapackage that installs the whole environment:
 
-It uses libraries `opensim-helpers`, `opensim-engine`, and `opensim-rest-php`. Each library has its own repository and is usable as a standalone app/web app/project. Therefore, each part can only use it's own code and dependencies, never code or concepts related to the kit. The config of a grid (`/etc/opensim/grids/<grid>/`: its Robust config and its `helpers.ini`) is not one of them: it is the structure the projects share, and `opensim-helpers` reads it itself when it has no `config.php`.
+- the releases of OpenSimulator (`opensim-<version>`), its development version (`opensim-unstable`) and the essential modules
+  (`opensim-<version>-<module>`), each in its own folder;
+- `opensim`, the latest release, and `opensim-kit`, which installs the command line (`opensim-cli`), the engine
+  (`opensim-engine`, with `opensim-rest-php`), the website of a grid (`w4os-site`, which carries `opensim-helpers`), the latest
+  release, its essential modules and a database server.
 
-- **opensim-rest-php** uses no external dependencies. It provides a generic REST console API.
-- **opensim-engine** provides the OpenSim engine and grid low-level management logic. It uses `opensim-rest-php`.
-- **opensim-helpers** provides the web tools to communicate with the bridge from the viewer (query, currency...) or a browsser (web search, guide...). It relies on `opensim-engine` and `opensim-rest-php`.
-- **opensim-kit** installs the whole environment: the command line (`opensim-cli`), the website of a grid (`w4os-site`, which carries `opensim-helpers`), and the OpenSimulator releases and modules it packages.
-- **w4os WordPress plugin** is another implementation to provide management and web interface, that uses `opensim-helpers`.
-
-Where code and files go, and how the current layout is to move there, is in [REFACTORING.md](REFACTORING.md). New code is written at the place it describes.
-
-The engine owns the operations, the kit is a front-end that calls them:
-
-- `OpenSim\OpenSim` (engine) is what a front-end calls: `OpenSim::start('vonda')`, `stop`, `restart`, `status`; a grid is its services (its Robust), `simulators: true` adds the simulators that depend on it. It finds the `Grid`, `Robust` and `Simulator` models (`OpenSim\Models`), which start and stop through `OpenSim\Runtime` (processes, launching, waiting for readiness, warning users) and `OpenSim\Console` (remote console, screen). Everything is given an `Environment`: the machine, as fakes in the tests (`OpenSim\Testing\Machine`).
-- `OpenSim\Config` reads and edits the files (`Layout` for opensim.conf, `IniEditor` to edit without losing the comments), `OpenSim\Provisioning` decides and writes what makes a grid, a simulator, a region, an account (the plans, `SimulatorConfig`, `RobustConfig`, `Presets`, `Features`, `GridProvisioner`, `SimulatorProvisioner`), asking through `UiInterface`.
-- `OpenSimKit\Console` is the command line (`bin/opensim`): one class per command in `Commands/`, which reads its arguments, calls the engine and prints; `OpenSimKit\Setup` and `OpenSimKit\Ui` are the screens of the wizard; `OpenSimKit\System` is what is Debian's.
-- The setup is gone through in the terminal (`PromptsUi`), by `setup.sh` (`ScriptUi` and `libexec/setup-frontend.sh`) or in a browser (`WebUi`), all are a `UiInterface` the flow (`Hub`, `NewGrid`...) talks to. `setup.sh` starts `opensim setup --frontend DIR` (internal): the setup tells what it asks, one line per message (`ScriptUi` documents them: fields separated by 0x1F, escaped), through two named pipes of DIR, and the script shows it (`dialog`, else plain prompts; `OPENSIM_SETUP_UI=plain` forces them) and writes the answer back. Nothing of the logic is in the script. `WebUi` keeps the flow in the process of the setup, which waits for each answer as in the terminal: a screen is put in a `Web\Mailbox` (a folder for this user only), the `php -S` server of the setup (`web/router.php`, `Web\WizardServer`, started by `Web\WizardLauncher`) shows it, and the answer comes back through the folder. The checks of the answers (`validate`, `when`) stay in the flow. What the programs the setup starts say is given to a `CapturesOutput` frontend instead of the terminal. `Web\Page` is the HTML (no framework, nothing loaded from outside): the fields are the standard ones (`FieldSet`), a form follows their `condition` by itself.
-- A command works as the system user of the install when it works on the instances (`Application::SYSTEM_USER_COMMANDS`), as the caller otherwise.
-
-`tests/Packaging/lifecycle-scenario.sh` runs the launcher on a real machine with a fake dotnet (`SCENARIO=lifecycle-scenario.sh tests/Packaging/run`, about ten minutes), `package-scenario.sh` the whole family with a real OpenSim.
-
-## Configuration files
-
-The folder of a grid (`/etc/opensim/grids/<grid>`) holds the configuration files of the OpenSim environment as the distributions ship them (Robust.HG.ini, OpenSim.ini, config-include/, MoneyServer.ini...), completed. They are shared by the OpenSim executables and the helpers: every setting keeps its name, its section and its file, the helpers read them there (with their `Include-` and `${Const|...}`), and what the helpers need that OpenSim has no place for is in `Helpers.ini`, `[Helpers]`.
-
-The simulators of a grid made by the setup do not repeat what the grid is: they start with `-inimaster=<grid>/OpenSimGridDefaults.ini`, generated by `OpenSim\Provisioning\SimulatorMaster` and made again at each start when it differs. It is, in this order, the `OpenSimDefaults.ini` of the core, the model of the toolset (`resources/OpenSimKitDefaults.ini` of the engine: the folders OpenSimulator would take in the read-only core), what the grid is (its address and ports from Robust, its architecture) and what the grid decided in its `OpenSim.ini` (search, offline messages, economy, profiles: `opensim enable|disable` writes there). The `sims/<name>.ini` of such a grid holds only what is the simulator's own (ports, database, folders, estate). A grid with no master keeps the whole config in each simulator.
-
-The setup makes them in layers, so that a setting new in a distribution is always taken, and nothing is lost:
-
-1. the file of the distribution (the `.example` of the core, `contrib/MoneyServer/*/MoneyServer.ini`), whole, never a selection of its settings;
-2. over it, what the grid already has in its file (its active settings, its own sections);
-3. over it, what the setup manages: the choices made in the wizard, written with `Ini::set`, which replaces the key, activates its example or adds it. What the setup only proposes (the welcome message) is set only when the grid has none.
-
-A simulator config has the setup's own template as its first layer. The previous file is kept beside the new one (`file~`) when it changes. Installing a package adds the files a grid lacks (`libexec/complete-grids.php`), it does not merge: the setup does.
-
-No secret has a default: the key of the currency (`MoneyScriptAccessKey` of `[MoneyServer]`) is made at random, once, by the setup; without it the helpers do not serve the currency.
+The command line, the engine, the helpers and the site are projects of their own. The tools this repository had before
+(opensim-tools: the `opensim` command in PHP, its setup, its tests) are gone: what they did and where it is now is in
+[OPENSIM-TOOLS-PORTING.md](OPENSIM-TOOLS-PORTING.md), their code at the commit `de51268`.
 
 ## Packaging
 
@@ -60,21 +34,20 @@ The modules are installed in their own folders, as some fail when loaded without
 
 Removing `opensim-<version>` or `opensim-unstable` stops the instances running from that core only, found by the full path of their assembly in the process list: instances of another release or of a build installed elsewhere are left alone. Nothing in an OpenSim instance needs a clean shutdown, its state is in the database, so a plain stop is enough.
 
-The version of the tools and of the metapackages is the version tag when the build is on one, the release. Any other build carries the version being worked on, declared in `.version` (a pre-release such as `3.0.0-dev`): `3.0.0~dev.<commits>+g<sha>`, which sorts after the former dev builds and before the release. The tag goes on the release commit only, which updates `CHANGELOG.md` (the tag message repeats it); `.version` is bumped for the next development version after it, a pre-release that sorts after the tag (`3.0.0-beta.2` after `3.0.0-beta.1`, not `3.0.0-dev`: `~dev` sorts after `~beta`).
+The version of the metapackages is the version tag when the build is on one, the release. Any other build carries the version being worked on, declared in `.version` (a pre-release such as `3.0.0-dev`): `3.0.0~dev.<commits>+g<sha>`, which sorts after the former dev builds and before the release. The tag goes on the release commit only, which updates `CHANGELOG.md` (the tag message repeats it); `.version` is bumped for the next development version after it, a pre-release that sorts after the tag (`3.0.0-beta.2` after `3.0.0-beta.1`, not `3.0.0-dev`: `~dev` sorts after `~beta`).
 
 ## Building and publishing
 
 ```bash
-dev/build.sh                                 # every package and the zip of the tools, into dist/
+dev/build.sh deb                             # every package, into dist/
 dev/build.sh deb opensim-kit                 # only this package
-dev/build.sh zip                             # dist/opensim-kit-<version>.zip, the tools with their vendor folder
 vendor/bin/apt-package --publish      # publish, on a version tag of this repository
 vendor/bin/apt-package --publish opensim-core opensim   # a new release, without a tag
 ```
 
-`dev/build.sh` builds the last commit and refuses when changes are not committed or when `composer.lock` is not up to date (`DIRTY=1` builds the last commit anyway). The Debian packages are made by `apt-package`, of build-tools. The version carries the commit: `3.0.0~beta.4.709+gb98c10a` (`g` is for git, as `git describe` writes it, the hash follows it). The scripts are those of [build-tools](https://github.com/magicoli/build-tools) (`vendor/bin/build-tools`, a development dependency): the version, `stage` (the committed files without what `.distignore` leaves out, and the vendor folder composer makes without the development tools, from the repositories of `composer.json`), the release. The project keeps its own `packaging/`: `tools` (the tools as distributed: stage, translations, OSSL script archives), `build-zip` (the zip of the tools), `siblings` (the projects the Debian package gets from their own packages), `build` (prepares the packages), `remote-build`.
+`dev/build.sh` builds the last commit and refuses when changes are not committed or when `composer.lock` is not up to date (`DIRTY=1` builds the last commit anyway). The Debian packages are made by `apt-package`, of build-tools. The version carries the commit: `3.0.0~beta.4.709+gb98c10a` (`g` is for git, as `git describe` writes it, the hash follows it). The scripts are those of [build-tools](https://github.com/magicoli/build-tools) (`vendor/bin/build-tools`, a development dependency): the version, `stage` (the committed files without what `.distignore` leaves out, and the vendor folder composer makes without the development tools, from the repositories of `composer.json`), the release. The project keeps its own `packaging/`: `build` (prepares the packages), `remote-build`.
 
-Publishing skips the packages whose version is already in the repository, so the tools and the releases keep their own pace. The packages with the version of this repository need a version tag (`v3.0.0`, the `v` is optional), and are attached to its GitHub release, marked as a pre-release when the version has one (`v3.0.0-beta.1`).
+Publishing skips the packages whose version is already in the repository, so the metapackages and the releases keep their own pace. The packages with the version of this repository need a version tag (`v3.0.0`, the `v` is optional), and are attached to its GitHub release, marked as a pre-release when the version has one (`v3.0.0-beta.1`).
 
 `packaging/build` runs first and prepares only the packages asked for:
 
@@ -87,7 +60,7 @@ A new OpenSimulator release is added at the end of `packaging/opensim-core.versi
 
 The `opensim` account, the folders of the system layout and `/etc/opensim/opensim.conf` are made by `opensim-engine`; the `opensim` service is `opensim-cli`'s.
 
-The tools themselves are PHP: no bash script runs a command, and the packages do not need [bash-tools](https://github.com/magicoli/bash-tools). The scripts of `dev/`, `packaging/` and `tests/Packaging` use its helpers, from composer's copy in a git checkout (`composer install`, a development dependency). During development, composer links the local `../bash-tools` checkout when there is one (path repository, `dev-dev`): switch to a released version before a release (and back to `dev-dev` with the path repository after it).
+The scripts of `dev/`, `packaging/` and `tests/Packaging` use the helpers of [bash-tools](https://github.com/magicoli/bash-tools), from composer's copy in a git checkout (`composer install`, a development dependency). During development, composer links the local `../bash-tools` checkout when there is one (path repository, `dev-dev`): switch to a released version before a release (and back to `dev-dev` with the path repository after it).
 
 The PHP dependencies are locked for PHP 8.1 (`config.platform.php` in `composer.json`), the oldest PHP of the supported systems (Ubuntu 22.04).
 
@@ -105,47 +78,16 @@ dev/release.sh beta     # patch|minor|major|stable|dev|alpha|beta|rc|1.2.3-beta.
 
 It needs the `.env` of the project to say where the apt repository is (`APT_REPO_DIR`, see `.env.example` of build-tools), `gh` (logged in) and `nfpm`, and says what is missing before it does anything. `dev/switch.sh dev|release` does the composer part alone: the projects of the family linked next to this one (path repositories, `@dev`), or required by version (`^` the latest version tag of each, refused when a project changed since that release).
 
-## Shell scripts
-
-The scripts of `dev/` are wrappers of build-tools. The scripts of `packaging/` and `tests/Packaging` use the functions of [bash-tools](https://github.com/magicoli/bash-tools) to ask, tell and fail (`log`, `success`, `warning`, `die`, `end`, `yesno`, `require`, `usage`, `read_env`), loaded from `vendor/bin/bash-helpers`: write the new ones the same way, not with their own prompts and `echo`.
-
 ## Tests
 
-The tests need bash 4 or later, the one `env bash` finds (the scripts keep `#!/usr/bin/env bash`; macOS has 3.2 in `/bin`). They stop with a message with an older one. Which bash to use is up to you: nothing in the tests changes your PATH.
-
-One command runs every test, `vendor/bin/pest` (`composer test`): the PHP ones with [Pest](https://pestphp.com), the shell scripts with [bashunit](https://bashunit.typeddevs.com) (`tests/lib/bashunit`), run from Pest. Everything is in `tests/`:
-
-- `tests/Environment`: the PHP minimum. It is read from `composer.json`, the composer platform must follow it, and `phpcs` with PHPCompatibility (`phpcs.xml.dist`) checks that the code needs nothing newer and uses nothing deprecated up to the newest PHP version listed in the test. It runs on the minimum PHP, 8.2 (pinned in `.php-version` for the tools that read it).
-- `tests/Unit`: the shell scripts (`*-test.sh`, bashunit): they parse, and bash scripts use `#!/usr/bin/env bash`. Also `tests/lib/bashunit tests/Unit`.
-- `tests/Packaging`: the packages and the container image, tested in containers (podman). Slow, they need podman and the packages of `dist/`, so they run only when asked, on a host that has them: `PACKAGING=1 vendor/bin/pest`. The scripts also run by hand, from the repository root.
-
-`tests/Packaging/run` installs the packages of `dist/` in a container with systemd (podman): a release alone then the tools, a grid made by the wizard and run by the service, a simulator with its region joining that grid (its estate owner made through the console of Robust, a second region added while it runs), the console commands, then upgrade, the other builds, removal of the tools and of the release, and purge:
+`tests/Packaging/kit-check` installs the packages of the kit in a Debian container (podman): a fresh install of `opensim-kit`
+from the repository with the builds of `dist/`, and the upgrade of a server of the generation before (opensim-kit 3.0.0~beta.4,
+with opensim-tools and opensim-web). `DEPS=folder` adds the packages of the family built elsewhere, `CONTAINER_CONNECTION` sends
+it to the podman of another machine.
 
 ```bash
-tests/Packaging/run                                   # Debian 12
-tests/Packaging/run docker.io/library/ubuntu:24.04    # Ubuntu 24.04
-```
-
-`package-scenario.sh` runs in the container, its scripted answers to the wizards are in `newgrid-driver.php` and `newsimulator-driver.php` (`ScriptedUi.php`). The container is capped to 700 MB (`MEMORY=1g tests/Packaging/run` to change it): the machine of podman is shared with every other container, and one that lacks memory stops the biggest process of any of them, not the one that asked for it. With the cap, the test does not reach the containers of the other projects as long as about 800 MB are free in that machine (the script says when they are not): stop the containers you do not need first, rather than giving the machine more memory. `KEEP=1` keeps the container for inspection.
-
-A scenario that starts with minutes of installation (the core, the .NET runtime) can have them done once: `PREPARE=wizardweb-grid-prepare.sh SCENARIO=wizardweb-grid-scenario.sh tests/Packaging/run` runs the preparation script in a container, keeps it as an image named after what it was made of (the script, `scenario-lib.sh`, the Containerfile, the core package; `REPREPARE=1` makes it again), and starts every run from that image: the scenario then only installs the packages of the tools, the ones that change. The first run takes as long as before, the next ones a few minutes less. The scenario still works without it (it prepares itself). Every container of the tests goes to the `CONTAINER_CONNECTION` of `tests/.env` (the machine that has the CPU), through `tests/bootstrap.sh`, which every script that starts one sources and which bashunit sources too; nothing in the tests names a machine. The whole Pest suites run there with `tests/Packaging/distro-pest` (the four projects, about thirty seconds, against several minutes in the container of a Mac); a single test file can be run locally with `vendor/bin/pest tests/Unit/NewGridTest.php` while iterating. Never two Pest runs at once.
-
-`SCENARIO=web-scenario.sh tests/Packaging/run` serves the site of a grid with real nginx, Apache and Caddy, each with the example the setup writes for it; `scenario-lib.sh` has the checks the scenarios share. The packages of the helpers, the engine and rest-php are taken from the `dist` folders of their projects (`DEPS_HELPERS`, `DEPS_ENGINE` and `DEPS_REST` say where else they are): build them first.
-
-`tests/Packaging/standalone-check.sh` makes a standalone with the engine alone (no package: the core of the kit and the engine are sent to the container as a tar stream), starts its simulator and checks what it answers: the grid, the sign-in of its owner, a second simulator refused. `ENGINE=<folder>` says where the engine is, `LOG=<file>` keeps the output.
-
-`STOP_AFTER=search tests/Packaging/run` stops the scenario after the search tests (`search-scenario.sh`), on the grid it has made: Robust, a simulator, the accounts of a list, the helpers of the package behind a web server. The searches are what the OpenSimSearch module of a simulator asks `query.php`: the same XML-RPC calls, with the keys it sends (`tests/Packaging/search/search-module-contract.php`, from its source, checked by `tests/Unit/SearchModuleContractTest.php`) and the answers read the way it reads them. A simulator that only tells its snapshot (`search/simulator-fake.php`, with the files `collector-*.xml` in the format OpenSimulator writes) registers to `register.php`, and the tables and the searches are checked (places, popular places, land for sale, events, classifieds, a second snapshot, unregistering); events, classifieds and 120 parcels for the pages are put in the tables by `search/search-tables-fixture.sql`. The real simulator of the grid registers too, and the search of people is the call of the core to the user accounts of Robust. What the viewer sends to the simulator (UDP) and the publication of events and classifieds are not tested: the first is OpenSimulator's, the others are not done by the helpers.
-
-The files of `tests/Packaging` end with their kind of use, and no two files of the project share a name: `-scenario.sh` (a section of the package scenario, `STOP_AFTER=<name>` stops after it), `-lib` (shared code), `-image.Containerfile` (the image the scenarios run in), `-driver` (runs a wizard with scripted answers), `-check` (makes calls and prints the checks), `-probe` (reads a result for a scenario), `-fake` (stands for a service: a simulator, a calendar, a mail box), `-fixture` (data put in the tables or served), `-contract` (what a protocol sends and reads).
-
-`tests/Packaging/check` is the quick one, without systemd: the tools install with those three packages and the command runs, the zip is used without composer. What a test container needs is sent to it as a tar stream, so it can run on the podman of another machine: `CONTAINER_CONNECTION=name` (a `podman system connection`), and `MEMORY=`, can be set in `tests/.env` (see `tests/.env.example`), read after the `.env` of the project (bash-tools `read_env`: what the files set wins over the environment of the command).
-
-`tests/Packaging/distro-pest` runs the Pest suites of the kit and of its libraries with the PHP of a distribution and only the extensions the packages depend on (`tests/Packaging/distro-pest docker.io/library/ubuntu:24.04` for another one): this is what checks that the PHP minimum and the dependencies of the packages are the real ones. `tests/Packaging/container-image` checks the container image.
-
-To run only what a change needs, on the machine that has the CPU (`CONTAINER_CONNECTION` of `tests/.env`), and not on the one you work on: `PROJECTS` are the trees sent (a project and the libraries it needs by path), `RUN` the projects whose suite runs, `PEST_ARGS` what is given to pest.
-
-```bash
-PROJECTS="opensim-rest-php opensim-engine" RUN=opensim-engine PEST_ARGS="--filter=EstateTest" tests/Packaging/distro-pest
+dev/build.sh deb opensim-kit && tests/Packaging/kit-check
+DEPS=../w4os-site/dist tests/Packaging/kit-check docker.io/library/ubuntu:26.04
 ```
 
 ## References
