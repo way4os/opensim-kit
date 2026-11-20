@@ -24,7 +24,8 @@ chmod +x kickstart.sh
 sudo ./kickstart.sh --setup
 ```
 
-`./kickstart.sh --help` lists its options (`--testing` the test builds, `--tools` the command line and the engine alone).
+`./kickstart.sh --help` lists its options. The test builds come with the installer of the development branch:
+`https://w4os.org/kickstart-dev.sh`, then `sudo ./kickstart-dev.sh --testing` (`--tools` for the command line and the engine alone).
 
 **From the packages** (Debian, Ubuntu):
 
