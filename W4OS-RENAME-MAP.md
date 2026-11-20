@@ -64,4 +64,5 @@ replacement.
   on the new name, in charm, dropped after one release. `Replaces`/`Breaks` on the new packages.
 - The suite config moved with `dpkg-maintscript-helper mv_conffile` (or an equivalent the engine checks).
 - One commit per project, pages, tests and docs in the same change; no compatibility aliases for unpublished code.
+- A profile README for way4os (repository `way4os/.github`, `profile/README.md`): what w4os is, its projects, where to start.
 - Then the live tests, including the upgrade from the packages published on charm stable (beta.4) to the renamed ones.
