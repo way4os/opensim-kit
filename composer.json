@@ -37,7 +37,7 @@
         "pestphp/pest": "^3.0",
         "phpcompatibility/php-compatibility": "dev-develop",
         "squizlabs/php_codesniffer": "^4.0",
-        "magicoli/build-tools": "^0.1.4"
+        "magicoli/build-tools": "^0.2.0"
     },
     "repositories": [
         {
