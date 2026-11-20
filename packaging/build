@@ -2,11 +2,6 @@
 # Prepares the files of the packages to build, given by name (default: all).
 # Run by apt-package from the repository root.
 #
-# opensim-tools: build/opensim-tools, the tools as committed (HEAD), without
-#   what they do not distribute (.distignore), with their PHP dependencies, but
-#   not the development ones (build-tools stage): bash-tools and the projects of
-#   packaging/siblings come from their packages. The working copy is left
-#   untouched.
 # opensim-core, opensim, opensim-kit: the OpenSimulator release of
 #   packaging/opensim-core.versions, the last one or OPENSIM_VERSION; for
 #   opensim-core, build/opensim-core from its tarball, downloaded into cache/downloads/
@@ -59,10 +54,6 @@ distribution() {
 
 mkdir -p build
 vendor/bin/build-tools version >build/packaging.env
-
-if wants opensim-tools; then
-    packaging/tools build/opensim-tools deb
-fi
 
 # The native libraries of the distribution are for amd64 and arm64
 if wants opensim-core opensim-unstable; then

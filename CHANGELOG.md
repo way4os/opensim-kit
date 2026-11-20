@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (packaging): opensim-kit installs opensim-cli and the website of a grid (w4os-site); opensim-tools and opensim-web are no longer built
 - fix (packaging): opensim-tools depends on the release of the engine that has what it calls (3.0.0-beta.7), not on a build of development (3.0.0~beta.6.290), which build-tools refuses now
 - fix (packaging): opensim-kit depends on opensim-cli, the approach after opensim-tools (opensim-cli conflicts with it: a server that has opensim-tools keeps it with the packages of its generation); the releases suggest it
 - update: `setup.sh` shows the questions of the setup with `dialog`, or with plain prompts

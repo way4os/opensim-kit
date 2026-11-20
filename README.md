@@ -30,6 +30,19 @@ sudo opensim install-dotnet -y
 opensim setup
 ```
 
+`opensim-kit` installs:
+
+| Package                                     | What it is                                                              |
+| ------------------------------------------- | ----------------------------------------------------------------------- |
+| `opensim-cli`                               | the `opensim` command and its service                                   |
+| `opensim-engine`                            | the rules and the work behind it, with `opensim-rest-php`               |
+| `w4os-site`                                 | the website of a grid, with the helpers (`w4os-site setup`, then `web`) |
+| `opensim`                                   | the latest OpenSimulator release                                        |
+| `opensim-<version>-opensimsearch`, `-gloebit` | its essential modules, enabled once                                     |
+| `default-mysql-server`                      | the database server                                                     |
+
+A server with the generation before (`opensim-tools`, `opensim-web`): `sudo apt full-upgrade` replaces `opensim-tools` with `opensim-cli`; `opensim-web` stays until the site of `w4os-site` is set up, then `sudo apt purge opensim-web`.
+
 **With one command** (Debian, Ubuntu): the script adds the repository, installs the packages and the .NET runtime, then starts the setup.
 
 ```bash

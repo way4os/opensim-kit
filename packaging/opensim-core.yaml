@@ -16,12 +16,12 @@ description: |-
   OpenSimulator ${OPENSIM_VERSION}, 3D virtual world server
   The official OpenSimulator ${OPENSIM_VERSION} release. Several releases can
   be installed side by side, each in /usr/share/opensim/<version>. The
-  opensim-tools package runs them with the files at the standard places.
+  opensim-cli package runs them with the files at the standard places.
 homepage: http://opensimulator.org
 license: BSD-3-Clause
 
 # Ubuntu has the runtime; Debian needs Microsoft's repository, or
-# opensim install-dotnet (opensim-tools)
+# opensim install-dotnet (opensim-cli)
 # OpenSim and Robust cannot run without a database: at least one engine they
 # support, on this machine or reachable from it. MySQL/MariaDB and PostgreSQL
 # serve both; SQLite serves the regions only (its library, for the

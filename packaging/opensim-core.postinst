@@ -1,6 +1,6 @@
 #!/bin/sh
 # postinst of the opensim-<version> packages: tells how to install the .NET
-# runtime when it is missing. opensim-tools, when installed, adds the install
+# runtime when it is missing. opensim-engine, when installed, adds the install
 # profile of the release.
 set -e
 

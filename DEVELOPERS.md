@@ -9,7 +9,7 @@ It uses libraries `opensim-helpers`, `opensim-engine`, and `opensim-rest-php`. E
 - **opensim-rest-php** uses no external dependencies. It provides a generic REST console API.
 - **opensim-engine** provides the OpenSim engine and grid low-level management logic. It uses `opensim-rest-php`.
 - **opensim-helpers** provides the web tools to communicate with the bridge from the viewer (query, currency...) or a browsser (web search, guide...). It relies on `opensim-engine` and `opensim-rest-php`.
-- **opensim-kit** provides the whole environment setup and management. It uses own code and `opensim-helpers` (and therefore `opensim-engine` and `opensim-rest-php`).
+- **opensim-kit** installs the whole environment: the command line (`opensim-cli`), the website of a grid (`w4os-site`, which carries `opensim-helpers`), and the OpenSimulator releases and modules it packages.
 - **w4os WordPress plugin** is another implementation to provide management and web interface, that uses `opensim-helpers`.
 
 Where code and files go, and how the current layout is to move there, is in [REFACTORING.md](REFACTORING.md). New code is written at the place it describes.
@@ -46,15 +46,15 @@ The packages are built with [nfpm](https://nfpm.goreleaser.com) and published to
 
 | Package                   | Definition              | Version                          | Content                                                                                                         |
 | ------------------------- | ----------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `opensim-tools`           | `opensim-tools.yaml`    | git tag of this repository       | the tools, in `/usr/share/opensim-tools`, the `opensim` command, the service                                    |
 | `opensim-<version>`       | `opensim-core.yaml`     | OpenSimulator release + revision | an OpenSimulator release, in `/usr/share/opensim/<version>`, for amd64 and arm64                                |
 | `opensim`                 | `opensim.yaml`          | same as the latest release       | metapackage, the latest release                                                                                 |
-| `opensim-kit`             | `opensim-kit.yaml`      | git tag of this repository       | metapackage, the tools and the latest release                                                                   |
-| `opensim-web`             | `opensim-web.yaml`      | git tag of this repository       | the placeholder site of a grid, in `/usr/share/opensim-web/html` (`share/web`)                                  |
+| `opensim-kit`             | `opensim-kit.yaml`      | git tag of this repository       | metapackage, `opensim-cli`, `w4os-site`, the latest release, its essential modules and a database server        |
 | `opensim-unstable`        | `opensim-unstable.yaml` | source version, date and commit  | OpenSimulator built from the `upstream/opensim` submodule, in `/usr/share/opensim/unstable`                     |
 | `opensim-<core>-<module>` | `opensim-<module>.yaml` | module version + revision        | a module for a release or `unstable`, in `/usr/share/opensim-modules/<core>/<module>`, not loaded until enabled |
 
-`opensim-helpers`, `opensim-engine` and `opensim-rest-php` are built and packaged by their own projects (`dev/build.sh` in each one): `opensim-tools` depends on them, and its `vendor/magicoli/` folder has links to their folders in `/usr/share` instead of copies (`packaging/siblings`). The tools and the releases install without each other. `opensim-tools` adds an install profile for each release in `/usr/share/opensim`, and removes it with the release, through a dpkg trigger.
+The command line (`opensim-cli`), the engine (`opensim-engine`, with `opensim-rest-php`) and the website of a grid (`w4os-site`, which carries the helpers) are built and packaged by their own projects. `opensim-kit` depends on them; the releases install without them. `opensim-engine` makes the system layout and adds an install profile for each release in `/usr/share/opensim`, and removes it with the release, through a dpkg trigger; the postinst of `opensim-kit` enables its essential modules once.
+
+`opensim-tools` and `opensim-web`, the generation before, are no longer built. `opensim-cli` conflicts with and replaces `opensim-tools`: installing the new `opensim-kit` removes it (`apt full-upgrade`, or `apt install opensim-kit`). `opensim-web` has no successor of the same files (the site of `w4os-site` is in `/var/lib/opensim/www`, not in `/var/www/html`): a server that has it keeps it, with `opensim-helpers`, until the site of `w4os-site` is set up (`w4os-site setup`, `w4os-site web`); then `apt purge opensim-web`.
 
 The modules are installed in their own folders, as some fail when loaded without their config: installing one does not enable it. They only suggest their core, so a build made elsewhere can use them and removing a core keeps them. `opensim-kit` installs the handful of essential modules for the latest release; the others are only in the repository. Third-party terms are in `contrib/README.md`, `modules/README.md` and in the `copyright` file of each module package.
 
@@ -66,7 +66,7 @@ The version of the tools and of the metapackages is the version tag when the bui
 
 ```bash
 dev/build.sh                                 # every package and the zip of the tools, into dist/
-dev/build.sh deb opensim-tools               # only this package
+dev/build.sh deb opensim-kit                 # only this package
 dev/build.sh zip                             # dist/opensim-kit-<version>.zip, the tools with their vendor folder
 vendor/bin/apt-package --publish      # publish, on a version tag of this repository
 vendor/bin/apt-package --publish opensim-core opensim   # a new release, without a tag
@@ -78,16 +78,14 @@ Publishing skips the packages whose version is already in the repository, so the
 
 `packaging/build` runs first and prepares only the packages asked for:
 
-- `opensim-tools`: `build/opensim-tools` from the committed tree (`packaging/tools`), with the PHP dependencies (`composer install --no-dev`), without what `.distignore` lists, and without the projects of `packaging/siblings`, which come from their packages. Uncommitted changes are not packaged.
 - `opensim-core`, `opensim`: the release of `packaging/opensim-core.versions`, the last one or `OPENSIM_VERSION`, e.g. `OPENSIM_VERSION=0.9.3.0 vendor/bin/apt-package opensim-core`. Its tarball is downloaded into `cache/downloads/` and checked against its SHA256.
 
-- `opensim-web`: `share/web` as it is.
 - `opensim-unstable`: OpenSimulator built from the commit of the `upstream/opensim` submodule (a shallow clone of the upstream repository, `master`), in a .NET SDK container (podman, or `CONTAINER=docker`). Each commit is built once, into `build/cache/`. With `BUILD_HOST=name` in `.env` (an ssh host with git, podman and rsync, see `.env.example`) the build runs on that machine instead, in the same container, so its system does not matter: it keeps a clone of the repository and the NuGet packages in `~/.cache/opensim-kit`, always builds from the files of the commit, and only what the package needs (`bin/` and the documents) comes back. The build is much faster there than in the podman machine of a laptop. Update it with `git submodule update --remote upstream/opensim`.
 - `opensim-<module>`: the files listed for the module in `packaging/opensim-modules.versions`, for the release of `opensim-core`, or the core of `MODULES_CORE` (a release or `unstable`), e.g. `MODULES_CORE=unstable vendor/bin/apt-package opensim-gloebit`. The files downloaded go to `cache/downloads/`, checked against their SHA256. The packages are named after the modules.
 
 A new OpenSimulator release is added at the end of `packaging/opensim-core.versions`, with its checksum. A published package is never changed: a packaging change of a published release gets the next revision in that file, as for the modules in `packaging/opensim-modules.versions`.
 
-The maintainer scripts of `opensim-tools` create the `opensim` account and the folders of the system layout, write the default `/etc/opensim/opensim.conf` when missing, and handle the `opensim` service like `dh_installsystemd`: enabled on first install, stopped with the instances on removal, never restarted by upgrades.
+The `opensim` account, the folders of the system layout and `/etc/opensim/opensim.conf` are made by `opensim-engine`; the `opensim` service is `opensim-cli`'s.
 
 The tools themselves are PHP: no bash script runs a command, and the packages do not need [bash-tools](https://github.com/magicoli/bash-tools). The scripts of `dev/`, `packaging/` and `tests/Packaging` use its helpers, from composer's copy in a git checkout (`composer install`, a development dependency). During development, composer links the local `../bash-tools` checkout when there is one (path repository, `dev-dev`): switch to a released version before a release (and back to `dev-dev` with the path repository after it).
 
