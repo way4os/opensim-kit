@@ -1,6 +1,6 @@
 # The w4os rename map
 
-The suite is **w4os, "Ways for OpenSim"** (decided 2026-11-20). Projects tied to the w4os environment take the w4os name; what
+The suite is **w4os, "Way for OpenSim"** (decided 2026-11-20). Projects tied to the w4os environment take the w4os name; what
 installs or derives from OpenSimulator itself keeps "opensim". The rename comes after the tests under way and before the public
 release, in one block, with transitional packages for every name already published.
 
