@@ -4,7 +4,7 @@ The suite is **w4os, "Way for OpenSim"** (decided 2026-11-20). Projects tied to 
 installs or derives from OpenSimulator itself keeps "opensim". The rename comes after the tests under way and before the public
 release, in one block, with transitional packages for every name already published.
 
-Decided items are marked ✅, open ones ❓ with a proposal.
+Decided items are marked ✅ (all decided on 2026-11-20).
 
 ## Packages, repositories, Composer
 
@@ -17,8 +17,8 @@ Decided items are marked ✅, open ones ❓ with a proposal.
 | grav-plugin-w4os | unchanged | ✅ |
 | w4os-views | unchanged | ✅ |
 | opensim-kit, opensim, opensim-core, opensim-0.9.3.0-*, opensim-unstable | unchanged: the kit installs OpenSimulator and the tools around it (w4os, Gloebit, the search module…) | ✅ |
-| opensim-cli (deb, magicoli/opensim-cli, GitHub GuduleLapointe/opensim-cli) | ❓ w4os-cli, proposed: the w4os tooling, while its command stays `opensim` | ❓ |
-| opensim-rest-php (deb, magicoli/opensim-rest-php, command opensim-rest-cli) | ❓ unchanged, proposed: a client of OpenSimulator's REST console, usable without w4os | ❓ |
+| opensim-cli (deb, magicoli/opensim-cli, GitHub GuduleLapointe/opensim-cli) | w4os-cli; its command stays `opensim` | ✅ |
+| opensim-rest-php (deb, magicoli/opensim-rest-php, command opensim-rest-cli) | unchanged: a generic client of OpenSimulator's REST console, with or without w4os | ✅ |
 
 GitHub organisation: **way4os** (w4os is taken by an inactive account; way4os also teaches the pronunciation, "way-four-OS"),
 full repository names inside (github.com/way4os/w4os-engine, way4os/opensim-kit…), Composer vendor `w4os/` (free on Packagist). ✅
@@ -31,10 +31,10 @@ replacement.
 | Now | After | Status |
 | --- | --- | --- |
 | `opensim` | unchanged | ✅ |
-| `w4os` alias of `opensim` | ❓ not now, proposed: wait for complaints, and keep `w4os` free | ❓ |
+| `w4os` alias of `opensim` | not now: wait for complaints, keep `w4os` free | ✅ |
 | `w4os-site` | unchanged | ✅ |
-| `opensim-rest-cli` | follows opensim-rest-php | ❓ |
-| `opensim-api` (the engine's API command) | ❓ w4os-api, proposed: it is the engine's | ❓ |
+| `opensim-rest-cli` | unchanged, with opensim-rest-php | ✅ |
+| `opensim-api` (the engine's API command) | w4os-api | ✅ |
 
 ## Paths, services, accounts
 
@@ -44,18 +44,18 @@ replacement.
 | /etc/opensim (grids, robust.d, opensim.d, presets: OpenSimulator's ini) | unchanged | ✅ |
 | /usr/share/opensim-engine, /usr/share/opensim-helpers | follow their packages (/usr/share/w4os-engine, /usr/share/w4os-helpers) | ✅ |
 | /var/lib/opensim (OpenSimulator data), /var/log/opensim, /var/cache/opensim | unchanged | ✅ |
-| /var/lib/opensim/www (the w4os site) | ❓ /var/lib/w4os-site, proposed: the site is not OpenSimulator data | ❓ |
+| /var/lib/opensim/www (the w4os site) | /var/lib/w4os/www | ✅ |
 | system account `opensim` | unchanged: it runs OpenSimulator | ✅ |
 | opensim.service (the instances) | unchanged | ✅ |
-| the engine API service and socket (opensim-api) | ❓ w4os-api, proposed, with the command | ❓ |
+| the engine API service and socket (opensim-api) | w4os-api, with the command | ✅ |
 
 ## PHP namespaces
 
 | Now | After | Status |
 | --- | --- | --- |
-| engine `OpenSim\` | ❓ `W4os\Engine\`, proposed | ❓ |
-| helpers `OpenSim\Helpers\` | ❓ `W4os\Helpers\`, proposed | ❓ |
-| Grav plugin `W4os\Grav\`, w4os-views `W4OS\Views\` | ❓ one casing, `W4os\` (PSR style), proposed: `W4os\Views\` | ❓ |
+| engine `OpenSim\` | `W4OS\Engine\` | ✅ |
+| helpers `OpenSim\Helpers\` | `W4OS\Helpers\` | ✅ |
+| Grav plugin `W4os\Grav\`, w4os-views `W4OS\Views\` | one casing, `W4OS\` (an acronym, as PSR allows): `W4OS\Grav\`, `W4OS\Views\` | ✅ |
 | opensim-kit `OpenSimKit\` | unchanged with the kit | ✅ |
 
 ## How the rename is done
