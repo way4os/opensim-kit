@@ -170,7 +170,9 @@ route). Left for the beta:
 1. **Olivier's review of the new pages** on ursull, then the page by page comparison with w4os.org's `3.x` branch
    ([W4OS-ADMIN-COMPARISON.md](W4OS-ADMIN-COMPARISON.md)).
 2. **A live test** on a disposable v3 simulator connected to Speculoos (Sandbox, never Grand Place), Gloebit purchases included.
-3. **The release**: versions, changelogs, packages and zips.
+3. **The rename to w4os** ("Ways for OpenSim", decided 2026-11-20): packages and projects, once the tests under way are conclusive, before
+   the public release. Not during the tests.
+4. **The release**: versions, changelogs, packages and zips.
 
 After the beta: the connections through the console of Robust (E, if time allows), bulk actions and the bases of the helpers and
 assets as routes (P, low), the installation wizard (not a priority), the WP bridge (its column), a cache of the settings
