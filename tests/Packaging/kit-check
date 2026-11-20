@@ -26,7 +26,7 @@ FAILED=
 ok() { echo "OK   $*"; }
 ko() { echo "FAIL $*"; FAILED=1; }
 check() { local what=$1; shift; if "$@" >/dev/null 2>&1; then ok "$what"; else ko "$what"; fi; }
-mkdir -p /debs && tar -xf - -C /debs
+mkdir -p /debs && tar -xf - -C /debs && chmod -R a+rX /debs
 apt-get update -qq && apt-get install -y -qq curl gpg ca-certificates dpkg-dev >/dev/null
 curl -fsSL https://apt.magiiic.com/magiiic-packaging.asc | gpg --dearmor -o /usr/share/keyrings/magiiic-packaging.gpg
 release() { echo "deb [signed-by=/usr/share/keyrings/magiiic-packaging.gpg] https://apt.magiiic.com charm stable" >/etc/apt/sources.list.d/charm.list; }
