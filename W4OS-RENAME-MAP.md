@@ -20,6 +20,9 @@ Decided items are marked ✅, open ones ❓ with a proposal.
 | opensim-cli (deb, magicoli/opensim-cli, GitHub GuduleLapointe/opensim-cli) | ❓ w4os-cli, proposed: the w4os tooling, while its command stays `opensim` | ❓ |
 | opensim-rest-php (deb, magicoli/opensim-rest-php, command opensim-rest-cli) | ❓ unchanged, proposed: a client of OpenSimulator's REST console, usable without w4os | ❓ |
 
+GitHub organisation: **way4os** (w4os is taken by an inactive account; way4os also teaches the pronunciation, "way-four-OS"),
+full repository names inside (github.com/way4os/w4os-engine, way4os/opensim-kit…), Composer vendor `w4os/` (free on Packagist). ✅
+
 GitHub keeps redirecting a renamed repository's old URLs; Packagist gets the new name and the old one marked abandoned with its
 replacement.
 
