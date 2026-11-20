@@ -13,30 +13,40 @@ feature of before is missed: the old code stays readable in git.
 
 ## Summary
 
-### Gaps of the new set (to fix, whatever else is decided)
+### Gaps of the new set: fixed on 2026-11-20
 
-- **MoneyServer.ini unreadable by the web server:** the engine writes it 0640 with the group of its writer, opensim
-  (`eng:src/Provisioning/MoneyServerConfig.php:71`); opensim-tools made every ini of a grid `www-data`, 0640, at each upgrade
-  (`146b947:packaging/opensim-tools.postinst:35-40`). Upgrades no longer protect the files of the existing grids either.
-- **Dependencies:** `screen` and `procps` are needed (`eng:src/Runtime/SystemLauncher.php:38`, the `ps` table), but no package
-  depends on them now (they were dependencies of opensim-tools); only kickstart installs screen.
-- **Environment across `sudo -u`:** `OPENSIM_IAR_PASSWORD`, `DEBUG` and `OPENSIM_CONF` are not in `PRESERVE_ENV`
-  (`cli:bin/opensim:45`). `-v` and `-q` are read by bash-helpers and never reach the engine.
-- **`save iar -h URL`** is read as `--help`; `save iar -v` is taken by bash-helpers.
-- **`opensim api`** is not a command of the CLI (`cli:bin/opensim:8`), yet `cli:libexec/import:75`, `cli:libexec/restore:8` and
-  `cli:README.md:91` tell to run it; the engine's `bin/opensim-api.php` is not on the PATH.
-- **Engine preset `webroot-website`** still names the package opensim-web and `/usr/share/opensim-web/html`
-  (`eng:share/presets/webroot-website/option.conf:3-13`).
-- **kickstart.sh** keeps a `start_setup` that sources a `setup-frontend.sh` that no longer exists (`cli:kickstart.sh:483-502`,
-  unused).
-- **Builds:** `cli:packaging/siblings:6` has rest-php commented out while the yaml links its folder; the engine preinst does
-  not cover its container-tools link.
-- **Purge:** `/var/cache/opensim` and the `dpkg-statoverride` entries of the layout stay
-  (`146b947:packaging/opensim-tools.postrm:23-32`); dpkg no longer owns the layout folders.
-- **Docs of the packages:** no `copyright` nor `README.Debian` in the new packages.
-- **MySQL `lower_case_table_names=1`** (`share/mysql/conf.d/lowercase.cnf`) is set nowhere.
+Verified on ursull (Debian 13, the packages of these commits installed, upgraded, reinstalled and purged; the suites of the engine
+and of the CLI):
+
+- **The ini files of a grid** are 640 for the group of the web server again at each install or upgrade, MoneyServer.ini too
+  (engine `27c262b`: `GridFileService`, `GridCompletion`, `MoneyServerConfig`).
+- **screen and procps** are dependencies of opensim-engine, which runs the instances (engine `27c262b`).
+- **Through `sudo -u`**: `OPENSIM_IAR_PASSWORD`, `OPENSIM_CONF`, `DEBUG` and `QUIET` are kept; `-v` and `-q` reach the engine
+  (`QUIET` leaves the errors only) (cli `7fa8f24`).
+- **The options after a command are its own**: `opensim save iar -h URL -v` (only `--help`, or `-h` right after the command,
+  is the help) (cli `7fa8f24`).
+- **`opensim api [METHOD] PATH [name=value...]`** is a command of the CLI, as the CLI and its README said (cli `7fa8f24`).
+- **The preset `webroot-website`** is the site of w4os-site, in `/var/lib/opensim/www` (engine `27c262b`).
+- **kickstart.sh**: its dead `start_setup` is gone (cli `7fa8f24`).
+- **Builds**: rest-php comes from its package in the CLI (`packaging/siblings`); the preinst of the engine replaces an old
+  container-tools folder by its link (cli `7fa8f24`, engine `27c262b`).
+- **Purge** of opensim-engine removes `/var/cache/opensim` and the owners of the layout (dpkg-statoverride); config, data,
+  logs, backups and the account are kept (engine `27c262b`).
+- **copyright** in opensim-engine (with a README.Debian), opensim-cli, opensim-helpers (`a33a609`), opensim-rest-php
+  (`bd76918`) and w4os-site (`603963b`, Grav and its plugins MIT, Font Awesome Free apart).
+- **MySQL `lower_case_table_names=1`**: not needed. opensim-tools never applied it (`share/mysql/conf.d/lowercase.cnf` was
+  shipped, never used), and the SQL of the engine and of the helpers names the tables as OpenSimulator makes them
+  (UserAccounts, GridUser, Presence, regions...), which a case-sensitive server takes as they are.
 
 ### Features not ported (Olivier decides which ones get ported, to the engine or the CLI)
+
+Olivier's choices (2026-11-20). For 3.0: the import of a Robust.ini (the same grid, migrated first, then managed in place), the
+accounts import, a watchdog that keeps the grid and the simulators online, `--version` on every executable (`opensim` listing the
+versions of everything that matters), the notices that a grid or simulator restart is required, `opensim oar
+pack|info|check|unpack`, the bash completion kept with the CLI, a podman/docker README of suggestions (no image yet). Not now:
+`opensim command` (`opensim rest`, the shortcuts and `opensim console` do it), changing an existing grid, simulator or region
+from the setup (the setup is for the first install; then the admin UI), the setup in a browser (3.0 if time allows, else 3.1 or
+3.2).
 
 Commands:
 - `opensim command INSTANCE TEXT|-`: lines to a console, from stdin, through screen when there is no REST console
