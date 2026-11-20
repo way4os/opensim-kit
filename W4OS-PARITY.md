@@ -163,15 +163,14 @@ Grav).
 
 Checked again 2026-11-19 against charm-dev: engine 8d0d7a7, helpers 8cafe24, grav-plugin-w4os 2c3c2e3, w4os-views 44b25a8. Done since:
 the services settings pages and the Flux admin list in the plugin, the dashboard notice, the popular places options; in the engine,
-the five pages ported from w4os-wp v2, who handles a service (`meta.service`), the texts of the lists. Left for the beta:
+the five pages ported from w4os-wp v2, who handles a service (`meta.service`), the texts of the lists. Done on 2026-11-20: the four items once left (services pages, routing, search tasks, Olivier's five choices), then his admin
+review (database labels, examples in the form column, registers list, Grid and Avatar settings, the simulator page, web assets
+route). Left for the beta:
 
-1. **The services pages as the engine gives them now** (P, w4os-views): Provide (a switch), the path under the site (`path`, `base`
-   site), the notes (`note`), the help in points (`description` a list), the ini lines (`meta.snippets`).
-2. **Routing by who handles a service** (P): `meta.service.handledBy`, the helpers under their base, the site's page with its block
-   elsewhere (the health checks it, `data-helpers-block`).
-3. **The search tasks** (P): last run, run now (`listTasks`, `runTask`), beside the search settings.
-4. **Five choices of Olivier** on the services pages (E): Provide's default, what off shows, the path, the economy provider, the
-   economy database; each a small commit once decided.
+1. **Olivier's review of the new pages** on ursull, then the page by page comparison with w4os.org's `3.x` branch
+   ([W4OS-ADMIN-COMPARISON.md](W4OS-ADMIN-COMPARISON.md)).
+2. **A live test** on a disposable v3 simulator connected to Speculoos (Sandbox, never Grand Place), Gloebit purchases included.
+3. **The release**: versions, changelogs, packages and zips.
 
 After the beta: the connections through the console of Robust (E, if time allows), bulk actions and the bases of the helpers and
 assets as routes (P, low), the installation wizard (not a priority), the WP bridge (its column), a cache of the settings
