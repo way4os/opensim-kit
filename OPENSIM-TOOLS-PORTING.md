@@ -103,6 +103,29 @@ Tests (`tests/Packaging`), with nothing equivalent in the new projects:
   through a script, the container image, nginx and Apache serving the helpers for real. The other scenarios (grid, simulator,
   search, offline, economy, ban, standalone, pages) are unit tests now, without a real core nor a database.
 
+### The other scripts of the old install (outside the first audit)
+
+At `de51268` too, gone with the code of opensim-tools:
+
+- `install/install.php`: the entry of the old setup, replaced by `opensim setup`.
+- `install/*.Tweaks.ini` (GridCommon, OpenSim, Robust): settings laid over the examples of the core (the PID files and the
+  registry in the cache and data roots, the console prompt, the Hypergrid URIs from BaseURL): now the presets of the engine
+  (`share/presets`, robust, master).
+- `install/build-version.sh`: the version of a build from git, now build-tools (`build-tools version`).
+- `install/iar2library`, `install/inv2library`: a library of the inventory (the one every avatar sees) made from an IAR or from an
+  inventory. **Not ported.**
+- `install/experimental-convert-fsassets-8to9`: the FSAssets folders of OpenSimulator 0.8 renamed for 0.9. Not ported, obsolete.
+- `install/experimentalDeleteAvatar`: the deletion of a test avatar, in the database. **Not ported**: the engine has no deletion
+  of an avatar.
+- `install/transfer-remote-simulator.sh`: a simulator of another server copied to this one, over ssh. Partly: `opensim import
+  --simulator` and `opensim backup --simulator` take a simulator whose files are on this machine; the copy from the other server
+  is not done.
+- `deploy.yaml`, `deploy/` (Deployer): the code of opensim-debian deployed on the servers, the configs of the grids pushed from a
+  private repository, simulators enabled or disabled over ssh. The packages replace the deployment of the code; the push of the
+  configs from a repository is **not ported**; enabling over ssh is `ssh host opensim enable ...`.
+- `web/router.php`: the router of the setup in a browser, with `src/Web` (not ported, the browser wizard is for 3.1 or 3.2).
+- `etc/`, `var/`, `core/`: the folders of the bundled layout, made by the system layout of the engine now.
+
 ### Left out on purpose
 
 The new set does these otherwise, nothing to port: the list of releases of opensimulator.org and the download of their tarballs
