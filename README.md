@@ -3,20 +3,30 @@
 ![Stable](https://img.shields.io/github/release/GuduleLapointe/opensim-debian?label=stable&color=green&include_prerelease)
 ![GitHub Tag](https://img.shields.io/github/tag/GuduleLapointe/opensim-debian?label=latest&include_prereleases)
 ![GitHub commits since latest release](https://img.shields.io/github/commits-since/GuduleLapointe/opensim-debian/latest?label=dev)
-![PHP](https://img.shields.io/badge/PHP-8.2+-7884bf)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-552b55)](LICENSE)
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/GuduleLapointe/opensim-debian/total)
 [![Donate](https://img.shields.io/badge/-Donate-yellow)](https://magiiic.org/donate/)
 
-This is an framework to facilitate installation and use of OpenSim with Debian or other *nix flavors.
+The packages of OpenSimulator for Debian and Ubuntu, and `opensim-kit`, which installs the whole environment to create and run
+grids and regions: the `opensim` command, its engine, the website of a grid, the latest release of OpenSimulator and its
+essential modules.
 
 https://www.speculoos.world/opensim-debian-installation-framework/
 
 ## Installation
 
-Three ways, the same wizard at the end: `opensim setup` asks about your grid.
+**With the installer** of the command line ([opensim-cli](https://github.com/GuduleLapointe/opensim-cli)): it adds the
+repository, installs the packages, the database server and the .NET runtime, and can start the setup.
 
-**From the packages** (Debian, Ubuntu)
+```bash
+curl -fsSL -o kickstart.sh https://raw.githubusercontent.com/GuduleLapointe/opensim-cli/refs/heads/dev/kickstart.sh
+chmod +x kickstart.sh
+sudo ./kickstart.sh --setup
+```
+
+`./kickstart.sh --help` lists its options (`--testing` the test builds, `--tools` the command line and the engine alone).
+
+**From the packages** (Debian, Ubuntu):
 
 ```bash
 ## Add the Magiiic APT repository (once)
@@ -32,59 +42,18 @@ opensim setup
 
 `opensim-kit` installs:
 
-| Package                                     | What it is                                                              |
-| ------------------------------------------- | ----------------------------------------------------------------------- |
-| `opensim-cli`                               | the `opensim` command and its service                                   |
-| `opensim-engine`                            | the rules and the work behind it, with `opensim-rest-php`               |
-| `w4os-site`                                 | the website of a grid, with the helpers (`w4os-site setup`, then `web`) |
-| `opensim`                                   | the latest OpenSimulator release                                        |
+| Package                                       | What it is                                                              |
+| --------------------------------------------- | ----------------------------------------------------------------------- |
+| `opensim-cli`                                 | the `opensim` command and its service                                   |
+| `opensim-engine`                              | the rules and the work behind it, with `opensim-rest-php`               |
+| `w4os-site`                                   | the website of a grid, with the helpers (`w4os-site setup`, then `web`) |
+| `opensim`                                     | the latest OpenSimulator release                                        |
 | `opensim-<version>-opensimsearch`, `-gloebit` | its essential modules, enabled once                                     |
-| `default-mysql-server`                      | the database server                                                     |
+| `default-mysql-server`                        | the database server                                                     |
+
+What the `opensim` command does is in the README of [opensim-cli](https://github.com/GuduleLapointe/opensim-cli).
 
 A server with the generation before (`opensim-tools`, `opensim-web`): `sudo apt full-upgrade` replaces `opensim-tools` with `opensim-cli`; `opensim-web` stays until the site of `w4os-site` is set up, then `sudo apt purge opensim-web`. Until then, `sudo apt-mark manual opensim-web` keeps `apt autoremove` from taking it away with the helpers. Removing `opensim-tools` stops the instances: `sudo systemctl start opensim` after the upgrade.
-
-**With one command** (Debian, Ubuntu): the script adds the repository, installs the packages and the .NET runtime, then starts the setup.
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/GuduleLapointe/opensim-kit/refs/heads/master/setup.sh | sudo bash
-```
-
-**From a clone** (any system with PHP 8.2 or newer; on macOS with Homebrew): the tools run from the clone, their PHP libraries come from composer.
-
-```bash
-git clone https://github.com/GuduleLapointe/opensim-kit.git
-cd opensim-kit
-./setup.sh
-```
-
-`./setup.sh --help` lists its options (`-y` does not ask, `--no-setup` only prepares the machine).
-
-See [INSTALLATION.md](INSTALLATION.md) for more details and advanced installation options.
-
-- create basic directory structure, download OpenSim and other needed libraries
-- read Robust default configuration, ask a few questions and build a working configuration in etc/robust-d
-
-## Features
-
-`opensim start [target...]`
-
-- Without a target, start every enabled instance: the Robust of each grid (linked in etc/robust.d), then the simulators (linked in etc/opensim.d)
-- A target is a grid (`vonda`: its services, its Robust) or a simulator (`vonda.welcome`); the simulators do not need to restart with the Robust, `--simulators` adds the enabled simulators of the grid
-
-`opensim stop [now] [target...]`
-
-`opensim restart [now] [target...]`
-
-- Stop/Restart everything enabled or the targets; with `--simulators`, a grid stops its simulators first, then its Robust, and starts the other way round
-- If first parameter is "now", stops the simulator immediately, otherwise send reminders to leave during 2 minutes then stop
-
-`opensim enable|disable <grid> search|economy|profiles`
-
-- Write, or take out, the settings of a feature in the files of the grid: the in-world search, the economy (beta module or Gloebit), the profiles with their classifieds
-
-`opensim status`
-
-- Show active instances, per instance and global memory and cpu usage
 
 ## Main motivation
 

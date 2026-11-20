@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- remove: the code of opensim-tools (the PHP command line, its setup, its tests), setup.sh, INSTALLATION.md, the container image and the deb mode of the tools: the command line is opensim-cli, the setup and its installer too (kickstart.sh); what opensim-tools did and where it is now is in OPENSIM-TOOLS-PORTING.md
+- new (tests): tests/Packaging/kit-check, a fresh install of opensim-kit and the upgrade from the generation before, in a Debian container
 - fix (setup): the packages come from charm stable alone, the family of all the packages (main is gone)
 - doc: OPENSIM-TOOLS-PORTING.md, what opensim-tools does and where each feature is now, before its code goes
 - fix (setup): the packages come from charm stable and main stable (the address of before has no Release file); no terminal, no /dev/tty

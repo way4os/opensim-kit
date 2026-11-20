@@ -1,8 +1,0 @@
-# Exclude list for the 'web' module.
-# Only contrib/web/ and contrib/wordpress/ are deployed here.
-
-/*
-!/contrib/
-/contrib/*
-!/contrib/web/
-!/contrib/wordpress/

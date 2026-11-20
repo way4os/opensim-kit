@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# The packages of the kit in a Debian container (podman): a fresh install of opensim-kit from the repository (charm stable and
+# unstable, charm-tests dev) with the builds of dist/, and the upgrade of a server of the generation before (opensim-kit 3.0.0~beta.4
+# with opensim-tools and opensim-web, from charm stable) to them.
+#
+#   tests/Packaging/kit-check [IMAGE]          docker.io/library/debian:trixie by default
+#
+# DEPS=folder adds the packages of the family built elsewhere (opensim-cli, opensim-engine, w4os-site...). CONTAINER_CONNECTION
+# names the podman of another machine (podman system connection).
+
+set -euo pipefail
+cd "$(dirname "$0")/../.."
+image=${1:-docker.io/library/debian:trixie}
+ls dist/opensim-kit_*.deb >/dev/null 2>&1 || { echo "kit-check: build the kit first: dev/build.sh deb opensim-kit" >&2; exit 2; }
+podman=(podman ${CONTAINER_CONNECTION:+--connection "$CONTAINER_CONNECTION"})
+stage=$(mktemp -d)
+trap 'rm -rf "$stage"' EXIT
+cp dist/opensim-kit_*.deb "$stage/"
+[[ -z "${DEPS:-}" ]] || cp "$DEPS"/*.deb "$stage/"
+
+scenario() {
+	cat <<'SH'
+set -e
+export DEBIAN_FRONTEND=noninteractive LC_ALL=C
+FAILED=
+ok() { echo "OK   $*"; }
+ko() { echo "FAIL $*"; FAILED=1; }
+check() { local what=$1; shift; if "$@" >/dev/null 2>&1; then ok "$what"; else ko "$what"; fi; }
+mkdir -p /debs && tar -xf - -C /debs
+apt-get update -qq && apt-get install -y -qq curl gpg ca-certificates dpkg-dev >/dev/null
+curl -fsSL https://apt.magiiic.com/magiiic-packaging.asc | gpg --dearmor -o /usr/share/keyrings/magiiic-packaging.gpg
+release() { echo "deb [signed-by=/usr/share/keyrings/magiiic-packaging.gpg] https://apt.magiiic.com charm stable" >/etc/apt/sources.list.d/charm.list; }
+current() {
+	echo "deb [signed-by=/usr/share/keyrings/magiiic-packaging.gpg] https://apt.magiiic.com charm stable unstable" >/etc/apt/sources.list.d/charm.list
+	echo "deb [trusted=yes] https://apt.magiiic.com charm-tests dev" >/etc/apt/sources.list.d/charm-tests.list
+	(cd /debs && dpkg-scanpackages -m . >Packages 2>/dev/null)
+	echo "deb [trusted=yes] file:/debs ./" >/etc/apt/sources.list.d/local.list
+}
+new_generation() {
+	check "opensim-kit is the build of dist" sh -c "dpkg-query -W -f='\${Version}' opensim-kit | grep -q -F \"\$(dpkg-deb -f /debs/opensim-kit_*.deb Version)\""
+	for p in opensim-cli opensim-engine w4os-site; do
+		check "$p installed" sh -c "dpkg-query -W -f='\${db:Status-Abbrev}' $p | grep -q '^ii'"
+	done
+	check "opensim-tools not installed" sh -c "! dpkg-query -W -f='\${db:Status-Abbrev}' opensim-tools 2>/dev/null | grep -q '^ii'"
+	check "/usr/bin/opensim is opensim-cli's" sh -c "dpkg -S /usr/bin/opensim | grep -q '^opensim-cli:'"
+	check "opensim runs" opensim --help
+	check "the modules are enabled" sh -c "grep -q opensimsearch /etc/opensim/opensim.conf && grep -q gloebit /etc/opensim/opensim.conf"
+	check "opensim.service is enabled" test -L /etc/systemd/system/multi-user.target.wants/opensim.service
+}
+SH
+}
+
+fresh() {
+	scenario
+	cat <<'SH'
+current
+apt-get update -qq
+apt-get install -y -qq opensim-kit >/tmp/install.log 2>&1 || { tail -30 /tmp/install.log; exit 1; }
+new_generation
+[ -z "$FAILED" ] && echo "FRESH: all checks passed" || { echo "FRESH: failures"; exit 1; }
+SH
+}
+
+upgrade() {
+	scenario
+	cat <<'SH'
+release
+apt-get update -qq
+apt-get install -y -qq opensim-kit >/tmp/old.log 2>&1 || { tail -30 /tmp/old.log; exit 1; }
+check "before: opensim-tools installed" sh -c "dpkg-query -W -f='\${db:Status-Abbrev}' opensim-tools | grep -q '^ii'"
+install -d -o opensim -g opensim /etc/opensim/grids/demo
+echo '[Const]' >/etc/opensim/grids/demo/Robust.HG.ini
+current
+apt-get update -qq
+apt-get full-upgrade -y >/tmp/full.log 2>&1 || { tail -30 /tmp/full.log; exit 1; }
+new_generation
+check "the grid is kept" test -f /etc/opensim/grids/demo/Robust.HG.ini
+check "the site of opensim-web still serves" test -f /var/www/html/index.php
+[ -z "$FAILED" ] && echo "UPGRADE: all checks passed" || { echo "UPGRADE: failures"; exit 1; }
+SH
+}
+
+status=0
+for run in fresh upgrade; do
+	echo "=== $run ($image)"
+	tar -cf - -C "$stage" . | "${podman[@]}" run --rm -i --memory 2g "$image" bash -c "$($run)" || status=1
+done
+exit "$status"
