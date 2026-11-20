@@ -18,8 +18,7 @@ On Debian or Ubuntu, from the Magiiic apt repository (add it once):
 
 ```bash
 curl -fsSL https://apt.magiiic.com/magiiic-packaging.asc | sudo gpg --dearmor -o /usr/share/keyrings/magiiic-packaging.gpg
-printf '%s\n' "deb [signed-by=/usr/share/keyrings/magiiic-packaging.gpg] https://apt.magiiic.com charm stable" \
-  "deb [signed-by=/usr/share/keyrings/magiiic-packaging.gpg] https://apt.magiiic.com main stable" | sudo tee /etc/apt/sources.list.d/magiiic.list
+echo "deb [signed-by=/usr/share/keyrings/magiiic-packaging.gpg] https://apt.magiiic.com charm stable" | sudo tee /etc/apt/sources.list.d/magiiic.list
 sudo apt update
 sudo apt install opensim-kit      # the tools, the latest OpenSimulator, a database server, a placeholder web site
 sudo opensim setup                # choose "Quick setup": a grid and its first region, in one form

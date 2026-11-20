@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (setup): the packages come from charm stable alone, the family of all the packages (main is gone)
 - doc: OPENSIM-TOOLS-PORTING.md, what opensim-tools does and where each feature is now, before its code goes
 - fix (setup): the packages come from charm stable and main stable (the address of before has no Release file); no terminal, no /dev/tty
 - change (packaging): opensim-kit installs opensim-cli and the website of a grid (w4os-site); opensim-tools and opensim-web are no longer built

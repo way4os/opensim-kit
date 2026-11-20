@@ -19,9 +19,8 @@
 set -euo pipefail
 
 MAGIIIC_KEY=https://apt.magiiic.com/magiiic-packaging.asc
-# The OpenSim packages (charm) and the general ones they need (main: w4os-site, bash-tools)
-MAGIIIC_REPOSITORY="deb [signed-by=/usr/share/keyrings/magiiic-packaging.gpg] https://apt.magiiic.com charm stable
-deb [signed-by=/usr/share/keyrings/magiiic-packaging.gpg] https://apt.magiiic.com main stable"
+# The packages of the family: charm, the releases
+MAGIIIC_REPOSITORY="deb [signed-by=/usr/share/keyrings/magiiic-packaging.gpg] https://apt.magiiic.com charm stable"
 # What the tools need on a machine that does not have the packages (a clone): the same as the package opensim-tools
 PHP_PACKAGES=(php-cli php-curl php-intl php-mbstring php-mysql php-xml)
 TOOL_PACKAGES=(ca-certificates curl git unzip screen sudo default-mysql-client)
