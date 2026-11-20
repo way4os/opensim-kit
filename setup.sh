@@ -173,4 +173,5 @@ else
 fi
 
 dotnet_runtime opensim
-start_setup /usr/share/opensim-tools/libexec/setup-frontend.sh opensim setup
+# The command of opensim-cli asks its own questions
+start_setup "" opensim setup

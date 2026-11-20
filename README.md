@@ -41,7 +41,7 @@ opensim setup
 | `opensim-<version>-opensimsearch`, `-gloebit` | its essential modules, enabled once                                     |
 | `default-mysql-server`                      | the database server                                                     |
 
-A server with the generation before (`opensim-tools`, `opensim-web`): `sudo apt full-upgrade` replaces `opensim-tools` with `opensim-cli`; `opensim-web` stays until the site of `w4os-site` is set up, then `sudo apt purge opensim-web`.
+A server with the generation before (`opensim-tools`, `opensim-web`): `sudo apt full-upgrade` replaces `opensim-tools` with `opensim-cli`; `opensim-web` stays until the site of `w4os-site` is set up, then `sudo apt purge opensim-web`. Until then, `sudo apt-mark manual opensim-web` keeps `apt autoremove` from taking it away with the helpers. Removing `opensim-tools` stops the instances: `sudo systemctl start opensim` after the upgrade.
 
 **With one command** (Debian, Ubuntu): the script adds the repository, installs the packages and the .NET runtime, then starts the setup.
 
