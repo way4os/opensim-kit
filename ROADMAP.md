@@ -702,6 +702,11 @@ w4os plugin, once the features above are covered by the engine and the helpers:
 
 Features:
 
+- [ ] region-owner self-service, the strength of the closed competitor H4HUB/H4OS (Hosting4Opensim's Laravel panel, market study
+      2026-11, `opensim-grids-market-study`): restart, backup and restore of a region, its map, a free-cell picker for a new region,
+      parcels; for the admins, tickets and mail campaigns. All through the engine API (the "run the grid" layer), shown by every bridge.
+      What H4HUB lacks and w4os keeps: openness (leaving the host keeps the site), multilingual, design choice, hypergrid search and
+      profiles
 - [ ] the kind of the teleport links a preference of the user that `AUTO` reads: auto (as now), hop://, secondlife://, or a menu on the link that offers the choices
     - a link is shown in the format auto (or the one the user chose), with a small icon beside it that opens its other forms (OpenSimWorld does it more heavily: the address of the region in a box, then buttons Hop, V3HG, HG, Local Grid and "Add this grid to Firestorm")
     - the engine gives, for each destination, the main link (`AUTO`, or the preferred one) and the list of the others: HOP, GRID, LOCAL, MAP, and the URI as text, to copy
