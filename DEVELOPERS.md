@@ -83,11 +83,12 @@ It needs the `.env` of the project to say where the apt repository is (`APT_REPO
 `tests/Packaging/kit-check` installs the packages of the kit in a Debian container (podman): a fresh install of `opensim-kit`
 from the repository with the builds of `dist/`, and the upgrade of a server of the generation before (opensim-kit 3.0.0~beta.4,
 with opensim-tools and opensim-web). `DEPS=folder` adds the packages of the family built elsewhere, `CONTAINER_CONNECTION` sends
-it to the podman of another machine.
+it to the podman of another machine. On macOS it refuses to start the containers here without `CONTAINER_CONNECTION` (the podman
+machine of a Mac is too small for them): `--local` forces it.
 
 ```bash
-dev/build.sh deb opensim-kit && tests/Packaging/kit-check
-DEPS=../w4os-site/dist tests/Packaging/kit-check docker.io/library/ubuntu:26.04
+dev/build.sh deb opensim-kit && CONTAINER_CONNECTION=ursull tests/Packaging/kit-check
+CONTAINER_CONNECTION=ursull DEPS=../w4os-site/dist tests/Packaging/kit-check docker.io/library/ubuntu:26.04
 ```
 
 ## References

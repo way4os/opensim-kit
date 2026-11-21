@@ -3,14 +3,22 @@
 # unstable, charm-tests dev) with the builds of dist/, and the upgrade of a server of the generation before (opensim-kit 3.0.0~beta.4
 # with opensim-tools and opensim-web, from charm stable) to them.
 #
-#   tests/Packaging/kit-check [IMAGE]          docker.io/library/debian:trixie by default
+#   tests/Packaging/kit-check [--local] [IMAGE]          docker.io/library/debian:trixie by default
 #
 # DEPS=folder adds the packages of the family built elsewhere (w4os-cli, w4os-engine, w4os-site...). CONTAINER_CONNECTION
 # names the podman of another machine (podman system connection).
 
 set -euo pipefail
 cd "$(dirname "$0")/../.."
+LOCAL=0
+[[ "${1:-}" != --local ]] || { LOCAL=1; shift; }
 image=${1:-docker.io/library/debian:trixie}
+# The containers run on the podman of another machine (CONTAINER_CONNECTION): never on macOS, whose podman machine is too small
+# for them, unless --local says so
+if [[ -z "${CONTAINER_CONNECTION:-}" && $(uname -s) == Darwin && $LOCAL != 1 ]]; then
+	echo "kit-check: no CONTAINER_CONNECTION: the containers would run on this Mac; name a machine, or --local" >&2
+	exit 2
+fi
 ls dist/opensim-kit_*.deb >/dev/null 2>&1 || { echo "kit-check: build the kit first: dev/build.sh deb opensim-kit" >&2; exit 2; }
 podman=(podman ${CONTAINER_CONNECTION:+--connection "$CONTAINER_CONNECTION"})
 stage=$(mktemp -d)
