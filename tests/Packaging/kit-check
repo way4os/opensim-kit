@@ -26,6 +26,13 @@ if [[ -z $CONNECTION && $LOCAL != 1 && $(uname -s) == Darwin ]]; then
 	exit 2
 fi
 podman=(podman ${CONNECTION:+--connection "$CONNECTION"})
+# The machine the container runs on, as podman itself says it: a named connection must exist and answer
+if [[ -n $CONNECTION ]] && ! podman system connection list --format '{{.Name}}' 2>/dev/null | grep -qxF -- "$CONNECTION"; then
+	echo "kit-check: $CONNECTION is not a podman connection (podman system connection list)" >&2
+	exit 2
+fi
+podman_host=$("${podman[@]}" info --format '{{.Host.Hostname}}' 2>/dev/null) || { echo "kit-check: podman does not answer${CONNECTION:+ on $CONNECTION}" >&2; exit 2; }
+echo "Podman on $podman_host${CONNECTION:+ (connection $CONNECTION)}"
 ls dist/opensim-kit_*.deb >/dev/null 2>&1 || { echo "kit-check: build the kit first: dev/build.sh deb opensim-kit" >&2; exit 2; }
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
