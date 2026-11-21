@@ -1,10 +1,10 @@
 # OpenSimulator Kit
 
-![Stable](https://img.shields.io/github/release/GuduleLapointe/opensim-debian?label=stable&color=green&include_prerelease)
-![GitHub Tag](https://img.shields.io/github/tag/GuduleLapointe/opensim-debian?label=latest&include_prereleases)
-![GitHub commits since latest release](https://img.shields.io/github/commits-since/GuduleLapointe/opensim-debian/latest?label=dev)
+![Stable](https://img.shields.io/github/release/way4os/opensim-kit?label=stable&color=green&include_prerelease)
+![GitHub Tag](https://img.shields.io/github/tag/way4os/opensim-kit?label=latest&include_prereleases)
+![GitHub commits since latest release](https://img.shields.io/github/commits-since/way4os/opensim-kit/latest?label=dev)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-552b55)](LICENSE)
-![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/GuduleLapointe/opensim-debian/total)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/way4os/opensim-kit/total)
 [![Donate](https://img.shields.io/badge/-Donate-yellow)](https://magiiic.org/donate/)
 
 The packages of OpenSimulator for Debian and Ubuntu, and `opensim-kit`, which installs the whole environment to create and run
@@ -15,7 +15,7 @@ https://www.speculoos.world/opensim-debian-installation-framework/
 
 ## Installation
 
-**With the installer** of the command line ([opensim-cli](https://github.com/GuduleLapointe/opensim-cli)): it adds the
+**With the installer** of the command line ([w4os-cli](https://github.com/way4os/w4os-cli)): it adds the
 repository, installs the packages, the database server and the .NET runtime, and can start the setup.
 
 ```bash
@@ -45,16 +45,16 @@ opensim setup
 
 | Package                                       | What it is                                                              |
 | --------------------------------------------- | ----------------------------------------------------------------------- |
-| `opensim-cli`                                 | the `opensim` command and its service                                   |
-| `opensim-engine`                              | the rules and the work behind it, with `opensim-rest-php`               |
+| `w4os-cli`                                    | the `opensim` command and its service                                   |
+| `w4os-engine`                                 | the rules and the work behind it, with `opensim-rest-php`               |
 | `w4os-site`                                   | the website of a grid, with the helpers (`w4os-site setup`, then `web`) |
 | `opensim`                                     | the latest OpenSimulator release                                        |
 | `opensim-<version>-opensimsearch`, `-gloebit` | its essential modules, enabled once                                     |
 | `default-mysql-server`                        | the database server                                                     |
 
-What the `opensim` command does is in the README of [opensim-cli](https://github.com/GuduleLapointe/opensim-cli).
+What the `opensim` command does is in the README of [w4os-cli](https://github.com/way4os/w4os-cli).
 
-A server with the generation before (`opensim-tools`, `opensim-web`): `sudo apt full-upgrade` replaces `opensim-tools` with `opensim-cli`; `opensim-web` stays until the site of `w4os-site` is set up, then `sudo apt purge opensim-web`. Until then, `sudo apt-mark manual opensim-web` keeps `apt autoremove` from taking it away with the helpers. Removing `opensim-tools` stops the instances: `sudo systemctl start opensim` after the upgrade.
+A server with the generation before (`opensim-tools`, `opensim-web`): `sudo apt full-upgrade` replaces `opensim-tools` with `w4os-cli`; `opensim-web` stays until the site of `w4os-site` is set up, then `sudo apt purge opensim-web`. Until then, `sudo apt-mark manual opensim-web` keeps `apt autoremove` from taking it away with the helpers. Removing `opensim-tools` stops the instances: `sudo systemctl start opensim` after the upgrade.
 
 ## Main motivation
 

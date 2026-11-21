@@ -24,7 +24,7 @@ Read on residences 2026-11-17 (read-only, Olivier's go typed in the session): th
 - The script state (`ScriptEngines` of the old cache folder) is copied to the new simulator's data folder; `--no-scripts` skips it. It needs the read access of step 1
   on `/opt/opensim/var/cache`.
 - Modules (engine 69dd8a1): the scan looks only at this core's bin and its modules folder (`/usr/share/opensim-modules/<core>/`, here `0.9.3.0`). A module the kit packages
-  gives `import-module-package` ("install its package, add <name> to EnabledModules of opensim.conf, or leave the setting out"); another gives
+  gives `import-module-package` ("install its package, add <name> to EnabledModules of w4os.conf, or leave the setting out"); another gives
   `import-module-missing` naming the lowercase folder `<ModulesRoot>/<core>/<name>`. A module is built for a version of OpenSimulator: an old DLL (core 0.9.2.2) is never copied.
   For residences, each of the 8 sims reports the same three:
   - `OpenSimSearch` ([Search] Module), `import-module-package`: `sudo apt install opensim-0.9.3.0-opensimsearch` (the fork, built for 0.9.3.0), then `opensimsearch` in `EnabledModules`.

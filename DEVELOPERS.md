@@ -6,8 +6,8 @@ The packages of OpenSimulator for Debian and Ubuntu, and the metapackage that in
 
 - the releases of OpenSimulator (`opensim-<version>`), its development version (`opensim-unstable`) and the essential modules
   (`opensim-<version>-<module>`), each in its own folder;
-- `opensim`, the latest release, and `opensim-kit`, which installs the command line (`opensim-cli`), the engine
-  (`opensim-engine`, with `opensim-rest-php`), the website of a grid (`w4os-site`, which carries `opensim-helpers`), the latest
+- `opensim`, the latest release, and `opensim-kit`, which installs the command line (`w4os-cli`), the engine
+  (`w4os-engine`, with `opensim-rest-php`), the website of a grid (`w4os-site`, which carries `w4os-helpers`), the latest
   release, its essential modules and a database server.
 
 The command line, the engine, the helpers and the site are projects of their own. The tools this repository had before
@@ -22,13 +22,13 @@ The packages are built with [nfpm](https://nfpm.goreleaser.com) and published to
 | ------------------------- | ----------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `opensim-<version>`       | `opensim-core.yaml`     | OpenSimulator release + revision | an OpenSimulator release, in `/usr/share/opensim/<version>`, for amd64 and arm64                                |
 | `opensim`                 | `opensim.yaml`          | same as the latest release       | metapackage, the latest release                                                                                 |
-| `opensim-kit`             | `opensim-kit.yaml`      | git tag of this repository       | metapackage, `opensim-cli`, `w4os-site`, the latest release, its essential modules and a database server        |
+| `opensim-kit`             | `opensim-kit.yaml`      | git tag of this repository       | metapackage, `w4os-cli`, `w4os-site`, the latest release, its essential modules and a database server           |
 | `opensim-unstable`        | `opensim-unstable.yaml` | source version, date and commit  | OpenSimulator built from the `upstream/opensim` submodule, in `/usr/share/opensim/unstable`                     |
 | `opensim-<core>-<module>` | `opensim-<module>.yaml` | module version + revision        | a module for a release or `unstable`, in `/usr/share/opensim-modules/<core>/<module>`, not loaded until enabled |
 
-The command line (`opensim-cli`), the engine (`opensim-engine`, with `opensim-rest-php`) and the website of a grid (`w4os-site`, which carries the helpers) are built and packaged by their own projects. `opensim-kit` depends on them; the releases install without them. `opensim-engine` makes the system layout and adds an install profile for each release in `/usr/share/opensim`, and removes it with the release, through a dpkg trigger; the postinst of `opensim-kit` enables its essential modules once.
+The command line (`w4os-cli`), the engine (`w4os-engine`, with `opensim-rest-php`) and the website of a grid (`w4os-site`, which carries the helpers) are built and packaged by their own projects. `opensim-kit` depends on them; the releases install without them. `w4os-engine` makes the system layout and adds an install profile for each release in `/usr/share/opensim`, and removes it with the release, through a dpkg trigger; the postinst of `opensim-kit` enables its essential modules once.
 
-`opensim-tools` and `opensim-web`, the generation before, are no longer built; what opensim-tools did and where it is now is in [OPENSIM-TOOLS-PORTING.md](OPENSIM-TOOLS-PORTING.md). `opensim-cli` conflicts with and replaces `opensim-tools`: installing the new `opensim-kit` removes it (`apt full-upgrade`, or `apt install opensim-kit`). `opensim-web` has no successor of the same files (the site of `w4os-site` is in `/var/lib/opensim/www`, not in `/var/www/html`): a server that has it keeps it, with `opensim-helpers`, until the site of `w4os-site` is set up (`w4os-site setup`, `w4os-site web`); then `apt purge opensim-web`. Nothing depends on it any more, so `apt autoremove` would take it away with `opensim-helpers` (`apt-mark manual opensim-web` keeps it). `apt upgrade` holds the kit back (it would remove a package); the prerm of `opensim-tools` stops the service and the instances when it goes: they are started again by hand (`systemctl start opensim`).
+`opensim-tools` and `opensim-web`, the generation before, are no longer built; what opensim-tools did and where it is now is in [OPENSIM-TOOLS-PORTING.md](OPENSIM-TOOLS-PORTING.md). `w4os-cli` conflicts with and replaces `opensim-tools`: installing the new `opensim-kit` removes it (`apt full-upgrade`, or `apt install opensim-kit`). `opensim-web` has no successor of the same files (the site of `w4os-site` is in `/var/lib/w4os/www`, not in `/var/www/html`): a server that has it keeps it, with `w4os-helpers`, until the site of `w4os-site` is set up (`w4os-site setup`, `w4os-site web`); then `apt purge opensim-web`. Nothing depends on it any more, so `apt autoremove` would take it away with `w4os-helpers` (`apt-mark manual opensim-web` keeps it). `apt upgrade` holds the kit back (it would remove a package); the prerm of `opensim-tools` stops the service and the instances when it goes: they are started again by hand (`systemctl start opensim`).
 
 The modules are installed in their own folders, as some fail when loaded without their config: installing one does not enable it. They only suggest their core, so a build made elsewhere can use them and removing a core keeps them. `opensim-kit` installs the handful of essential modules for the latest release; the others are only in the repository. Third-party terms are in `contrib/README.md`, `modules/README.md` and in the `copyright` file of each module package.
 
@@ -58,7 +58,7 @@ Publishing skips the packages whose version is already in the repository, so the
 
 A new OpenSimulator release is added at the end of `packaging/opensim-core.versions`, with its checksum. A published package is never changed: a packaging change of a published release gets the next revision in that file, as for the modules in `packaging/opensim-modules.versions`.
 
-The `opensim` account, the folders of the system layout and `/etc/opensim/opensim.conf` are made by `opensim-engine`; the `opensim` service is `opensim-cli`'s.
+The `opensim` account, the folders of the system layout and `/etc/w4os/w4os.conf` are made by `w4os-engine`; the `opensim` service is `w4os-cli`'s.
 
 The scripts of `dev/`, `packaging/` and `tests/Packaging` use the helpers of [bash-tools](https://github.com/magicoli/bash-tools), from composer's copy in a git checkout (`composer install`, a development dependency). During development, composer links the local `../bash-tools` checkout when there is one (path repository, `dev-dev`): switch to a released version before a release (and back to `dev-dev` with the path repository after it).
 
@@ -118,7 +118,7 @@ Outdated:
 
 **Additional tools**
 
-- https://github.com/GuduleLapointe/opensim-helpers/
+- https://github.com/way4os/w4os-helpers/
 - https://github.com/GuduleLapointe/w4os/
 - http://opensimulator.org/wiki/Webinterface
 - https://github.com/Outworldz/os-webrtc-janus (webrtc voice)

@@ -5,7 +5,7 @@
 #
 #   tests/Packaging/kit-check [IMAGE]          docker.io/library/debian:trixie by default
 #
-# DEPS=folder adds the packages of the family built elsewhere (opensim-cli, opensim-engine, w4os-site...). CONTAINER_CONNECTION
+# DEPS=folder adds the packages of the family built elsewhere (w4os-cli, w4os-engine, w4os-site...). CONTAINER_CONNECTION
 # names the podman of another machine (podman system connection).
 
 set -euo pipefail
@@ -38,13 +38,13 @@ current() {
 }
 new_generation() {
 	check "opensim-kit is the build of dist" sh -c "dpkg-query -W -f='\${Version}' opensim-kit | grep -q -F \"\$(dpkg-deb -f /debs/opensim-kit_*.deb Version)\""
-	for p in opensim-cli opensim-engine w4os-site; do
+	for p in w4os-cli w4os-engine w4os-site; do
 		check "$p installed" sh -c "dpkg-query -W -f='\${db:Status-Abbrev}' $p | grep -q '^ii'"
 	done
 	check "opensim-tools not installed" sh -c "! dpkg-query -W -f='\${db:Status-Abbrev}' opensim-tools 2>/dev/null | grep -q '^ii'"
-	check "/usr/bin/opensim is opensim-cli's" sh -c "dpkg -S /usr/bin/opensim | grep -q '^opensim-cli:'"
+	check "/usr/bin/opensim is w4os-cli's" sh -c "dpkg -S /usr/bin/opensim | grep -q '^w4os-cli:'"
 	check "opensim runs" opensim --help
-	check "the modules are enabled" sh -c "grep -q opensimsearch /etc/opensim/opensim.conf && grep -q gloebit /etc/opensim/opensim.conf"
+	check "the modules are enabled" sh -c "grep -q opensimsearch /etc/w4os/w4os.conf && grep -q gloebit /etc/w4os/w4os.conf"
 	check "opensim.service is enabled" test -L /etc/systemd/system/multi-user.target.wants/opensim.service
 }
 SH
@@ -68,6 +68,8 @@ release
 apt-get update -qq
 apt-get install -y -qq opensim-kit >/tmp/old.log 2>&1 || { tail -30 /tmp/old.log; exit 1; }
 check "before: opensim-tools installed" sh -c "dpkg-query -W -f='\${db:Status-Abbrev}' opensim-tools | grep -q '^ii'"
+check "before: the config of the suite is /etc/opensim/opensim.conf" test -f /etc/opensim/opensim.conf
+cp /etc/opensim/opensim.conf /tmp/opensim.conf.before
 install -d -o opensim -g opensim /etc/opensim/grids/demo
 echo '[Const]' >/etc/opensim/grids/demo/Robust.HG.ini
 current
@@ -75,6 +77,9 @@ apt-get update -qq
 apt-get full-upgrade -y >/tmp/full.log 2>&1 || { tail -30 /tmp/full.log; exit 1; }
 new_generation
 check "the grid is kept" test -f /etc/opensim/grids/demo/Robust.HG.ini
+check "opensim.conf is moved to /etc/w4os/w4os.conf" sh -c "[ -f /etc/w4os/w4os.conf ] && [ ! -e /etc/opensim/opensim.conf ]"
+check "the config of the suite keeps its lines (but the modules the kit enables)" sh -c "! grep -v -x -F -f /etc/w4os/w4os.conf /tmp/opensim.conf.before | grep -v -e EnabledModules -e '^[[:space:]]*\$' | grep -q ."
+check "opensim-engine is the empty package that brings w4os-engine" sh -c "dpkg-query -W -f='\${Depends}' opensim-engine | grep -q w4os-engine && [ ! -e /usr/share/opensim-engine ]"
 check "the site of opensim-web still serves" test -f /var/www/html/index.php
 [ -z "$FAILED" ] && echo "UPGRADE: all checks passed" || { echo "UPGRADE: failures"; exit 1; }
 SH

@@ -16,7 +16,7 @@ description: |-
   OpenSimulator, development version
   OpenSimulator built from its development branch, to test what comes next.
   Installed in /usr/share/opensim/unstable, next to the releases; the
-  opensim-cli package runs it with the files at the standard places.
+  w4os-cli package runs it with the files at the standard places.
 homepage: https://github.com/opensim/opensim
 license: BSD-3-Clause
 
@@ -32,7 +32,7 @@ depends:
 recommends:
   - dotnet-runtime-8.0 | dotnet-runtime-9.0 | dotnet-runtime-10.0
 suggests:
-  - opensim-cli
+  - w4os-cli
 
 contents:
   - src: build/opensim-unstable

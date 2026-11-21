@@ -5,9 +5,9 @@
 # alone never enables its module.
 set -e
 
-conf=/etc/opensim/opensim.conf
+conf=/etc/w4os/w4os.conf
 
 if [ "$1" = "configure" ] && [ -f "$conf" ]; then
-    php /usr/share/opensim-engine/bin/opensim-profiles.php --conf "$conf" --default-modules "opensimsearch gloebit" ||
+    php /usr/share/w4os-engine/bin/opensim-profiles.php --conf "$conf" --default-modules "opensimsearch gloebit" ||
         echo "opensim-kit: could not enable the modules in $conf" >&2
 fi

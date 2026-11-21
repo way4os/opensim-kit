@@ -10,11 +10,11 @@ priority: optional
 maintainer: Gudule Lapointe <gudule@speculoos.world>
 description: |-
   OpenSimulator with its command line and its website
-  Installs the opensim command (opensim-cli), the website of a grid
+  Installs the opensim command (w4os-cli), the website of a grid
   (w4os-site, with the helpers), the latest OpenSimulator release, its
   essential modules and a database server, ready to create and run grids
   and regions.
-homepage: https://github.com/GuduleLapointe/opensim-debian
+homepage: https://github.com/way4os/opensim-kit
 license: AGPL-3.0-or-later
 
 depends:
@@ -24,9 +24,9 @@ depends:
   - opensim-${OPENSIM_VERSION}-opensimsearch
   - opensim-${OPENSIM_VERSION}-gloebit
   # The command line; it removes opensim-tools, the approach before it
-  - opensim-cli
+  - w4os-cli
   # The postinst enables the essential modules through it
-  - opensim-engine (>= 3.0.0~beta.13)
+  - w4os-engine
   # The website of a grid, which carries the helpers
   - w4os-site
   # OpenSim cannot run without a database: everything on this machine

@@ -72,7 +72,7 @@ The rule: the engine API is the single source.
 - a person's avatars are linked by the email of the account, as today: nothing to decide
 - exists in the API: avatars (list, get, make, change with password, email, level, home, profile fields, delete), regions, simulators and grids (enable, disable), parcels, estates, archives (read), destinations, assets, tasks (list, run), addresses, info, monitor, health, blocks, profile, search, grid status, setups (quick)
 - what the engine API still lacks, for OSCC:
-    - [x] sign in (check a name and a password): in the engine (`OpenSim\SignIn`), to expose in the API
+    - [x] sign in (check a name and a password): in the engine (`W4OS\Engine\SignIn`), to expose in the API
     - [x] choose an avatar model (outfit) at registration
     - [x] confirmation of a registration by email, usable from any site and from the CLI
     - [x] forgotten password, the same
@@ -293,7 +293,7 @@ The beta:
                 - names are Latin letters without accents, in every alphabet: the model transliterates, the person validates the change
                     - why: the login box and the start location of the viewers take ASCII only, and Firestorm drops the accents of a destination and of the link in the chat; the console accepts them
                 - Avatar: name of two words of letters, digits and hyphens, 63 characters at most each (the login box takes 128 for both); no `.` nor `@` (hypergrid: First.Last@grid), no `_` (taken for a space in many places of OpenSimulator), and the viewers take space, `.` and `_` for what separates the first name from the last
-                - Avatar: password of 6 to 16 characters (6 is ours, to make configurable in opensim.conf; 16 is the password box of the login panel of the viewers), no double quote; email without space, quote nor backslash
+                - Avatar: password of 6 to 16 characters (6 is ours, to make configurable in w4os.conf; 16 is the password box of the login panel of the viewers), no double quote; email without space, quote nor backslash
                 - Region: letters and digits, three words at most (Second Life, Linden Lab naming private regions), 3 characters at least (the map search of the viewers and of the core needs 3), 128 at most (what the database holds; Second Life has 25: not applied); no punctuation: the chat links of the viewers (`secondlife:///app/region/[A-Za-z0-9()_%]+`) stop at it, the map search of the core gives `. ! + | : %` a meaning, and Robust takes `_` for a space (Ma Region and Ma_Region would be the same `Region_Ma_Region`)
                 - Parcel: name of 63 bytes at most and description of 255 (the land panel of the viewers; the core limits nothing, the database holds 255); an accent takes two bytes
                 - Grid: letters, digits, space, `.`, `-` and `'`; the grid of a standalone gives its simulator and its region its name with the dots as spaces (a region has no dot), and that name follows the rule of a region
@@ -333,7 +333,7 @@ The beta:
                 - [x] a repair repairs, it never changes a setting: a valid value the grid has (V1 where V2 is the default) is its choice; a default is laid only where nothing is set (2026-11-19)
                 - [x] at the setup and later (`opensim enable|disable <grid> <option>`); a group has one option at a time; disabling comments the settings out; the options of a grid are in its description (`Options`)
                 - [x] the dependencies are in the `option.conf`: modules (OpenSimSearch, Gloebit), the helpers, the settings to give (the Gloebit keys)
-                - [ ] a module added to `EnabledModules` after the first install (with the option that needs it, or a command of its own): today it is written only the first time (`PackagedProfiles`), so the operator edits `opensim.conf` by hand (OpenSimSearch on ursull, 2026-11-16)
+                - [ ] a module added to `EnabledModules` after the first install (with the option that needs it, or a command of its own): today it is written only the first time (`PackagedProfiles`), so the operator edits `w4os.conf` by hand (OpenSimSearch on ursull, 2026-11-16)
                 - [ ] the visibility of a profile, after 3.0.0 (3.0.0: a new avatar is public): the same on the web site, the profile page the viewer streams and the search of the viewer, compared with Second Life, the reference
                     - the viewer shows "Show in search" unchecked when a published profile is opened again, and the flag changes only after several saves (Olivier, 2026-11-16, Bart Simpson); what the code says (read 2026-11-16, no fix before 3.0.0):
                         - one bit only, bit 0 of `UserFlags`: the viewer's `AVATAR_ALLOW_PUBLISH = 0x1` (`AVATAR_MATURE_PUBLISH = 0x2`, Firestorm `llavatarpropertiesprocessor.h:37`); the core sends `UserFlags & 0xff` as the flags of the profile (`UserProfileModule.cs:136`); our OpenSimSearch sends `allow_publish` (`OpenSearch.cs:155`) and the engine writes bit 0 alone (`SearchQuery::publish()`). This bit is the "robots" one of the OpenSim documentation (below). The core also keeps `PublishProfile` in `userprofile.profileAllowPublish`, which nothing reads for the viewer
@@ -536,7 +536,7 @@ Kit, setup and configuration:
     - a new release of the distribution does not reach the files of existing grids until `opensim setup` configures them
     - [ ] decide whether the package should merge too
     - [ ] decide what to do of the comments an operator wrote in a file that is merged
-- [ ] kit: `InstallConfig` (opensim.conf) on the one reader of ini files
+- [ ] kit: `InstallConfig` (w4os.conf) on the one reader of ini files
 - [ ] operational prompts of `PresetUi` (enable, start, database administrator) as options of the calls
 - [ ] `screen` is not a dependency (to review with the whole setup)
     - without it the consoles are the REST ones only (the default anyway)
@@ -578,7 +578,7 @@ The engine gives the data (the manager, the plugin and the CLI only show it):
     - [ ] parcel: index of the parcels of all simulators, to list without asking each simulator (later)
 - [ ] legacy classes (`OpenSim_Avatar`, `OpenSim_Region`, `OpenSim_Service`) folded into the models, aliases in `legacy/`
 - [ ] `OpenSim_Config` and `OpenSim_Ini` (the wizard of the plugin) made one reader
-    - the machine's grids (`opensim.conf`, `/etc/opensim/grids`, `OPENSIM_GRID`) are still found by the helpers
+    - the machine's grids (`w4os.conf`, `/etc/opensim/grids`, `OPENSIM_GRID`) are still found by the helpers
 - [ ] function that reads the config aligned on Laravel's `config()`, `get_option` kept as an adapter for w4os
 - [ ] avatars list
     - [ ] filters by type (user, model, technical accounts): active, online and the account of the services are done, models are not
@@ -622,7 +622,7 @@ What w4os has and the suite lacks (`W4OS-PARITY.md`):
 
 Helpers:
 
-- [ ] the guide: style, script and picture of the guide and style of the directory page are linked with the path of the files (`/usr/share/opensim-helpers/...`)
+- [ ] the guide: style, script and picture of the guide and style of the directory page are linked with the path of the files (`/usr/share/w4os-helpers/...`)
     - [ ] the router should serve them
 - [ ] an empty calendar keeps the old events (`eventsparser.php` takes `[]` for an invalid answer)
 - [ ] without a money server they write `transactions` with other columns (`sourceId`, `destId`...) than with one (`sender`, `receiver`...)
@@ -640,7 +640,7 @@ Documentation:
 - [ ] engine API, for someone who integrates the suite in another framework
 - [ ] helpers API, the same
 - [ ] w4os bridge as its proof: what a new integration needs, in a page
-- [ ] a short section in the README of opensim-helpers (and of the engine) on how to use them with the OpenSim kit
+- [ ] a short section in the README of w4os-helpers (and of the engine) on how to use them with the OpenSim kit
 
 w4os plugin, once the features above are covered by the engine and the helpers:
 
@@ -748,7 +748,7 @@ Features:
     - the console says it resolves the hostname to an IP once, at start (it exists for Docker), it is not a DNS question at each request
     - [ ] which setups it makes possible (a simulator whose public name is a host name, behind NAT or on a VPS)
 - [ ] opensim tools installation-agnostic (kit installs and custom/standard OpenSim installs)
-    - `/etc/opensim/opensim.conf` becomes only a reference pointing to the user's actual core installation and configuration files location (e.g. `/opt/osgrid`, `~/diva`, `~/opensim/opensim-0.9.3.0/bin`...)
+    - `/etc/w4os/w4os.conf` becomes only a reference pointing to the user's actual core installation and configuration files location (e.g. `/opt/osgrid`, `~/diva`, `~/opensim/opensim-0.9.3.0/bin`...)
     - [ ] a grid follows the profile of its own install, the default profile is only the default of the new grids
     - [ ] the system user to run the instances as is per profile, not only `SystemUser` of `[Defaults]`
     - [ ] the setup offers to register an install (the core menu)
@@ -920,7 +920,7 @@ w4os plugin:
 
 Engine:
 
-- [ ] the minimum length of the password of an avatar is the admin's to set, in `opensim.conf` (6 characters today, OpenSimulator has no rule; the double quote stays forbidden, the implementations and the console do not agree on it)
+- [ ] the minimum length of the password of an avatar is the admin's to set, in `w4os.conf` (6 characters today, OpenSimulator has no rule; the double quote stays forbidden, the implementations and the console do not agree on it)
 - [ ] full sqlite3 and pgsql compatibility check (including OpenSim install and all queries review). This is theorically the case thanks to the use of PDO, but it must be tested systematicaly to lift the mysql dependency
 - [ ] memory/CPU usage monitoring
     - notify admin and/or restart Sim above given thresholds

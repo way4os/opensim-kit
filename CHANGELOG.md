@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- update (rename): the kit installs w4os-cli and w4os-engine (opensim-cli and opensim-engine the empty packages of before w4os), enables its modules in /etc/w4os/w4os.conf; kit-check tries the upgrade that moves /etc/opensim/opensim.conf there; the repository way4os/opensim-kit
 - remove: the code of opensim-tools (the PHP command line, its setup, its tests), setup.sh, INSTALLATION.md, the container image and the deb mode of the tools: the command line is opensim-cli, the setup and its installer too (kickstart.sh); what opensim-tools did and where it is now is in OPENSIM-TOOLS-PORTING.md
 - new (tests): tests/Packaging/kit-check, a fresh install of opensim-kit and the upgrade from the generation before, in a Debian container
 - fix (setup): the packages come from charm stable alone, the family of all the packages (main is gone)
