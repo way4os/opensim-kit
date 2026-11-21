@@ -3,24 +3,30 @@
 # unstable, charm-tests dev) with the builds of dist/, and the upgrade of a server of the generation before (opensim-kit 3.0.0~beta.4
 # with opensim-tools and opensim-web, from charm stable) to them.
 #
-#   tests/Packaging/kit-check [--local] [IMAGE]          docker.io/library/debian:trixie by default
+#   tests/Packaging/kit-check --connection NAME|--local [IMAGE]        docker.io/library/debian:trixie by default
 #
-# DEPS=folder adds the packages of the family built elsewhere (w4os-cli, w4os-engine, w4os-site...). CONTAINER_CONNECTION
-# names the podman of another machine (podman system connection).
+# DEPS=folder adds the packages of the family built elsewhere (w4os-cli, w4os-engine, w4os-site...).
 
 set -euo pipefail
 cd "$(dirname "$0")/../.."
-LOCAL=0
-[[ "${1:-}" != --local ]] || { LOCAL=1; shift; }
-image=${1:-docker.io/library/debian:trixie}
-# The containers run on the podman of another machine (CONTAINER_CONNECTION): never on macOS, whose podman machine is too small
-# for them, unless --local says so
-if [[ -z "${CONTAINER_CONNECTION:-}" && $(uname -s) == Darwin && $LOCAL != 1 ]]; then
-	echo "kit-check: no CONTAINER_CONNECTION: the containers would run on this Mac; name a machine, or --local" >&2
+# Where the container runs, said on the command line: --connection NAME (a podman system connection, --container NAME is the
+# same), or --local for the podman of this machine. Never an environment variable: it may not be exported, sudo drops it. On
+# macOS one of them is required (its podman machine is too small for this); elsewhere the podman of the machine is the default.
+CONNECTION= LOCAL=0
+while [[ "${1:-}" == --* ]]; do
+	case $1 in
+	--connection | --container) CONNECTION=${2:-}; [[ -n $CONNECTION ]] || { echo "kit-check: $1 needs the name of a podman connection" >&2; exit 2; }; shift 2 ;;
+	--connection=* | --container=*) CONNECTION=${1#*=}; shift ;;
+	--local) LOCAL=1; shift ;;
+	*) echo "kit-check: unknown option $1" >&2; exit 2 ;;
+	esac
+done
+if [[ -z $CONNECTION && $LOCAL != 1 && $(uname -s) == Darwin ]]; then
+	echo "kit-check: say where the container runs: --connection NAME (podman system connection list), or --local for this Mac" >&2
 	exit 2
 fi
+podman=(podman ${CONNECTION:+--connection "$CONNECTION"})
 ls dist/opensim-kit_*.deb >/dev/null 2>&1 || { echo "kit-check: build the kit first: dev/build.sh deb opensim-kit" >&2; exit 2; }
-podman=(podman ${CONTAINER_CONNECTION:+--connection "$CONTAINER_CONNECTION"})
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
 cp dist/opensim-kit_*.deb "$stage/"
