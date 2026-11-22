@@ -119,6 +119,7 @@ final class Crawler
         $login = rtrim(trim($login), '/');
         $bases = preg_match('~^https?://~i', $login) ? [$login] : ["http://$login", "https://$login"];
         $info = null;
+        $base = $bases[0];
         foreach ($bases as $base) {
             $url = $base . '/get_grid_info';
             if (!$this->allowed($url)) {
@@ -137,8 +138,10 @@ final class Crawler
 
         $seen = array_map(fn (array $p) => ListReader::key($p['final_url'] ?: $p['url']), $sitePages);
         $pages = [];
-        foreach (self::PUBLISHED as $key) {
-            $url = $info[$key] ?? '';
+        // the root of the login address: Robust itself answers an HTML page on some installs (Diva Wifi, DreamGrid)
+        $announced = $info + ['login' => $base . '/'];
+        foreach (['login', ...self::PUBLISHED] as $key) {
+            $url = $announced[$key] ?? '';
             if (!preg_match('~^https?://~i', $url) || in_array(ListReader::key($url), $seen, true) || !$this->allowed($url)) {
                 continue;
             }

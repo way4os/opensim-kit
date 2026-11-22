@@ -189,7 +189,7 @@ describe('the grid itself', function () {
 
         expect($crawl['grid']['status'])->toBe('ok')
             ->and($crawl['grid']['info'])->toMatchArray(['gridname' => 'A Grid', 'register' => 'http://a.example:8002/wifi/user/account/'])
-            ->and(array_column($crawl['grid']['pages'], 'key'))->toBe(['register', 'welcome', 'password']);
+            ->and(array_column($crawl['grid']['pages'], 'key'))->toBe(['login', 'register', 'password']);
     });
 
     test('the services of the viewer (economy) and the page already read are not requested', function () use ($info) {
@@ -229,5 +229,40 @@ describe('the grid itself', function () {
         (new Crawler($http))->crawl(['name' => 'A', 'url' => 'http://a.example/', 'login_uri' => 'a.example:8002']);
 
         expect($http->requests)->not->toContain('http://a.example:8002/wifi/user/account/');
+    });
+});
+
+describe('the login page of the grid', function () {
+    $info = '<gridinfo><login>http://a.example:8002/</login><gridname>A</gridname><register>http://a.example:8002/wifi/user/account/</register></gridinfo>';
+
+    test('the root of the login address is read once, after its robots.txt, even when it is not in the announced pages', function () use ($info) {
+        $http = site([
+            'http://a.example/' => ['body' => '<h1>A</h1>'],
+            'http://a.example:8002/get_grid_info' => ['body' => $info],
+            'http://a.example:8002/' => ['body' => file_get_contents(sample('pages/dracsoom-login.html'))],
+        ]);
+        $crawl = (new Crawler($http))->crawl(['name' => 'A', 'url' => 'http://a.example/', 'login_uri' => 'a.example:8002']);
+
+        expect(array_column($crawl['grid']['pages'], 'key'))->toContain('login')
+            ->and(array_count_values($http->requests)['http://a.example:8002/'])->toBe(1)
+            ->and(array_search('http://a.example:8002/robots.txt', $http->requests))->toBeLessThan(array_search('http://a.example:8002/', $http->requests));
+    });
+
+    test('no error when it answers something else or nothing', function () use ($info) {
+        $http = site(['http://a.example/' => ['body' => '<h1>A</h1>'], 'http://a.example:8002/get_grid_info' => ['body' => $info]]);
+        $crawl = (new Crawler($http))->crawl(['name' => 'A', 'url' => 'http://a.example/', 'login_uri' => 'a.example:8002']);
+
+        expect($crawl['grid']['status'])->toBe('ok');
+    });
+
+    test('it is not read when the robots.txt of the grid forbids it', function () use ($info) {
+        $http = site([
+            'http://a.example/' => ['body' => '<h1>A</h1>'],
+            'http://a.example:8002/robots.txt' => ['body' => "User-agent: *\nDisallow: /\n"],
+            'http://a.example:8002/get_grid_info' => ['body' => $info],
+        ]);
+        (new Crawler($http))->crawl(['name' => 'A', 'url' => 'http://a.example/', 'login_uri' => 'a.example:8002']);
+
+        expect($http->requests)->not->toContain('http://a.example:8002/');
     });
 });

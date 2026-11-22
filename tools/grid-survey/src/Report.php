@@ -19,6 +19,9 @@ final class Report
     {
         $outcomes = [];
         $sources = ['list' => 0, 'requested' => 0];
+        $decidedBy = ['site' => 0, 'grid_info' => 0, 'both' => 0];
+        $pagesOfGrid = [];
+        $w4osFromGrid = 0;
         $systems = [];
         $reachable = 0;
         $actives = 0;
@@ -28,6 +31,14 @@ final class Report
                 continue;
             }
             $reachable++;
+            $decidedBy[$grid['decided_by'] ?? 'site']++;
+            if (($grid['decided_by'] ?? 'site') === 'grid_info' && isset($grid['decisive']['page'])) {
+                $pagesOfGrid[$grid['decisive']['page']] = ($pagesOfGrid[$grid['decisive']['page']] ?? 0) + 1;
+            }
+            // w4os that only a page announced by the grid shows, not the site itself
+            if ($grid['system'] === 'wordpress_w4os' && ($grid['by']['site'] ?? null) !== 'wordpress_w4os') {
+                $w4osFromGrid++;
+            }
             $sources[$grid['requested'] ?? false ? 'requested' : 'list'] = ($sources[$grid['requested'] ?? false ? 'requested' : 'list'] ?? 0) + 1;
             $actives += (int) ($grid['actives'] ?? 0);
             $systems[$grid['system']]['grids'] = ($systems[$grid['system']]['grids'] ?? 0) + 1;
@@ -57,6 +68,10 @@ final class Report
             'outcomes' => $outcomes,
             // where the grids with a system come from: the Hypergrid Business list, or lists/included.json
             'sources' => $sources,
+            // which side decided the system, and on which page announced by the grid when it was the grid
+            'decided_by' => $decidedBy,
+            'grid_info_pages' => $pagesOfGrid,
+            'w4os_only_from_grid_pages' => $w4osFromGrid,
             'groups' => $rows,
             'unknown_systems' => array_values($unknown),
         ];

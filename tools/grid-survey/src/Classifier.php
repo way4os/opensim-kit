@@ -53,6 +53,7 @@ final class Classifier
         $prefix = fn (string $side, array $signals) => array_map(fn (string $s) => "$side: $s", $signals);
         $site['by'] = ['site' => $site['system'] ?? $site['outcome'], 'grid_info' => $grid['system'] ?? null];
         $site['decided_by'] = 'site';
+        $site['decisive'] = null;
         $site['review'] = null;
         $site['signals'] = $prefix('site', $site['signals']);
         if ($grid === null) {
@@ -75,6 +76,7 @@ final class Classifier
                 'outcome' => 'classified',
                 'confidence' => $site['system'] === $grid['system'] ? 'high' : 'medium',
                 'fallback' => false,
+                'decisive' => $this->decisive($grid, $crawl['grid']['pages'] ?? []),
                 'decided_by' => $site['system'] === $grid['system'] ? 'both' : 'grid_info',
                 'w4os_signal' => $grid['w4os_signal'] ?? $site['w4os_signal'] ?? null,
                 'review' => $differs ? "site says {$site['system']}, grid info says {$grid['system']}" : null,
@@ -92,6 +94,33 @@ final class Classifier
     }
 
     /**
+     * The signal that made an interface of the grid the answer: the page it was seen on (login, register, welcome...),
+     * the technology and the words that matched.
+     *
+     * @param array<string, mixed> $grid
+     * @param list<array<string, mixed>> $pages
+     * @return array{page: string, tech: string, evidence: string}|null
+     */
+    private function decisive(array $grid, array $pages): ?array
+    {
+        $names = array_merge($this->classes['w4os'], array_keys($this->classes['interfaces']), $this->classes['hosted']);
+        foreach ($names as $name) {
+            $found = $grid['detected'][$name] ?? null;
+            if ($found === null) {
+                continue;
+            }
+            $url = $found['pages'][0] ?? '';
+            foreach ($pages as $page) {
+                if ($page['url'] === $url) {
+                    return ['page' => (string) ($page['key'] ?? 'published'), 'tech' => $name, 'evidence' => $found['evidence']];
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * What the pages the grid announces say, only when they say something known.
      *
      * @param array<string, mixed>|null $grid
@@ -105,6 +134,7 @@ final class Classifier
         }
         // the published pages are read as the home pages of the grid
         $result = $this->classify(['status' => 'ok', 'note' => '', 'pages' => array_map(fn ($p) => ['role' => 'home'] + $p, $pages)]);
+        $result['pages'] = $pages;
 
         return $result['system'] === null || $result['fallback'] ? null : $result;
     }

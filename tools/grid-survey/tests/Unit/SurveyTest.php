@@ -89,6 +89,20 @@ describe('totals', function () use ($groups) {
             ->and($totals['groups']['none']['wordpress']['share_grids'])->toBe(66.7);
     });
 
+    test('counts which side decided, on which page, and the w4os that only a published page shows', function () use ($groups) {
+        $grids = [
+            ['name' => 'A', 'url' => 'http://a/', 'actives' => 1, 'system' => 'dreamgrid', 'outcome' => 'classified', 'decided_by' => 'grid_info', 'decisive' => ['page' => 'login'], 'by' => ['site' => 'builders']],
+            ['name' => 'B', 'url' => 'http://b/', 'actives' => 1, 'system' => 'wordpress_w4os', 'outcome' => 'classified', 'decided_by' => 'grid_info', 'decisive' => ['page' => 'welcome'], 'by' => ['site' => 'custom_site']],
+            ['name' => 'C', 'url' => 'http://c/', 'actives' => 1, 'system' => 'wordpress_w4os', 'outcome' => 'classified', 'decided_by' => 'both', 'decisive' => ['page' => 'welcome'], 'by' => ['site' => 'wordpress_w4os']],
+            ['name' => 'D', 'url' => 'http://d/', 'actives' => 1, 'system' => 'wordpress', 'outcome' => 'classified', 'decided_by' => 'site', 'decisive' => null, 'by' => ['site' => 'wordpress']],
+        ];
+        $totals = Report::totals($grids, $groups);
+
+        expect($totals['decided_by'])->toBe(['site' => 1, 'grid_info' => 2, 'both' => 1])
+            ->and($totals['grid_info_pages'])->toBe(['login' => 1, 'welcome' => 1])
+            ->and($totals['w4os_only_from_grid_pages'])->toBe(1);
+    });
+
     test('a system the groups do not know is reported, not dropped', function () use ($grids, $groups) {
         $grids[] = ['name' => 'E', 'url' => 'http://e/', 'actives' => 1, 'system' => 'mystery', 'outcome' => 'classified'];
 

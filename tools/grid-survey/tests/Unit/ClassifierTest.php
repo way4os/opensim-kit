@@ -238,3 +238,41 @@ describe('the interface the grid announces decides', function () {
         expect($result['system'])->toBe('wordpress')->and($result['decided_by'])->toBe('site')->and($result['by']['grid_info'])->toBeNull();
     });
 });
+
+describe('what decided, kept per grid', function () {
+    $site = fn (array $pages) => ['status' => 'ok', 'note' => '', 'pages' => $pages];
+    $grid = fn (array $pages) => ['status' => 'ok', 'note' => '', 'info' => [], 'pages' => $pages];
+
+    test('Dracsoom: the login page of Robust is a DreamGrid page, it decides, with its evidence', function () use ($site, $grid) {
+        $builder = page('home', 'http://dracsoom.free.fr/', '<meta name="generator" content="WebAcappella 4.6.26">');
+        $login = ['key' => 'login'] + page('published', 'http://dracsoom.ddns.net:8002/', file_get_contents(sample('pages/dracsoom-login.html')));
+        $result = classifier()->classifyGrid($site([$builder]) + ['grid' => $grid([$login])]);
+
+        expect($result['system'])->toBe('dreamgrid')->and($result['decided_by'])->toBe('grid_info')
+            ->and($result['decisive'])->toMatchArray(['page' => 'login', 'tech' => 'DreamGrid'])
+            ->and($result['decisive']['evidence'])->toContain('DreamGrid');
+    });
+
+    test('a customised page is still Diva Wifi by its links', function () use ($site, $grid) {
+        $login = ['key' => 'login'] + page('published', 'http://a.example:8002/', '<link rel="stylesheet" href="/wifi/fluid.css"><p>Singularity</p><a href="/wifi/user/account/">Join</a>');
+        $result = classifier()->classifyGrid($site([page('home', 'http://a.example/', '<img src="/wp-content/uploads/x.png">')]) + ['grid' => $grid([$login])]);
+
+        expect($result['system'])->toBe('diva_wifi')->and($result['decisive']['page'])->toBe('login');
+    });
+
+    test('w4os found on a page the grid announces decides, whatever the site is, even from the helpers code', function () use ($site, $grid) {
+        $welcome = ['key' => 'welcome'] + page('published', 'http://a.example/splash', '<link rel="stylesheet" href="/wp-content/plugins/w4os/v2/public/public.css">');
+        $result = classifier()->classifyGrid($site([page('home', 'http://a.example/', '<meta name="generator" content="Wix.com Website Builder">')]) + ['grid' => $grid([$welcome])]);
+
+        expect($result['system'])->toBe('wordpress_w4os')->and($result['decided_by'])->toBe('grid_info')
+            ->and($result['w4os_signal'])->toBe('w4os')
+            ->and($result['decisive'])->toMatchArray(['page' => 'welcome', 'tech' => 'w4os'])
+            ->and($result['by']['site'])->toBe('builders');
+    });
+
+    test('no decisive signal is recorded when the site decided alone', function () use ($site) {
+        $result = classifier()->classifyGrid($site([page('home', 'http://a.example/', '<meta name="generator" content="WordPress 7.1.4"><link href="/wp-content/x.css">')]));
+
+        expect($result['decisive'])->toBeNull();
+    });
+});

@@ -26,8 +26,8 @@ final class Cli
     private const HELP_RUN = <<<'TXT'
     grid-survey run [options]
 
-    For each grid: the grid info it publishes at its login address (/get_grid_info, as every viewer reads it) and the
-    pages it announces (register, welcome, password, about), then its website (home page, first sign-up link). The two
+    For each grid: the grid info it publishes at its login address (/get_grid_info, as every viewer reads it), the root
+    of that address and the pages it announces (register, welcome, password, about), then its website (home page, first sign-up link). The two
     are combined; where they differ the result says "review". Writes a dated result (classification of each grid and
     totals) as JSON. Public data only: see grid-survey --help.
 
@@ -345,6 +345,14 @@ final class Cli
                 $line(sprintf('  %-16s %4d grids  %5.1f%%  %6d actives', $id, $row['grids'], $row['share_grids'], $row['actives']));
             }
         }
+        $line(sprintf(
+            'decided by: site %d, grid info %d, both %d; grid info pages %s; w4os only from grid pages: %d',
+            $t['decided_by']['site'],
+            $t['decided_by']['grid_info'],
+            $t['decided_by']['both'],
+            json_encode($t['grid_info_pages']),
+            $t['w4os_only_from_grid_pages'],
+        ));
         $line('excluded: ' . count($report['excluded']) . ', see lists/excluded.json');
         foreach ($report['excluded'] as $e) {
             $line("  {$e['name']}: {$e['reason']}");

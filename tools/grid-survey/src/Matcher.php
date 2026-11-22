@@ -37,7 +37,8 @@ final class Matcher
                 if ($hit === null) {
                     continue;
                 }
-                $found[$name] ??= ['confidence' => 0, 'version' => '', 'pages' => []];
+                $found[$name] ??= ['confidence' => 0, 'version' => '', 'evidence' => '', 'pages' => []];
+                $found[$name]['evidence'] = $found[$name]['evidence'] ?: $hit['evidence'];
                 $found[$name]['confidence'] = min(100, $found[$name]['confidence'] + $hit['confidence']);
                 $found[$name]['version'] = $found[$name]['version'] ?: $hit['version'];
                 $found[$name]['pages'][] = $page['url'];
@@ -109,15 +110,17 @@ final class Matcher
         ];
     }
 
-    /** @return array{confidence: int, version: string}|null */
+    /** @return array{confidence: int, version: string, evidence: string}|null */
     private function match(array $tech, array $facts): ?array
     {
         $confidence = 0;
         $version = '';
-        $add = function (?array $hit) use (&$confidence, &$version): void {
+        $evidence = '';
+        $add = function (?array $hit) use (&$confidence, &$version, &$evidence): void {
             if ($hit !== null) {
                 $confidence += $hit['confidence'];
                 $version = $version ?: $hit['version'];
+                $evidence = $evidence ?: ($hit['evidence'] ?? '');
             }
         };
 
@@ -164,7 +167,7 @@ final class Matcher
             $add($this->dom($tech['dom'], $facts['xpath']));
         }
 
-        return $confidence > 0 ? ['confidence' => min(100, $confidence), 'version' => $version] : null;
+        return $confidence > 0 ? ['confidence' => min(100, $confidence), 'version' => $version, 'evidence' => $evidence] : null;
     }
 
     /** @return array{confidence: int, version: string}|null */
@@ -227,7 +230,10 @@ final class Matcher
             );
         }
 
-        return ['confidence' => (int) ($options['confidence'] ?? 100), 'version' => trim((string) $version)];
+        // the words that matched, to say what the signal rests on
+        $evidence = $regex === '' ? '' : mb_substr(trim(preg_replace('~\s+~u', ' ', (string) ($matches[0] ?? ''))), 0, 60);
+
+        return ['confidence' => (int) ($options['confidence'] ?? 100), 'version' => trim((string) $version), 'evidence' => $evidence];
     }
 
     /** @return array{0: string, 1: array<string, string>} */
