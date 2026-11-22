@@ -122,6 +122,7 @@ final class Classifier
             'flags' => $flags,
             // nothing known was recognised: custom code, or the grid service alone
             'fallback' => in_array($system, ['custom', 'custom_site', 'grid_server'], true),
+            'w4os_signal' => null,
         ];
 
         // No answer, or no readable site: the outcome of the crawl, unless the grid server itself answers
@@ -136,7 +137,13 @@ final class Classifier
 
         // 1. interfaces added to a CMS, or the hosted panels
         $interfaces = $this->classes['interfaces'];
-        foreach (['w4os', 'jOpenSim', 'Modlos'] as $name) {
+        // every use of the w4os family is one row (the signal that decided is kept, to tell them apart later)
+        foreach ($this->classes['w4os'] as $name) {
+            if (isset($all[$name])) {
+                return array_merge($result('wordpress_w4os', 'classified', $all[$name]['confidence'] >= 90 ? 'high' : 'medium'), ['w4os_signal' => $name]);
+            }
+        }
+        foreach (['jOpenSim', 'Modlos'] as $name) {
             if (isset($all[$name])) {
                 return $result($interfaces[$name], 'classified', $all[$name]['confidence'] >= 90 ? 'high' : 'medium');
             }

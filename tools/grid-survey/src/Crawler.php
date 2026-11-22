@@ -169,7 +169,8 @@ final class Crawler
             return null;
         }
         $info = [];
-        foreach (['gridname', 'login', 'register', 'welcome', 'password', 'about', 'help', 'search'] as $key) {
+        // the helpers addresses (economy, search, message) are kept, not read
+        foreach (['gridname', 'login', 'register', 'welcome', 'password', 'about', 'help', 'search', 'economy', 'message'] as $key) {
             if (isset($doc->{$key}) && trim((string) $doc->{$key}) !== '') {
                 $info[$key] = trim((string) $doc->{$key});
             }

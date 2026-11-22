@@ -84,5 +84,10 @@
             "other_cms",
             "grid_server"
         ]
-    }
+    },
+    "w4os": [
+        "w4os",
+        "w4os Grav plugin",
+        "w4os mini site"
+    ]
 }

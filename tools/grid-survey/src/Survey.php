@@ -59,6 +59,9 @@ final class Survey
             $class = $this->classifier->classifyGrid($crawls[$i]);
             // grid-level facts only: the signals and the addresses the grid announces, never the pages
             unset($class['detected'], $class['fallback']);
+            if ($class['w4os_signal'] === null) {
+                unset($class['w4os_signal']);
+            }
             $out[] = $grid + $class + ['grid_info' => $crawls[$i]['grid']['info'] ?? [], 'note' => $crawls[$i]['note']];
         }
 

@@ -3,7 +3,7 @@
         "cats": [
             1001
         ],
-        "description": "w4os, the WordPress plugin: its assets and blocks in the page, or its readme.txt (probe)",
+        "description": "w4os, the WordPress plugin: its assets and blocks in the page, or its readme.txt (probe, opt-in)",
         "website": "https://github.com/GuduleLapointe/w4os",
         "html": [
             "/wp-content/plugins/w4os(?:-opensimulator-web-interface)?/",
@@ -200,6 +200,29 @@
             "(?:is|are) NOT an? Open ?Sim",
             "not an? Open ?Sim(?:ulator)? (?:world|grid)",
             "Halcyon Simulator [\\d.]+"
+        ]
+    },
+    "w4os Grav plugin": {
+        "cats": [
+            1001
+        ],
+        "description": "w4os, the Grav plugin: its assets under /user/plugins/w4os/",
+        "website": "https://w4os.org",
+        "html": [
+            "/user/plugins/w4os/"
+        ],
+        "implies": [
+            "Grav"
+        ]
+    },
+    "w4os mini site": {
+        "cats": [
+            1001
+        ],
+        "description": "w4os, the mini site: the credits and menus markup of its theme",
+        "website": "https://w4os.org",
+        "html": [
+            "class=[\"'][^\"']*w4os-(?:credits|visitor-menus)"
         ]
     }
 }

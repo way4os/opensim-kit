@@ -156,3 +156,26 @@ describe('the site and the grid info together', function () {
         expect($result['flags'])->toBe(['says it is not OpenSim'])->and($result['outcome'])->toBe('classified');
     });
 });
+
+describe('the w4os family is one row', function () {
+    test('the WordPress plugin, the Grav plugin and the mini site all go to w4os, the signal that decided is kept', function (string $html, string $signal) {
+        $result = classifier()->classify(['status' => 'ok', 'note' => '', 'pages' => [page('home', 'http://a.example/', $html)]]);
+
+        expect($result['system'])->toBe('wordpress_w4os')->and($result['w4os_signal'])->toBe($signal);
+    })->with([
+        'WordPress plugin' => ['<link href="/wp-content/plugins/w4os/v2/public/public.css">', 'w4os'],
+        'Grav plugin' => ['<link href="/user/plugins/w4os/css/w4os.css"><meta name="generator" content="GravCMS">', 'w4os Grav plugin'],
+        'mini site' => ['<div class="w4os-credits">Powered by</div>', 'w4os mini site'],
+    ]);
+
+    test('the helpers addresses of the grid info are kept in the result, not used to classify', function () {
+        $helpers = ['status' => 'ok', 'note' => '', 'info' => ['economy' => 'http://a.example/helpers/', 'search' => 'http://a.example/helpers/ossearch.php'], 'pages' => []];
+        $http = site(['http://a.example/' => ['body' => '<h1>A</h1>'], 'http://a.example:8002/get_grid_info' => ['body' => '<gridinfo><economy>http://a.example/helpers/</economy><search>http://a.example/helpers/ossearch.php</search></gridinfo>']]);
+        $crawl = (new GridSurvey\Crawler($http))->crawl(['name' => 'A', 'url' => 'http://a.example/', 'login_uri' => 'a.example:8002']);
+        $grids = (new GridSurvey\Survey(new GridSurvey\Crawler($http), classifier()))->run([['name' => 'A', 'url' => 'http://a.example/', 'login_uri' => 'a.example:8002']]);
+
+        expect($crawl['grid']['info'])->toEqualCanonicalizing($helpers['info'])
+            ->and($grids[0]['grid_info'])->toEqualCanonicalizing($helpers['info'])
+            ->and($grids[0]['system'])->toBe('custom_site');
+    });
+});
