@@ -92,6 +92,29 @@ dev/build.sh deb opensim-kit && tests/Packaging/kit-check --connection ursull
 DEPS=../w4os-site/dist tests/Packaging/kit-check --connection ursull docker.io/library/ubuntu:26.04
 ```
 
+## Survey of the web systems of the grids
+
+`tools/grid-survey` redoes the market study of [docs/market/grid-web-systems-2026-11.md](docs/market/grid-web-systems-2026-11.md): which web system each grid of the Hypergrid Business list runs, as a dated JSON result, and the numbers of the w4os.org page ([Grids using w4os](https://w4os.org/features/grids-using-w4os)) from it. It is a development tool, not packaged (`/tools` is in `.distignore`). PHP 8.3, like the other tools of the family, with Pest for its tests.
+
+**Refreshing the numbers when Hypergrid Business publishes a new list** (about once a month, with its "<Month> <year> OpenSim grid stats" page):
+
+```bash
+cd tools/grid-survey && composer install                       # once
+bin/grid-survey run \
+    --list https://www.hypergridbusiness.com/statistics/active-grids/ \
+    --stats https://www.hypergridbusiness.com/statistics/november-2026-opensim-grid-stats/ \
+    --month 2026-12 --only "neverworld,speculoos"                # a dry run on a few grids first, then without --only
+bin/grid-survey update-page --result ../../docs/market/grid-web-systems-2026-12.json \
+    --grids-json ~/Projects/sites/w4os.org/pages/03.features/01.grids/grids.json   # the diff; --write applies it
+```
+
+- `run` crawls the sites (read-only: user agent `grid-web-survey/1.0; read-only market study`, 15 s timeout, one request at a time per site with a 0.5 to 1 s pause, `robots.txt` respected, no login, no form), classifies each grid and writes `docs/market/grid-web-systems-<month>.json` (per grid: system, outcome, confidence, signals; totals by system with the shares of grids and of active users; the source month and dates; the excluded grids). The full run takes about an hour, so it goes in the background. The pages fetched are kept in `tools/grid-survey/results/<month>/pages` (not in git): `run --offline` classifies them again after a change of rules, without crawling. Without `--stats`, there are no active users, so no share by audience.
+- `update-page` compares the counts with `grids.json` and prints a diff; `--write` applies it. Only the grid counts of the systems and `surveyed` (the survey month) change. The **last-update date of each interface, its source and the year a development ended stay hand-kept**: check them against each project's repository or site when the numbers are refreshed, and edit `grids.json` by hand. The list of w4os grids at the top of `grids.json` is hand-kept too (a grid may ask not to be on it): the update only says which grids run w4os and are not on it, and the other way round. The text of the page says "November 2026" in each language (`grids.*.md`): change it by hand until the template reads `surveyed`.
+- The classes are the systems of the page (the ids of `grids.json`). The order of the rules is in `src/Classifier.php`, the names in `signatures/classes.json`. Laravel and other frameworks count as CMS, not as custom code. A grid with no known system is custom code, with an OpenSim interface when it has its own sign-up or login (`custom`), without when it has none (`custom_site`); a CMS product (Concrete, Grav...) counts as carrying an OpenSim interface only when its sign-up page asks for an avatar.
+- Fingerprints: the technologies database of [enthec/webappanalyzer](https://github.com/enthec/webappanalyzer) (the maintained successor of Wappalyzer's rules, GPL-3.0), pinned to a commit in `signatures/webappanalyzer.sha` and downloaded into `tools/grid-survey/cache` on first use (`bin/grid-survey signatures --update` takes the latest), plus `signatures/own.json` in the same format: the OpenSim interfaces (w4os, DreamGrid, Diva Wifi, osWebInterface, Modlos, jOpenSim, Hosting4Opensim, Kitely), and the few builders and cases the database misses or no longer matches (Sandvox, WebAcappella, FrontPage, Google Sites, Grav without a generator tag). Our entries win over the database. A site that is wrongly classified is fixed there, then `run --offline` again.
+- `signatures/excluded.json` lists the grids left out of the survey with the reason (today the three grids of the 3D Worldz panel, which say they run Halcyon and not OpenSim). They are not crawled, they appear in the result under `excluded` and in the summary, and they are not in the totals. The decision to keep the rule is Olivier's: remove an entry (or run with `--include-excluded`) to count them.
+- Tests: `cd tools/grid-survey && vendor/bin/pest`. They use saved pages (`tests/fixtures/crawls`, trimmed from real sites) and a subset of the database: no network, no site crawled.
+
 ## References
 
 - http://opensimulator.org

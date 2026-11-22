@@ -195,7 +195,7 @@ What stands out, from reading the bigger sites:
 - **Detection.** `generator` meta, `Server` / `X-Powered-By` headers, cookies (`XSRF-TOKEN`/Laravel, `MoodleSession`, Joomla hash cookie, `PHPSESSID`), asset paths (`/wp-content/`, `/media/jui/`, `/user/themes/`, `/wifi/`, `_app/immutable`…), known tool names (Wifi, jOpenSim, osWebInterface, Modlos, Hosting4Opensim "Site Credits"). The 50 biggest grids and every ambiguous result were then reviewed by hand; 19 classifications were corrected (listed in the "Signals seen" column).
 - **Unreachable sites.** 45 sites reset or timed out, also from a second network (ursull), so they were down or filtering on 2026-11-15; many are home-hosted DreamGrid servers that run part-time. 15 sites forbid all crawling in `robots.txt` (Astralia, Sanctum Astra, Outworldz, Furry World…) and were left alone.
 - **Guesses.** "Custom PHP" means PHP with no known framework or CMS signature: it can hide a little-known CMS. "Static HTML" means no server-side signal; some may be generated. Features are counted by keywords on two public pages, so they are a floor, not an inventory. w4os may be installed on a few more WordPress grids that block or rename the plugin folder.
-- **Data files.** Raw pages, crawler and detection scripts were kept in the session scratchpad only (not in this repository).
+- **Data files.** Raw pages, crawler and detection scripts were kept in the session scratchpad only (not in this repository). The survey can now be redone with `tools/grid-survey` (see DEVELOPERS.md); its classes follow the w4os.org page (custom interface and custom website are split by the sign-up test described there), so its totals are not the families of this study.
 
 ## All grids
 

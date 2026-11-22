@@ -11,6 +11,7 @@
 /ROADMAP.md
 /dev
 /packaging
+/tools
 /tests
 /upstream
 # Add-on binaries for OpenSim 0.9.1 and 0.9.2 (Mono), used by no script. The original MoneyServer.ini stays: the setup makes the
