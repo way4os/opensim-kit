@@ -864,6 +864,10 @@ w4os plugin:
 
 ### 3.2 (more, later)
 
+- [ ] usage statistics of the components and of the satellites, as charts on the project's site, once there is enough to show
+    - the components: the WordPress plugin, the Grav plugin, the mini site, the helpers alone...
+    - the satellites: 2do, scrup, Teleport Board, the NPC chatbot...
+    - what can be measured without tracking anyone, and who opts in: to decide first (the survey of the grids' websites, `docs/market`, counts what is visible from outside; a usage count needs the grids to report it)
 - [ ] display names
     - [ ] custom display names (a display name that is not the account name)
     - OSGrid publishes a closed module (`DisplayNameSimModule`, `contrib/osgrid`)
