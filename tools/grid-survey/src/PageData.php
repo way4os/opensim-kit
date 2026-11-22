@@ -57,15 +57,15 @@ final class PageData
         }
 
         // the grids running w4os, for the list of the page (hand-kept: grids may ask not to be on it)
-        $listed = array_map(fn (array $g) => ListReader::key($g['url']), $data['grids']);
+        $listed = array_map(fn (array $g) => self::host($g['url']), $data['grids']);
         foreach ($report['grids'] as $grid) {
-            if ($grid['system'] === 'wordpress_w4os' && !in_array(ListReader::key($grid['url']), $listed, true)) {
+            if ($grid['system'] === 'wordpress_w4os' && !in_array(self::host($grid['url']), $listed, true)) {
                 $notes[] = "w4os detected on {$grid['name']} ({$grid['url']}), not in the list of the page";
             }
         }
-        $found = array_map(fn (array $g) => ListReader::key($g['url']), array_filter($report['grids'], fn ($g) => $g['system'] === 'wordpress_w4os'));
+        $found = array_map(fn (array $g) => self::host($g['url']), array_filter($report['grids'], fn ($g) => $g['system'] === 'wordpress_w4os'));
         foreach ($data['grids'] as $grid) {
-            if (!in_array(ListReader::key($grid['url']), $found, true)) {
+            if (!in_array(self::host($grid['url']), $found, true)) {
                 $notes[] = "{$grid['name']} is in the list of the page, w4os not detected in this survey";
             }
         }
@@ -73,5 +73,11 @@ final class PageData
         json_decode($json, true, flags: JSON_THROW_ON_ERROR);
 
         return ['json' => $json, 'changes' => $changes, 'notes' => $notes];
+    }
+
+    /** The site of a grid by its host alone: the address of the page and the one of the list may differ by their path. */
+    private static function host(string $url): string
+    {
+        return preg_replace('~^www\.~', '', strtolower((string) parse_url($url, PHP_URL_HOST)));
     }
 }

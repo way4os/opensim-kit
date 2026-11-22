@@ -89,6 +89,12 @@ describe('page data update', function () {
         expect($proposal['changes'])->toContain('grid_server: 4 -> 0');
     });
 
+    test('a grid is the same site by its host, whatever the path of the address', function () use ($json, $same) {
+        $proposal = PageData::propose($json, result($same, w4os: ['Sheikah' => 'https://www.sheikah.org/en/']));
+
+        expect(implode("\n", $proposal['notes']))->not->toContain('Sheikah');
+    });
+
     test('tells which grids run w4os and are not on the list of the page, and the other way round', function () use ($json, $same) {
         $proposal = PageData::propose($json, result($same, w4os: ['New One' => 'http://new-one.example/', 'Ankabi' => 'http://ankabi.de']));
 
