@@ -36,12 +36,15 @@ final class Classifier
     ];
 
     /**
-     * A grid, from its site and from what the grid itself publishes. The site decides; the grid info decides when the
-     * site has nothing known (custom code, or no answer); where both know something and differ, the site stays
-     * and the result says to review it.
+     * A grid, from its site and from what the grid itself publishes.
+     * - the grid info announces an OpenSim web interface (register, welcome, password addresses): that interface
+     *   decides, the site is only its front;
+     * - it recognises only a plain CMS: the site keeps the hand, and a difference is listed under review;
+     * - it recognises nothing, or the site knows nothing (custom code) or does not answer: the one that knows decides.
+     * `by` keeps what each side said, `decided_by` which one decided (site, grid_info or both).
      *
      * @param array{status: string, note: string, pages: list<array<string, mixed>>, grid?: array<string, mixed>} $crawl
-     * @return array<string, mixed> the classification of the site, with `by` (what each side says), `review`
+     * @return array<string, mixed> the classification of the site, with `by`, `decided_by` and `review`
      */
     public function classifyGrid(array $crawl): array
     {
@@ -49,6 +52,7 @@ final class Classifier
         $grid = $site['outcome'] === 'robots' ? null : $this->gridSide($crawl['grid'] ?? null);
         $prefix = fn (string $side, array $signals) => array_map(fn (string $s) => "$side: $s", $signals);
         $site['by'] = ['site' => $site['system'] ?? $site['outcome'], 'grid_info' => $grid['system'] ?? null];
+        $site['decided_by'] = 'site';
         $site['review'] = null;
         $site['signals'] = $prefix('site', $site['signals']);
         if ($grid === null) {
@@ -57,21 +61,34 @@ final class Classifier
         $site['signals'] = array_merge($site['signals'], $prefix('grid info', $grid['signals']));
         $site['flags'] = array_values(array_unique(array_merge($site['flags'], $grid['flags'])));
 
-        if ($site['system'] === null || $site['fallback']) {
-            // the site says nothing known: the grid says what it runs
-            return array_merge($site, ['system' => $grid['system'], 'outcome' => 'classified', 'confidence' => 'medium', 'fallback' => false]);
-        }
-        $agree = $site['system'] === $grid['system']
+        $same = $site['system'] === $grid['system']
             || (self::REFINES[$site['system']] ?? null) === $grid['system']
             || (self::REFINES[$grid['system']] ?? null) === $site['system'];
-        if ($agree) {
-            $site['confidence'] = 'high';
-        } else {
-            $site['confidence'] = 'low';
-            $site['review'] = "site says {$site['system']}, grid info says {$grid['system']}";
+        $siteKnows = $site['system'] !== null && !$site['fallback'];
+
+        if (in_array($grid['system'], $this->classes['grid_info_decides'], true)) {
+            // an interface the grid announces: it decides, the site is its front
+            $differs = $siteKnows && !$same && in_array($site['system'], $this->classes['grid_info_decides'], true);
+
+            return array_merge($site, [
+                'system' => $grid['system'],
+                'outcome' => 'classified',
+                'confidence' => $site['system'] === $grid['system'] ? 'high' : 'medium',
+                'fallback' => false,
+                'decided_by' => $site['system'] === $grid['system'] ? 'both' : 'grid_info',
+                'w4os_signal' => $grid['w4os_signal'] ?? $site['w4os_signal'] ?? null,
+                'review' => $differs ? "site says {$site['system']}, grid info says {$grid['system']}" : null,
+            ]);
+        }
+        if (!$siteKnows) {
+            // the site says nothing known: the grid says what it runs
+            return array_merge($site, ['system' => $grid['system'], 'outcome' => 'classified', 'confidence' => 'medium', 'fallback' => false, 'decided_by' => 'grid_info']);
+        }
+        if ($same) {
+            return array_merge($site, ['confidence' => 'high', 'decided_by' => 'both']);
         }
 
-        return $site;
+        return array_merge($site, ['confidence' => 'low', 'review' => "site says {$site['system']}, grid info says {$grid['system']}"]);
     }
 
     /**

@@ -89,5 +89,14 @@
         "w4os",
         "w4os Grav plugin",
         "w4os mini site"
+    ],
+    "grid_info_decides": [
+        "dreamgrid",
+        "diva_wifi",
+        "oswebinterface",
+        "jopensim",
+        "modlos",
+        "wordpress_w4os",
+        "hosted"
     ]
 }

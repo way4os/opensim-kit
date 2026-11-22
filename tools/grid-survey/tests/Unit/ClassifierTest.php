@@ -117,18 +117,30 @@ describe('the site and the grid info together', function () {
         expect($result['system'])->toBe('wordpress_w4os')->and($result['review'])->toBeNull()->and($result['confidence'])->toBe('high');
     });
 
-    test('they differ: the site stays, the result says to review', function () use ($wp, $wifi, $site) {
+    test('the grid info recognises an OpenSim interface: it decides, the site is only its front', function () use ($wp, $wifi, $site) {
         $result = classifier()->classifyGrid($site([$wp()]) + ['grid' => $wifi()]);
 
-        expect($result['system'])->toBe('wordpress')->and($result['confidence'])->toBe('low')
-            ->and($result['review'])->toBe('site says wordpress, grid info says diva_wifi')
-            ->and($result['by'])->toBe(['site' => 'wordpress', 'grid_info' => 'diva_wifi']);
+        expect($result['system'])->toBe('diva_wifi')->and($result['decided_by'])->toBe('grid_info')
+            ->and($result['by'])->toBe(['site' => 'wordpress', 'grid_info' => 'diva_wifi'])
+            ->and($result['review'])->toBeNull()->and($result['confidence'])->toBe('medium');
+    });
+
+    test('the grid info only sees a plain CMS that differs from the site: the site stays, to review', function () use ($wpLogin, $site) {
+        $wix = page('home', 'http://a.example/', '<h1>Welcome</h1><meta name="generator" content="Wix.com Website Builder">');
+        $result = classifier()->classifyGrid($site([$wix]) + ['grid' => $wpLogin()]);
+
+        expect($result['system'])->toBe('builders')->and($result['decided_by'])->toBe('site')->and($result['confidence'])->toBe('low')
+            ->and($result['review'])->toBe('site says builders, grid info says wordpress');
+    });
+
+    test('both say the same: decided by both', function () use ($wp, $wpLogin, $site) {
+        expect(classifier()->classifyGrid($site([$wp()]) + ['grid' => $wpLogin()])['decided_by'])->toBe('both');
     });
 
     test('the site has nothing known: the grid info decides', function () use ($wifi, $site) {
         $result = classifier()->classifyGrid($site([page('home', 'http://a.example/', '<h1>My grid</h1>')]) + ['grid' => $wifi()]);
 
-        expect($result['system'])->toBe('diva_wifi')->and($result['by']['site'])->toBe('custom_site');
+        expect($result['system'])->toBe('diva_wifi')->and($result['by']['site'])->toBe('custom_site')->and($result['decided_by'])->toBe('grid_info');
     });
 
     test('the site does not answer, the grid info does: the grid is classified', function () use ($wifi, $site) {
@@ -177,5 +189,52 @@ describe('the w4os family is one row', function () {
         expect($crawl['grid']['info'])->toEqualCanonicalizing($helpers['info'])
             ->and($grids[0]['grid_info'])->toEqualCanonicalizing($helpers['info'])
             ->and($grids[0]['system'])->toBe('custom_site');
+    });
+});
+
+// The three grids of the dry run whose site is a builder or WordPress and whose grid announces an OpenSim interface
+describe('the interface the grid announces decides', function () {
+    $site = fn (array $pages) => ['status' => 'ok', 'note' => '', 'pages' => $pages];
+    $published = fn (string $url, string $html) => ['status' => 'ok', 'note' => '', 'info' => [], 'pages' => [['key' => 'register'] + page('published', $url, $html)]];
+
+    test('Accueil Dracsoom: a site builder in front of a DreamGrid', function () use ($site, $published) {
+        $home = page('home', 'http://dracsoom.free.fr/', '<meta name="generator" content="WebAcappella 4.6.26">');
+        $grid = $published('http://dracsoom.ddns.net:8002/wifi/user/account/', '<link rel="stylesheet" href="/wifi/fluid.css"><p class="textlogo">Opensim DreamGrid Virtual world</p>');
+        $result = classifier()->classifyGrid($site([$home]) + ['grid' => $grid]);
+
+        expect($result['system'])->toBe('dreamgrid')->and($result['by'])->toBe(['site' => 'builders', 'grid_info' => 'dreamgrid']);
+    });
+
+    test('OpenSim Network: WordPress in front of a Diva Wifi', function () use ($site, $published) {
+        $home = page('home', 'https://opensimnetwork.com/', '<img src="https://opensimnetwork.com/wp-content/uploads/2025/06/x.png">');
+        $grid = $published('https://opensimnetwork.zapto.org/wifi/user/account/', '<link rel="stylesheet" href="/wifi/fluid.css"><a href="/wifi/user/account/">Create</a>');
+        $result = classifier()->classifyGrid($site([$home]) + ['grid' => $grid]);
+
+        expect($result['system'])->toBe('diva_wifi')->and($result['by']['site'])->toBe('wordpress');
+    });
+
+    test('Twiztid Timez: Google Sites in front of a Hosting4Opensim panel', function () use ($site, $published) {
+        $home = classifier()->classifyGrid(crawl('twiztidtimez-com'));
+        $grid = $published('https://panel.twiztidtimez.com/welcome', '<button id="h4os-theme-toggle" data-h4os-theme-toggle></button><script>var K = "h4os:theme";</script>');
+        $result = classifier()->classifyGrid(['grid' => $grid] + crawl('twiztidtimez-com'));
+
+        expect($home['system'])->toBe('builders')
+            ->and($result['system'])->toBe('hosted')->and($result['by'])->toBe(['site' => 'builders', 'grid_info' => 'hosted']);
+    });
+
+    test('Japan Open Grid, the counter-case: the grid info only sees Moodle, the site keeps the hand and stays Modlos', function () use ($published) {
+        $grid = $published('https://www.jogrid.net/wi/login/index.php', '<html><body class="moodle"><script>M.cfg = {};</script></body></html>');
+        $grid['pages'][0]['cookies'] = ['MoodleSession'];
+        $result = classifier()->classifyGrid(['grid' => $grid] + crawl('jogrid-net-wi'));
+
+        expect($result['by']['grid_info'])->toBe('other_cms')
+            ->and($result['system'])->toBe('modlos')->and($result['decided_by'])->toBe('both')->and($result['review'])->toBeNull();
+    });
+
+    test('the grid info recognises nothing: the site decides', function () use ($site, $published) {
+        $grid = $published('http://a.example/signup', '<h1>Sign up</h1>');
+        $result = classifier()->classifyGrid($site([page('home', 'http://a.example/', '<meta name="generator" content="WordPress 7.1.4"><link href="/wp-content/x.css">')]) + ['grid' => $grid]);
+
+        expect($result['system'])->toBe('wordpress')->and($result['decided_by'])->toBe('site')->and($result['by']['grid_info'])->toBeNull();
     });
 });
