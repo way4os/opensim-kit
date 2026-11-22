@@ -702,6 +702,7 @@ w4os plugin, once the features above are covered by the engine and the helpers:
 
 Features:
 
+- [ ] a signature of its own for each component (engine, helpers, the WordPress and Grav plugins, the mini site, the apps and the satellites): its name and its version in what it serves (a header or a field of its API, and a line in its pages), so that each component knows which version of the other it talks to, and so that the survey of the grids' websites can recognise them without guessing an address
 - [ ] region-owner self-service, the strength of the closed competitor H4HUB/H4OS (Hosting4Opensim's Laravel panel, market study
       2026-11, `opensim-grids-market-study`): restart, backup and restore of a region, its map, a free-cell picker for a new region,
       parcels; for the admins, tickets and mail campaigns. All through the engine API (the "run the grid" layer), shown by every bridge.
