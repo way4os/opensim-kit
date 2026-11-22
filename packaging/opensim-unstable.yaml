@@ -1,6 +1,6 @@
 # OpenSimulator built from the development branch, built by apt-package from
 # build/opensim-unstable with the version packaging/build gives (source
-# version, date and commit of the upstream/opensim submodule), for each
+# version, date and commit of the core/unstable submodule), for each
 # architecture of its native libraries. Installed read-only in
 # /usr/share/opensim/unstable, next to the releases.
 name: opensim-unstable

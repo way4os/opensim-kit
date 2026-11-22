@@ -13,13 +13,11 @@
 /packaging
 /tools
 /tests
-/upstream
+/core
 # Add-on binaries for OpenSim 0.9.1 and 0.9.2 (Mono), used by no script. The original MoneyServer.ini stays: the setup makes the
 # one of a grid from it
 /contrib/Gloebit
-# The DLLs of OpenSimSearch are in the packages of the modules, not in the tools; what OSGrid publishes (contrib/osgrid, a closed module
-# among it) is for reading here, not for distributing
-/contrib/OpenSimSearch
+# What OSGrid publishes (contrib/osgrid, a closed module among it) is for reading here, not for distributing
 /contrib/osgrid
 /contrib/README.md
 /contrib/MoneyServer/*/MoneyServer.exe

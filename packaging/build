@@ -4,14 +4,16 @@
 #
 # opensim-core, opensim, opensim-kit: the OpenSimulator release of
 #   packaging/opensim-core.versions, the last one or OPENSIM_VERSION; for
-#   opensim-core, build/opensim-core from its tarball, downloaded into cache/downloads/
-#   and checked against its SHA256.
+#   opensim-core, build/opensim-core from the content of its official release
+#   archive, downloaded into core/releases/ and checked against its SHA256 (never
+#   from a clone of the source: a core built again is another build of the same
+#   version).
 # opensim-<module>: build/modules/<module>, the files of a module of
 #   packaging/opensim-modules.versions, for the release of opensim-core or
 #   MODULES_CORE (a release or unstable); downloads go to cache/downloads/, checked
 #   against their SHA256.
 # opensim-unstable: build/opensim-unstable, OpenSimulator built from the
-#   commit of the upstream/opensim submodule, in a .NET SDK container
+#   commit of the core/unstable submodule, in a .NET SDK container
 #   (podman, or CONTAINER=docker), or on another machine (BUILD_HOST, see
 #   packaging/remote-build). Each commit is built once, into build/cache/.
 #
@@ -81,16 +83,16 @@ fi
 
 if wants opensim-core; then
     tarball=opensim-$version.tar.gz
-    mkdir -p cache/downloads
-    if [[ ! -f "cache/downloads/$tarball" ]]; then
-        curl -fSL "$URL/$tarball" -o "cache/downloads/$tarball.part"
-        mv "cache/downloads/$tarball.part" "cache/downloads/$tarball"
+    mkdir -p core/releases
+    if [[ ! -f "core/releases/$tarball" ]]; then
+        curl -fSL "$URL/$tarball" -o "core/releases/$tarball.part"
+        mv "core/releases/$tarball.part" "core/releases/$tarball"
     fi
-    (cd cache/downloads && echo "$checksum  $tarball" | shasum -a 256 -c -)
+    (cd core/releases && echo "$checksum  $tarball" | shasum -a 256 -c -)
 
     rm -rf build/tarball
     mkdir -p build/tarball
-    tar -xzf "cache/downloads/$tarball" --strip-components=1 -C build/tarball
+    tar -xzf "core/releases/$tarball" --strip-components=1 -C build/tarball
     distribution build/tarball build/opensim-core
     rm -rf build/tarball
     sed -e "s|@VERSION@|$version|g" -e "s|@SOURCE@|$URL/$tarball|" packaging/opensim-core.copyright >build/opensim-core.copyright
@@ -135,7 +137,7 @@ EOF
 done
 
 if wants opensim-unstable; then
-    source=upstream/opensim
+    source=core/unstable
     [[ -e "$source/.git" ]] || git submodule update --init "$source"
     commit=$(git -C "$source" rev-parse HEAD)
 
