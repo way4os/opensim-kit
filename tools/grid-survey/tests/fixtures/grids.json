@@ -1,0 +1,46 @@
+{
+  "grids": [
+    {"name": "Ankabi", "url": "https://ankabi.de/"},
+    {"name": "Kurtopia", "url": "https://kurtopia.ddns.net/"},
+    {"name": "Maze of The Mind", "url": "https://mazeofthemind.com/"},
+    {"name": "Migrating Coconuts", "url": "https://world.migratingcoconuts.net/"},
+    {"name": "Neverworld", "url": "https://neverworldgrid.com/"},
+    {"name": "OliGrid", "url": "https://oligrid.net/"},
+    {"name": "Rainbow Grid", "url": "https://rg.spes.gr/"},
+    {"name": "Sense Limits", "url": "https://senselimits.cloud/"},
+    {"name": "Sheikah", "url": "https://sheikah.org/"},
+    {"name": "Six Sides", "url": "https://sixsides.net/"},
+    {"name": "Speculoos", "url": "https://speculoos.world/"},
+    {"name": "SV3D", "url": "https://sv3d.fr/wordpress/"},
+    {"name": "Virtual Harmony in the Cloud", "url": "https://vharmonyartshub.com/"}
+  ],
+  "groups": [
+    {
+      "id": "interface",
+      "systems": [
+        {"id": "dreamgrid", "grids": 42, "updated": "2026-11-18", "source": "https://outworldz.com/Outworldz_installer/Grid/"},
+        {"id": "modlos", "grids": 1, "updated": "2026-09-17", "source": "https://github.com/moodle-fumihax/block_modlos"},
+        {"id": "oswebinterface", "grids": 4, "updated": "2026-05-23", "source": "https://github.com/ManfredAabye/oswebinterface"},
+        {"id": "wordpress_w4os", "grids": 15, "updated": "2025-12-03", "source": "https://github.com/GuduleLapointe/w4os"},
+        {"id": "diva_wifi", "grids": 36, "updated": "2022-10-24", "source": "https://github.com/diva/diva-distribution"},
+        {"id": "jopensim", "grids": 14, "ended": "2025", "source": "https://www.jopensim.com/"},
+        {"id": "hosted", "grids": 10, "updated": null},
+        {"id": "custom", "grids": 37},
+        {"id": "other_cms_ui", "grids": 1}
+      ]
+    },
+    {
+      "id": "none",
+      "sort": "grids",
+      "shades": true,
+      "systems": [
+        {"id": "custom_site", "grids": 34},
+        {"id": "wordpress", "grids": 31},
+        {"id": "builders", "grids": 13},
+        {"id": "joomla", "grids": 6},
+        {"id": "other_cms", "grids": 2, "last": true},
+        {"id": "grid_server", "grids": 4, "last": true}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,193 @@
+{
+    "w4os": {
+        "cats": [
+            1001
+        ],
+        "description": "w4os, the WordPress plugin: its assets and blocks in the page, or its readme.txt (probe)",
+        "website": "https://github.com/GuduleLapointe/w4os",
+        "html": [
+            "/wp-content/plugins/w4os(?:-opensimulator-web-interface)?/",
+            "w4os-(?:shortcode|public-js|public-css)",
+            "^\\s*=== w4os"
+        ],
+        "implies": [
+            "WordPress"
+        ]
+    },
+    "DreamGrid": {
+        "cats": [
+            1001
+        ],
+        "description": "DreamGrid (Outworldz): a Diva Wifi page signed DreamGrid",
+        "website": "https://github.com/Outworldz/DreamGrid-Opensim",
+        "html": [
+            "DreamGrid Virtual",
+            "Dreamgrid is (?:AGPL|designed|\\s*Copyright)"
+        ]
+    },
+    "Diva Wifi": {
+        "cats": [
+            1001
+        ],
+        "description": "Diva Wifi, served by the grid (Robust) itself under /wifi",
+        "website": "https://github.com/diva/diva-distribution",
+        "html": [
+            "(?:href|src)=[\"']/wifi/(?:fluid\\.css|images/|user/account|index\\.html|termsofservice)",
+            "action=[\"']/wifi/login"
+        ]
+    },
+    "jOpenSim": {
+        "cats": [
+            1001
+        ],
+        "description": "jOpenSim, the Joomla component",
+        "website": "https://www.jopensim.com/",
+        "html": [
+            "/components/com_opensim/",
+            "/modules/mod_opensim",
+            "option=com_opensim",
+            "opensim_gridstatus"
+        ],
+        "url": "option=com_opensim",
+        "implies": [
+            "Joomla"
+        ]
+    },
+    "Modlos": {
+        "cats": [
+            1001
+        ],
+        "description": "Modlos, the Moodle block for OpenSim accounts",
+        "website": "https://github.com/moodle-fumihax/block_modlos",
+        "html": "/blocks/modlos/",
+        "implies": [
+            "Moodle"
+        ]
+    },
+    "osWebInterface": {
+        "cats": [
+            1001
+        ],
+        "description": "osWebInterface, the PHP welcome page and registration of a grid",
+        "website": "https://github.com/ManfredAabye/oswebinterface",
+        "html": [
+            "welcomesplashpage\\.php",
+            "oswebinterface",
+            "class=[\"']region-link[\"']\\;confidence:50",
+            "PictureSlider\\;confidence:50"
+        ]
+    },
+    "Hosting4Opensim": {
+        "cats": [
+            1002
+        ],
+        "description": "Hosting4Opensim, the H4OS panel of a hosted grid (a Laravel site: h4os markers on its pages, its Site Credits page names the host)",
+        "website": "https://hosting4opensim.com/",
+        "html": [
+            "hosting4opensim\\.com",
+            "store\\.h4hub\\.com",
+            "H4HUB",
+            "h4os-(?:status|theme)"
+        ],
+        "implies": [
+            "Laravel"
+        ]
+    },
+    "Kitely": {
+        "cats": [
+            1002
+        ],
+        "description": "Kitely, a commercial grid platform",
+        "website": "https://www.kitely.com/",
+        "url": "^https?://(?:www\\.)?kitely\\.com(?:[/:]|$)"
+    },
+    "OpenSim grid server": {
+        "cats": [
+            1003
+        ],
+        "description": "The grid service answers (Robust, Server: OSWebServer) and serves no website",
+        "website": "http://opensimulator.org",
+        "headers": {
+            "server": "^OSWebServer"
+        }
+    },
+    "Default server page": {
+        "cats": [
+            1004
+        ],
+        "description": "The page a web server shows before anything is installed",
+        "website": "",
+        "html": [
+            "Apache2 (?:Ubuntu |Debian )?Default Page",
+            "<title>Welcome to nginx!",
+            "<title>IIS Windows Server",
+            "<title>Test Page for the (?:Apache|Nginx)",
+            "<title>Index of /</title>\\;confidence:50",
+            "<h1>It works!</h1>",
+            "Plesk[^<]{0,40}(?:default|Domain)\\;confidence:50"
+        ]
+    },
+    "Grav": {
+        "merge": true,
+        "description": "Grav without a generator tag: its theme and plugin paths",
+        "html": "/user/(?:themes|plugins|pages)/[^\"' ]+\\;confidence:60",
+        "cats": [
+            1
+        ],
+        "implies": [
+            "PHP"
+        ]
+    },
+    "Sandvox": {
+        "cats": [
+            1
+        ],
+        "description": "Sandvox, a Mac site builder",
+        "website": "https://www.karelia.com/",
+        "meta": {
+            "generator": "^Sandvox(?: ([\\d.]+))?\\;version:\\1"
+        }
+    },
+    "WebAcappella": {
+        "cats": [
+            1
+        ],
+        "description": "WebAcappella, a site builder",
+        "website": "https://www.webacappella.com/",
+        "meta": {
+            "generator": "^WebAcappella(?: ([\\d.]+))?\\;version:\\1"
+        }
+    },
+    "Microsoft FrontPage": {
+        "cats": [
+            1
+        ],
+        "description": "Microsoft FrontPage, an old site builder",
+        "website": "",
+        "meta": {
+            "generator": "^Microsoft FrontPage(?: ([\\d.]+))?\\;version:\\1"
+        }
+    },
+    "Google Sites": {
+        "merge": true,
+        "description": "Google Sites: the database rule knows an attribute some pages no longer carry",
+        "html": [
+            "https://sites\\.google\\.com/(?:new|view)/",
+            "googleusercontent\\.com/sitesv-images"
+        ],
+        "cats": [
+            1
+        ]
+    },
+    "WordPress": {
+        "merge": true,
+        "description": "WordPress seen only by its uploads or theme files, when the page has no generator tag and no stylesheet of its own",
+        "html": [
+            "/wp-content/(?:uploads|themes|plugins)/",
+            "/wp-json/"
+        ],
+        "cats": [
+            1
+        ]
+    }
+}

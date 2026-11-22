@@ -1,0 +1,566 @@
+{
+ "WordPress": {
+  "cats": [
+   1,
+   11
+  ],
+  "cpe": "cpe:2.3:a:wordpress:wordpress:*:*:*:*:*:*:*:*",
+  "description": "WordPress is a free and open-source content management system written in PHP and paired with a MySQL or MariaDB database. Features include a plugin architecture and a template system.",
+  "dom": [
+   "div[class*='wp-block-group'] > div[class*='wp-block-']",
+   "link[rel=stylesheet][href*='/wp-content/']",
+   "link[rel=stylesheet][href*='/wp-includes/']",
+   "link[href*='.wp.com']"
+  ],
+  "headers": {
+   "X-Pingback": "/xmlrpc\\.php$",
+   "link": "rel=\"https://api\\.w\\.org/\""
+  },
+  "html": [
+   "<link rel=[\"']stylesheet[\"'] [^>]+/wp-(?:content|includes)/",
+   "<link[^>]+s\\d+\\.wp\\.com"
+  ],
+  "icon": "WordPress.svg",
+  "implies": [
+   "PHP",
+   "MySQL"
+  ],
+  "js": {
+   "wp.ajax": "",
+   "wp.receiveEmbedMessage": "",
+   "wp_username": "",
+   "wpb_prepare_tab_content": ""
+  },
+  "meta": {
+   "generator": "^WordPress(?: ([\\d.]+))?\\;version:\\1",
+   "shareaholic:wp_version": ""
+  },
+  "oss": true,
+  "pricing": [
+   "low",
+   "recurring",
+   "freemium"
+  ],
+  "saas": true,
+  "scriptSrc": [
+   "/wp-(?:content|includes)/",
+   "wp-embed\\.min\\.js",
+   "wp-static\\.assets\\.sh/"
+  ],
+  "website": "https://wordpress.org"
+ },
+ "WooCommerce": {
+  "cats": [
+   6,
+   87
+  ],
+  "cookies": {
+   "woocommerce_recently_viewed": ""
+  },
+  "cpe": "cpe:2.3:a:woocommerce:woocommerce:*:*:*:*:*:wordpress:*:*",
+  "description": "WooCommerce is an open-source ecommerce plugin for WordPress.",
+  "dom": [
+   ".woocommerce, .woocommerce-no-js, link[rel*='woocommerce']"
+  ],
+  "icon": "WooCommerce.svg",
+  "js": {
+   "wc_add_to_cart_params": "",
+   "woocommerce_params": ""
+  },
+  "meta": {
+   "generator": "WooCommerce ([\\d.]+)\\;version:\\1"
+  },
+  "oss": true,
+  "requires": [
+   "WordPress"
+  ],
+  "scriptSrc": [
+   "^(?!.*?/wp-content/plugins/[^/]+/js/integrations/woocommerce\\.js(?:\\?ver=[\\d.]+)?$).*woocommerce",
+   "^(?!.*?/wp-content/plugins/[^/]+/js/integrations/woocommerce\\.js(?:\\?ver=[\\d.]+)?$).*/woocommerce(?:\\.min)?\\.js(?:\\?ver=([0-9.]+))?\\;version:\\1"
+  ],
+  "website": "https://woocommerce.com"
+ },
+ "Joomla": {
+  "cats": [
+   1
+  ],
+  "cookies": {
+   "joomla_[a-z0-9]+": ""
+  },
+  "cpe": "cpe:2.3:a:joomla:joomla\\!:*:*:*:*:*:*:*:*",
+  "description": "Joomla is a free and open-source content management system for publishing web content.",
+  "dom": [
+   "div[id*='wrapper_r'], link[href*='feed/com_'], link[href*='components/com_'], table[class*='pill']"
+  ],
+  "headers": {
+   "X-Content-Encoded-By": "Joomla! ([\\d.]+)\\;version:\\1"
+  },
+  "html": [
+   "(?:<div[^>]+id=\"wrapper_r\"|<(?:link|script)[^>]+(?:feed|components)/com_|<table[^>]+class=\"pill)\\;confidence:50"
+  ],
+  "icon": "Joomla.svg",
+  "implies": [
+   "PHP"
+  ],
+  "js": {
+   "Joomla": "",
+   "jcomments": ""
+  },
+  "meta": {
+   "generator": "Joomla!(?: ([\\d.]+))?\\;version:\\1"
+  },
+  "oss": true,
+  "scriptSrc": [
+   "(?:^|/)(feed/com_|components/com_)"
+  ],
+  "url": [
+   "option=com_"
+  ],
+  "website": "https://www.joomla.org/"
+ },
+ "Drupal": {
+  "cats": [
+   1
+  ],
+  "cookies": {
+   "SESS[a-f0-9]{32}": ""
+  },
+  "cpe": "cpe:2.3:a:drupal:drupal:*:*:*:*:*:*:*:*",
+  "description": "Drupal is a free and open-source web content management framework.",
+  "dom": [
+   "link[href*='/sites/default/themes/'], link[href*='/sites/all/themes/'], link[href*='/sites/default/modules/'], link[href*='/sites/all/modules/'], style[href*='/sites/default/themes/'], style[href*='/sites/all/themes/'], style[href*='/sites/default/modules/'], style[href*='/sites/all/modules/']"
+  ],
+  "headers": {
+   "Expires": "19 Nov 1978",
+   "X-Drupal-Cache": "",
+   "X-Generator": "^Drupal(?:\\s([\\d.]+))?\\;version:\\1"
+  },
+  "html": [
+   "<(?:link|style)[^>]+\"/sites/(?:default|all)/(?:themes|modules)/"
+  ],
+  "icon": "Drupal.svg",
+  "implies": [
+   "PHP"
+  ],
+  "js": {
+   "Drupal": ""
+  },
+  "meta": {
+   "generator": "^Drupal(?:\\s([\\d.]+))?\\;version:\\1"
+  },
+  "oss": true,
+  "scriptSrc": [
+   "drupal\\.js"
+  ],
+  "scripts": [
+   "drupal_internal__nid"
+  ],
+  "website": "https://www.drupal.org/"
+ },
+ "Concrete CMS": {
+  "cats": [
+   1
+  ],
+  "cookies": {
+   "CONCRETE5": ""
+  },
+  "cpe": "cpe:2.3:a:concrete5:concrete5:*:*:*:*:*:*:*:*",
+  "icon": "Concrete CMS.svg",
+  "implies": [
+   "PHP"
+  ],
+  "js": {
+   "CCM_IMAGE_PATH": "",
+   "Concrete": "",
+   "ConcreteAlert": "",
+   "ConcreteEvent": ""
+  },
+  "meta": {
+   "generator": "^concrete5(?: - ([\\d.]+)$)?\\;version:\\1"
+  },
+  "oss": true,
+  "scriptSrc": [
+   "/concrete/js/"
+  ],
+  "website": "https://www.concretecms.com/"
+ },
+ "Laravel": {
+  "cats": [
+   18
+  ],
+  "cookies": {
+   "laravel_session": ""
+  },
+  "cpe": "cpe:2.3:a:laravel:laravel:*:*:*:*:*:*:*:*",
+  "description": "Laravel is a free, open-source PHP web framework.",
+  "icon": "Laravel.svg",
+  "implies": [
+   "PHP"
+  ],
+  "js": {
+   "Laravel": ""
+  },
+  "oss": true,
+  "website": "https://laravel.com"
+ },
+ "CodeIgniter": {
+  "cats": [
+   18
+  ],
+  "cookies": {
+   "ci_csrf_token": "^(.+)$\\;version:\\1?2+:",
+   "ci_session": "",
+   "exp_last_activity": "",
+   "exp_tracker": ""
+  },
+  "cpe": "cpe:2.3:a:codeigniter:codeigniter:*:*:*:*:*:*:*:*",
+  "dom": [
+   "input[name*='ci_csrf_token']"
+  ],
+  "html": [
+   "<input[^>]+name=\"ci_csrf_token\""
+  ],
+  "icon": "CodeIgniter.svg",
+  "implies": [
+   "PHP"
+  ],
+  "website": "https://codeigniter.com",
+  "xhr": [
+   "codeigniter\\.com"
+  ]
+ },
+ "Wix": {
+  "cats": [
+   1,
+   11
+  ],
+  "cookies": {
+   "Domain": "\\.wix\\.com"
+  },
+  "description": "Wix provides cloud-based web development services, allowing users to create HTML5 websites and mobile sites.",
+  "headers": {
+   "X-Wix-Renderer-Server": "",
+   "X-Wix-Request-Id": "",
+   "X-Wix-Server-Artifact-Id": ""
+  },
+  "icon": "Wix.svg",
+  "implies": [
+   "React"
+  ],
+  "js": {
+   "wixBiSession": "",
+   "wixPerformanceMeasurements": ""
+  },
+  "meta": {
+   "generator": "Wix\\.com Website Builder"
+  },
+  "pricing": [
+   "low",
+   "recurring"
+  ],
+  "saas": true,
+  "scriptSrc": [
+   "static\\.parastorage\\.com"
+  ],
+  "website": "https://www.wix.com"
+ },
+ "Weebly": {
+  "cats": [
+   1
+  ],
+  "description": "Weebly is a website and ecommerce service.",
+  "icon": "Weebly.svg",
+  "implies": [
+   "PHP",
+   "MySQL"
+  ],
+  "js": {
+   "_W.configDomain": ""
+  },
+  "pricing": [
+   "low",
+   "recurring",
+   "freemium"
+  ],
+  "saas": true,
+  "scriptSrc": [
+   "cdn\\d+\\.editmysite\\.com"
+  ],
+  "website": "https://www.weebly.com"
+ },
+ "GoDaddy Website Builder": {
+  "cats": [
+   1
+  ],
+  "cookies": {
+   "dps_site_id": ""
+  },
+  "icon": "GoDaddy.svg",
+  "meta": {
+   "generator": "Go Daddy Website Builder (.+)\\;version:\\1"
+  },
+  "pricing": [
+   "mid"
+  ],
+  "saas": true,
+  "website": "https://www.godaddy.com/websites/website-builder"
+ },
+ "Blogger": {
+  "cats": [
+   11
+  ],
+  "description": "Blogger is a blog-publishing service that allows multi-user blogs with time-stamped entries.",
+  "icon": "Blogger.svg",
+  "implies": [
+   "Python"
+  ],
+  "meta": {
+   "generator": "^Blogger$"
+  },
+  "scripts": [
+   "blogger\\.googleusercontent\\.com"
+  ],
+  "url": [
+   "^https?://[^/]+\\.(?:blogspot|blogger)\\.com"
+  ],
+  "website": "https://www.blogger.com"
+ },
+ "Moodle": {
+  "cats": [
+   21
+  ],
+  "cookies": {
+   "MOODLEID_": "",
+   "MoodleSession": ""
+  },
+  "cpe": "cpe:2.3:a:moodle:moodle:*:*:*:*:*:*:*:*",
+  "description": "Moodle is a free and open-source Learning Management System (LMS) written in PHP and distributed under the GNU General Public License.",
+  "html": [
+   "<img[^>]+moodlelogo"
+  ],
+  "icon": "Moodle.svg",
+  "implies": [
+   "PHP"
+  ],
+  "js": {
+   "M.core": "",
+   "Y.Moodle": ""
+  },
+  "meta": {
+   "keywords": "^moodle"
+  },
+  "website": "https://moodle.org"
+ },
+ "Elementor": {
+  "cats": [
+   51,
+   87
+  ],
+  "cookies": {
+   "elementor_pro_login": ""
+  },
+  "description": "Elementor is a website builder platform for professionals on WordPress.",
+  "dom": [
+   "link[href*='/wp-content/plugins/elementor/']"
+  ],
+  "icon": "Elementor.svg",
+  "js": {
+   "ElementorProFrontendConfig": "",
+   "ElementsKit_Helper.ajaxLoading": "",
+   "elementorFrontend.getElements": "",
+   "elementorFrontendConfig.version": "([\\d\\.]+)\\;version:\\1",
+   "elementorModules": "",
+   "elementorProFrontend": ""
+  },
+  "meta": {
+   "generator": "^Elementor\\s([\\d\\.]+)\\;version:\\1"
+  },
+  "pricing": [
+   "freemium",
+   "onetime",
+   "recurring"
+  ],
+  "requires": [
+   "WordPress"
+  ],
+  "saas": true,
+  "scriptSrc": [
+   "/wp-content/plugins/elementor(?:-pro)?/.+frontend-modules\\.min\\.js(?:\\?ver=(\\d+(?:\\.\\d+)+))?\\;version:\\1"
+  ],
+  "website": "https://elementor.com"
+ },
+ "Next.js": {
+  "cats": [
+   12,
+   18,
+   22,
+   57
+  ],
+  "cookies": {
+   "NEXT_LOCALE": ""
+  },
+  "cpe": "cpe:2.3:a:vercel:next.js:*:*:*:*:*:*:*:*",
+  "description": "Next.js is a React framework for developing single page Javascript applications.",
+  "headers": {
+   "x-powered-by": "^Next\\.js ?([0-9.]+)?\\;version:\\1"
+  },
+  "icon": "Next.js.svg",
+  "implies": [
+   "React",
+   "Webpack"
+  ],
+  "js": {
+   "__NEXT_DATA__": "",
+   "next.version": "^(.+)$\\;version:\\1"
+  },
+  "scripts": [
+   "\\.next\\.react"
+  ],
+  "website": "https://nextjs.org"
+ },
+ "SvelteKit": {
+  "cats": [
+   66
+  ],
+  "cpe": "cpe:2.3:a:svelte:sveltekit:*:*:*:*:*:*:*:*",
+  "description": "SvelteKit is the official Svelte framework for building web applications with a flexible filesystem-based routing.",
+  "dom": {
+   "#svelte-announcer": {
+    "exists": ""
+   },
+   "a,body": {
+    "attributes": {
+     "data-sveltekit-preload-data": "",
+     "sveltekit:prefetch": ""
+    }
+   }
+  },
+  "icon": "Svelte.svg",
+  "implies": [
+   "Svelte",
+   "Vite"
+  ],
+  "meta": {
+   "generator": "SvelteKit"
+  },
+  "oss": true,
+  "website": "https://kit.svelte.dev"
+ },
+ "Squarespace": {
+  "cats": [
+   1
+  ],
+  "description": "Squarespace provides Software-as-a-Service (SaaS) for website building and hosting, and allows users to use pre-built website templates.",
+  "headers": {
+   "server": "Squarespace"
+  },
+  "icon": "Squarespace.svg",
+  "js": {
+   "Squarespace": "",
+   "Static.SQUARESPACE_CONTEXT.templateVersion": "^(\\d(?:\\.\\d)?)$\\;version:\\1"
+  },
+  "pricing": [
+   "low",
+   "recurring"
+  ],
+  "saas": true,
+  "website": "https://www.squarespace.com"
+ },
+ "Bootstrap": {
+  "cats": [
+   66
+  ],
+  "cpe": "cpe:2.3:a:getbootstrap:bootstrap:*:*:*:*:*:*:*:*",
+  "description": "Bootstrap is a free and open-source CSS framework directed at responsive, mobile-first front-end web development. It contains CSS and JavaScript-based design templates for typography, forms, buttons, navigation, and other interface components.",
+  "dom": {
+   "body[data-bs-theme]": {
+    "attributes": {
+     "data-bs-theme": "^(.*)$"
+    }
+   },
+   "link[href*=\"cdn.jsdelivr.net/npm/bootstrap\"]": {
+    "attributes": {
+     "href": "bootstrap@([\\d.]+)"
+    }
+   },
+   "style": {
+    "text": "--bs-(?:gutter|emphasis|space-x|tertiary-bg|secondary-color)"
+   }
+  },
+  "html": [
+   "<style>\\s+/\\*!\\s+\\* Bootstrap v(\\d\\.\\d\\.\\d)\\;version:\\1",
+   "<link[^>]* href=[^>]*?bootstrap(?:[^>]*?([0-9a-fA-F]{7,40}|[\\d]+(?:.[\\d]+(?:.[\\d]+)?)?)|)[^>-]*?(?:\\.min)?\\.css\\;version:\\1"
+  ],
+  "icon": "Bootstrap.svg",
+  "js": {
+   "bootstrap.Alert": "",
+   "bootstrap.Alert.VERSION": "^(.+)$\\;version:\\1",
+   "jQuery.fn.tooltip.Constructor.VERSION": "^(.+)$\\;version:\\1"
+  },
+  "scriptSrc": [
+   "(?:/|-)bootstrap(?:[^/]*?([0-9a-fA-F]{7,40}|[\\d]+(?:\\.[\\d]+(?:\\.[\\d]+)?)?)|)[^/]*?(?:\\.min)?\\.js\\;version:\\1"
+  ],
+  "website": "https://getbootstrap.com"
+ },
+ "phpBB": {
+  "cats": [
+   2
+  ],
+  "cookies": {
+   "phpbb": ""
+  },
+  "cpe": "cpe:2.3:a:phpbb:phpbb:*:*:*:*:*:*:*:*",
+  "description": "phpBB is a free open-source Internet forum package in the PHP scripting language.",
+  "dom": [
+   "div[class*='phpbb_copyright'], table[class*='forumline']"
+  ],
+  "html": [
+   "Powered by <a[^>]+phpBB",
+   "<div class=phpbb_copyright>",
+   "<[^>]+styles/(?:sub|pro)silver/theme",
+   "<img[^>]+i_icon_mini",
+   "<table class=\"[^\"]*forumline"
+  ],
+  "icon": "phpBB.png",
+  "implies": [
+   "PHP"
+  ],
+  "js": {
+   "phpbb": "",
+   "style_cookie_settings": ""
+  },
+  "meta": {
+   "copyright": "phpBB Group"
+  },
+  "website": "https://phpbb.com"
+ },
+ "Grav": {
+  "cats": [
+   1
+  ],
+  "cpe": "cpe:2.3:a:getgrav:grav:*:*:*:*:*:*:*:*",
+  "description": "Grav is a modern, open-source flat-file CMS designed for speed and flexibility, enabling easy website creation and management without needing a database.",
+  "icon": "Grav.svg",
+  "implies": [
+   "PHP"
+  ],
+  "meta": {
+   "generator": "GravCMS(?:\\s([\\d.]+))?\\;version:\\1"
+  },
+  "oss": true,
+  "website": "https://getgrav.org"
+ },
+ "Google Sites": {
+  "cats": [
+   1
+  ],
+  "dom": [
+   "[data-abuse-proto*='https://sites.google.com/']"
+  ],
+  "icon": "Google Sites.svg",
+  "url": [
+   "^https?://sites\\.google\\.com"
+  ],
+  "website": "https://sites.google.com"
+ }
+}

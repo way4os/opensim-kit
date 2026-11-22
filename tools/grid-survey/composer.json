@@ -1,0 +1,35 @@
+{
+    "name": "gudulelapointe/grid-survey",
+    "description": "Survey of the web systems of the OpenSim grids listed by Hypergrid Business",
+    "type": "project",
+    "license": "AGPL-3.0-or-later",
+    "require": {
+        "php": "^8.3",
+        "ext-curl": "*",
+        "ext-dom": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "spatie/robots-txt": "^2.5",
+        "symfony/css-selector": "^7.0 || ^8.0"
+    },
+    "require-dev": {
+        "pestphp/pest": "^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "GridSurvey\\": "src/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        },
+        "platform": {
+            "php": "8.3.0"
+        }
+    },
+    "scripts": {
+        "test": "pest"
+    },
+    "bin": ["bin/grid-survey"]
+}

@@ -1,0 +1,33 @@
+{
+ "grid": {
+  "name": "Planet 3L",
+  "url": "http://planet3l.com/",
+  "login_uri": "planet3l.com:9100",
+  "features": "Hypergrid",
+  "regions": 12,
+  "users": 149,
+  "actives": 32
+ },
+ "status": "ok",
+ "note": "",
+ "pages": [
+  {
+   "url": "http://planet3l.com/",
+   "final_url": "https://planet3l.com/",
+   "status": 200,
+   "headers": {
+    "date": "Sun, 22 Nov 2026 17:48:08 GMT",
+    "server": "Apache/2.4.6 (CentOS) OpenSSL/1.0.2k-fips PHP/7.4.33",
+    "last-modified": "Fri, 14 Feb 2025 03:41:55 GMT",
+    "etag": "\"fa0-62e11f4c08471\"",
+    "accept-ranges": "bytes",
+    "content-length": "4000",
+    "content-type": "text/html; charset=UTF-8"
+   },
+   "cookies": [],
+   "body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Planet 3L - Private Virtual World</title>\n    <style>\n        body {\n            background-color: #0d0d0d;\n            color: #c0c0c0;\n            font-family: Arial, sans-serif;\n            margin: 0;\n            padding: 0;\n        }\n        .container {\n            width: 80%;\n            margin: auto;\n            padding: 20px;\n        }\n        .banner {\n            width: 100%;\n            max-width: 2000px;\n            height: auto;\n        }\n        .content {\n            background-color: #1a1a1a;\n            padding: 20px;\n            border-radius: 8px;\n            box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.2);\n            margin-top: 20px;\n            text-align: justify;\n        }\n        .content p {\n            margin-left: 5%;\n            margin-right: 5%;\n        }\n        .contact {\n            margin-top: 20px;\n            font-size: 0.9em;\n            opacity: 0.7;\n            text-align: center;\n        }\n        a {\n            color: #00ccff;\n            text-decoration: none;\n        }\n        a:hover {\n            text-decoration: underline;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <img src=\"banner.jpg\" alt=\"Planet 3L Banner\" class=\"banner\">\n        <div class=\"content\">\n            <h1 style=\"text-align: center;\">Planet 3L - Private Virtual World</h1>\n            <p>Planet 3L is a private, open-source virtual reality world where a close-knit group of friends gathers to share common interests and create meaningful experiences. Members use this world as a creative and social hub, engaging in a variety of activities that reflect their\n            creative passions.</p>\n            <p>Many members are content creators who design and build within Planet 3L, as well as contribute assets to other virtual platforms like Second Life and OpenSim worlds. They craft immersive environments, develop custom avatars, and design unique clothing and accessories that enhance personal expression. Others focus on scripting interactive elements, bringing dynamic experiences to life within the world.</p>\n            <p>Social gatherings are a key part of the community. Members host and attend live music events, DJ-led dance parties, and themed celebrations. Whether it's a laid-back evening of listening to live performers or a high-energy virtual club night, music plays an essential role in bringing people together.</p>\n            <p>Exploration and adventure are also central to Planet 3L. Members enjoy hanging out, teleporting to other worlds, camping under digital stars, boating across scenic waterways, and even a day at the theme park riding waterslides and rollercoasters. These activities provide a shared space for relaxation and fun, fostering deeper friendships.</p>\n            <p>Gaming and role-playing thrive within the community, allowing members to create and participate in unique stories and challenges. From immersive fantasy adventures to sci-fi worlds, the possibilities are endless. Avatar styling is another major interest, with members experimenting with fashion, accessories, and detailed customizations to make their digital personas truly stand out.</p>\n            <p>Planet 3L is not just a virtual space, it's a safe, PG rated, shared world where creativity, connection, and exploration merge.</p>\n            <p> New users are only allowed based on a referal process and a voting process involving owners, managers, and existing members. If you are interested in joining, contact a member of 3L. </p>\n        </div>\n        <div class=\"contact\">\n            <h2>Contact Information</h2>\n            <p>For inquiries, please reach out to:</p>\n            <p><strong>Name:</strong> 3L-Admin</p>\n            <p><strong>Email:</strong> <a href=\"mailto:planet3l@gmx.us\">planet3l@gmx.us</a></p>\n        </div>\n    </div>\n</body>\n</html>\n",
+   "error": null,
+   "role": "home"
+  }
+ ]
+}

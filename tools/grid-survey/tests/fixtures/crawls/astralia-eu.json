@@ -1,0 +1,14 @@
+{
+ "grid": {
+  "name": "Astralia",
+  "url": "https://www.astralia.eu/",
+  "login_uri": "astralia.eu:8002",
+  "features": "Hypergrid",
+  "regions": 73,
+  "users": 1410,
+  "actives": 341
+ },
+ "status": "robots",
+ "note": "robots.txt forbids crawling",
+ "pages": []
+}
