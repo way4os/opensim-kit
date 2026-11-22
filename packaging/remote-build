@@ -23,7 +23,7 @@ cd "$(dirname "$0")/.."
 [[ -f vendor/bin/bash-helpers ]] || { echo "bash-tools is not installed: composer install" >&2; exit 1; }
 source vendor/bin/bash-helpers
 
-url=${OPENSIM_SOURCE_URL:-$(git config -f .gitmodules submodule.upstream/opensim.url)}
+url=${OPENSIM_SOURCE_URL:-$(git config -f .gitmodules submodule.core/unstable.url)}
 image=${SDK_IMAGE:-mcr.microsoft.com/dotnet/sdk:8.0}
 ssh=(ssh -o BatchMode=yes -o ConnectTimeout=10)
 

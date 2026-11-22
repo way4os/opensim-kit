@@ -14,7 +14,7 @@
 [submodule "webtools/currency-omc/helper/phpxmlrpc"]
 	path = dev/contrib/currency-omc/helper/phpxmlrpc
 	url = https://github.com/gggeek/phpxmlrpc.git
-[submodule "upstream/opensim"]
+[submodule "core/unstable"]
 	path = core/unstable
 	url = https://github.com/opensim/opensim.git
 	branch = master
