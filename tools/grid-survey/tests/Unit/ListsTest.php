@@ -12,6 +12,13 @@ describe('the lists kept by hand', function () {
         expect(Lists::included(tool() . '/lists/included.json'))->toBeArray();
     });
 
+    test('watta.world is on the list of the grids that ask to be in the survey, with its w4os claim', function () {
+        $watta = array_values(array_filter(Lists::included(tool() . '/lists/included.json'), fn ($e) => $e['name'] === 'Watta World'))[0];
+
+        expect($watta)->toMatchArray(['url' => 'https://watta.world/', 'login_uri' => 'watta.world:8002', 'w4os' => true, 'date' => '2026-11-22'])
+            ->and($watta['w4os_source'])->toContain('OpenSim Helpers');
+    });
+
     test('every exclusion says why, where the statement is and when', function () {
         foreach (Lists::excluded(tool() . '/lists/excluded.json') as $entry) {
             expect($entry)->toHaveKeys(['name', 'host', 'reason', 'source', 'date']);

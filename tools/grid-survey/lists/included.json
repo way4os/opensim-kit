@@ -1,1 +1,12 @@
-[]
+[
+    {
+        "name": "Watta World",
+        "url": "https://watta.world/",
+        "login_uri": "watta.world:8002",
+        "asked": "listed at the request of its owner",
+        "recorded_by": "the owner of the grid",
+        "date": "2026-11-22",
+        "w4os": true,
+        "w4os_source": "declared by the owner of the grid: it runs the OpenSim Helpers and the engine without the WordPress plugin (the first use of w4os without the plugin)"
+    }
+]
