@@ -50,6 +50,7 @@ final class Cli
       --only A,B        only the grids whose name or address contains one of these words (a dry run)
       --limit N         only the first N grids of the list
       --cache DIR       where the fingerprint database is kept (default: tools/grid-survey/cache)
+      --lists DIR       the folder of excluded.json and included.json (default: tools/grid-survey/lists)
       --quiet           no progress lines
 
     Lists kept by hand (tools/grid-survey/lists): excluded.json (grids left out, with reason, source and date) and
@@ -66,8 +67,9 @@ final class Cli
     Compares a survey result with the page data of w4os.org (pages/03.features/01.grids/grids.json) and prints the
     changes as a diff. Nothing is written unless --write is given. What changes: the grid counts of each system,
     the month of the list (`surveyed`) and the list of the grids that use w4os (name and address of every grid of
-    the w4os row, in alphabetical order, excluded grids never; the name is the grid's own when it has one, and each
-    difference with the name of the list is shown; added, removed and renamed grids are listed). Hand-kept: the
+    the w4os row, in alphabetical order, excluded grids never; a grid already on the page keeps its name and address,
+    a new one takes the name of its grid info, cleaned, and each difference with the written name is shown; added,
+    removed and renamed grids are listed). Hand-kept: the
     last-update dates of the interfaces, their sources and the years a development ended. The text of the page
     names the month in each language: change it by hand.
     TXT;
@@ -130,8 +132,9 @@ final class Cli
         }
 
         // the grids of the list, and the ones that asked to be in the survey
-        $included = Lists::included($this->tool . '/lists/included.json');
-        $excluded = Lists::excluded($this->tool . '/lists/excluded.json');
+        $lists = is_string($o['lists'] ?? null) ? $o['lists'] : $this->tool . '/lists';
+        $included = Lists::included($lists . '/included.json');
+        $excluded = Lists::excluded($lists . '/excluded.json');
         $grids = Lists::merge($list['grids'], $included);
 
         $statsSource = is_string($o['stats'] ?? null) ? $o['stats'] : null;

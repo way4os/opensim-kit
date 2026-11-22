@@ -66,6 +66,17 @@ final class PageData
         return ['json' => $json, 'changes' => $changes, 'notes' => $notes];
     }
 
+    /**
+     * The name a grid gives itself, cleaned: URL-decoded (+ and %xx), trimmed, spaces collapsed, nothing else.
+     * Empty when it has no letter (the name of the list is then used).
+     */
+    private static function cleanName(string $name): string
+    {
+        $name = trim((string) preg_replace('~\s+~u', ' ', urldecode($name)));
+
+        return preg_match('~\p{L}~u', $name) === 1 ? $name : '';
+    }
+
     /** The site of a grid by its host alone: the address of the page and the one of the list may differ by their path. */
     private static function host(string $url): string
     {
@@ -95,10 +106,19 @@ final class PageData
             if ($grid['system'] !== 'wordpress_w4os' || $grid['outcome'] === 'excluded') {
                 continue;
             }
-            $own = trim((string) ($grid['grid_info']['gridname'] ?? ''));
-            $name = $own !== '' ? $own : $grid['name'];
-            if ($own !== '' && $own !== $grid['name']) {
-                $notes[] = "name: the list says '{$grid['name']}', the grid says '$own' (the grid's is used)";
+            $own = self::cleanName((string) ($grid['grid_info']['gridname'] ?? ''));
+            $written = $byHost[self::host($grid['url'])] ?? null;
+            if ($written !== null) {
+                // a grid already on the page keeps its name; the grid's own is only shown
+                $name = $written['name'];
+                if ($own !== '' && $own !== $name) {
+                    $notes[] = "name: the page has '$name', the grid says '$own' (the page's is kept)";
+                }
+            } else {
+                $name = $own !== '' ? $own : $grid['name'];
+                if ($own !== '' && $own !== $grid['name']) {
+                    $notes[] = "name: the list says '{$grid['name']}', the grid says '$own' (the grid's is used)";
+                }
             }
 
             $url = $grid['url'];

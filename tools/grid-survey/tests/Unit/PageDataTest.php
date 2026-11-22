@@ -104,7 +104,7 @@ describe('the names of the grids that use w4os', function () {
             'speculoos' => 'https://speculoos.world/', 'SV3D' => 'https://sv3d.fr/', 'Ankabi' => 'https://ankabi.de/', 'Neverworld' => 'https://neverworldgrid.com/',
         ]));
 
-        expect(array_column($entries($proposal['json']), 'name'))->toBe(['Ankabi', 'Neverworld', 'speculoos', 'SV3D'])
+        expect(array_column($entries($proposal['json']), 'name'))->toBe(['Ankabi', 'Neverworld', 'Speculoos', 'SV3D'])
             ->and($proposal['json'])->toContain('    {"name": "Ankabi", "url": "https://ankabi.de/"},');
     });
 
@@ -115,16 +115,35 @@ describe('the names of the grids that use w4os', function () {
             ->and(array_column($entries($proposal['json']), 'name'))->toBe(['Ankabi', 'Ansjela Grid']);
     });
 
-    test('the name is the one of the grid when it has one, and the difference is shown', function () use ($json, $counts, $entries) {
+    test('a grid already on the page keeps the name written there, the difference with its own name is shown', function () use ($json, $counts, $entries) {
         $proposal = PageData::propose($json, result($counts, w4os: [
-            'Speculoos' => ['url' => 'https://speculoos.world/', 'grid_info' => ['gridname' => 'Speculoos World']],
-            'Ankabi' => ['url' => 'https://ankabi.de/', 'grid_info' => ['gridname' => '']],
-            'Neverworld' => ['url' => 'https://neverworldgrid.com/', 'grid_info' => ['gridname' => 'Neverworld Grid']],
+            'Ankabi' => ['url' => 'https://ankabi.de/', 'grid_info' => ['gridname' => 'Ankabi-Grid']],
+            'Neverworld' => ['url' => 'https://neverworldgrid.com/', 'grid_info' => ['gridname' => 'Neverworld']],
+            'Kurtopia' => ['url' => 'https://kurtopia.ddns.net/', 'grid_info' => ['gridname' => '']],
         ]));
 
-        expect(array_column($entries($proposal['json']), 'name'))->toBe(['Ankabi', 'Neverworld Grid', 'Speculoos World'])
-            ->and($proposal['notes'])->toContain("name: the list says 'Speculoos', the grid says 'Speculoos World' (the grid's is used)")
-            ->and(implode("\n", $proposal['notes']))->not->toContain("'Ankabi'");
+        expect(array_column($entries($proposal['json']), 'name'))->toBe(['Ankabi', 'Kurtopia', 'Neverworld'])
+            ->and($proposal['notes'])->toContain("name: the page has 'Ankabi', the grid says 'Ankabi-Grid' (the page's is kept)")
+            ->and(implode("\n", $proposal['notes']))->not->toContain("'Neverworld'")->not->toContain("'Kurtopia'");
+    });
+
+    test('a new grid takes the name its grid info gives, cleaned', function (string $given, string $name) use ($json, $counts, $entries) {
+        $proposal = PageData::propose($json, result($counts, w4os: ['Listed Name' => ['url' => 'https://new.example/', 'grid_info' => ['gridname' => $given]]]));
+
+        expect($entries($proposal['json'])[0]['name'])->toBe($name);
+    })->with([
+        'a + for a space' => ['The+Swiss+Grid', 'The Swiss Grid'],
+        'percent codes' => ['Caf%C3%A9%20Grid', 'Café Grid'],
+        'spaces trimmed and collapsed' => ['  My   Grid ', 'My Grid'],
+        'no other rewriting' => ['SHEIKAH.ORG', 'SHEIKAH.ORG'],
+        'empty, the name of the list' => ['', 'Listed Name'],
+        'no letters, the name of the list' => ['---', 'Listed Name'],
+    ]);
+
+    test('the difference between the list and the grid is shown for a new grid too', function () use ($json, $counts) {
+        $proposal = PageData::propose($json, result($counts, w4os: ['Swiss Grid' => ['url' => 'https://swiss.example/', 'grid_info' => ['gridname' => 'The+Swiss+Grid']]]));
+
+        expect($proposal['notes'])->toContain("name: the list says 'Swiss Grid', the grid says 'The Swiss Grid' (the grid's is used)");
     });
 
     test('a grid already on the page keeps its address when the site is the same', function () use ($json, $counts, $entries) {

@@ -1,0 +1,23 @@
+[
+    {
+        "name": "3D Worldz",
+        "host": "3dworldz.com",
+        "reason": "Runs Halcyon, says it is not an OpenSim world and asks not to be listed with OpenSim grids",
+        "source": "https://www.3dworldz.com/",
+        "date": "2026-11-22"
+    },
+    {
+        "name": "Creo Mundos",
+        "host": "creomundos.com",
+        "reason": "Runs Halcyon (3D Worldz panel), says it is not an OpenSim world and asks not to be listed with OpenSim grids",
+        "source": "https://discover.creomundos.com/",
+        "date": "2026-11-22"
+    },
+    {
+        "name": "Sovaria Estates",
+        "host": "sovariaestates.world",
+        "reason": "Runs Halcyon (3D Worldz panel), says it is not an OpenSim world and asks not to be listed with OpenSim grids",
+        "source": "https://www.sovariaestates.world/",
+        "date": "2026-11-22"
+    }
+]
