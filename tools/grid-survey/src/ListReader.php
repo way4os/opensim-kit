@@ -14,7 +14,7 @@ final class ListReader
     /**
      * Grids of the active-grids page.
      *
-     * @return array{updated: ?string, total: ?int, grids: list<array{name: string, url: string, login_uri: string, features: string}>}
+     * @return array{updated: ?string, month: ?string, total: ?int, grids: list<array{name: string, url: string, login_uri: string, features: string}>}
      */
     public static function activeGrids(string $html): array
     {
@@ -34,15 +34,16 @@ final class ListReader
         // "Last Update: 11/16/2026 • Total grids: 369" (US date)
         $updated = null;
         $total = null;
-        $text = self::text($html);
-        if (preg_match('~Last Update:\s*(\d{1,2})/(\d{1,2})/(\d{4})~i', $text, $m)) {
+        // the label and the date are separated by tags: look through them, on the raw page
+        $gap = '(?:\s|&nbsp;|<[^>]*>)*';
+        if (preg_match("~Last Update:$gap(\\d{1,2})/(\\d{1,2})/(\\d{4})~i", $html, $m)) {
             $updated = sprintf('%04d-%02d-%02d', $m[3], $m[1], $m[2]);
         }
-        if (preg_match('~Total grids:\s*(\d+)~i', $text, $m)) {
+        if (preg_match("~Total grids:$gap(\\d+)~i", $html, $m)) {
             $total = (int) $m[1];
         }
 
-        return ['updated' => $updated, 'total' => $total, 'grids' => $grids];
+        return ['updated' => $updated, 'month' => $updated ? substr($updated, 0, 7) : null, 'total' => $total, 'grids' => $grids];
     }
 
     /**
@@ -136,11 +137,6 @@ final class ListReader
         }
 
         return $rows;
-    }
-
-    private static function text(string $html): string
-    {
-        return preg_replace('~\s+~u', ' ', html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
     }
 
     private static function int(string $value): ?int

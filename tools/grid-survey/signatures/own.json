@@ -189,5 +189,17 @@
         "cats": [
             1
         ]
+    },
+    "Not OpenSim statement": {
+        "cats": [
+            1005
+        ],
+        "description": "The site says itself it is not an OpenSim world (flag only: the exclusion list is decided by hand)",
+        "website": "",
+        "html": [
+            "(?:is|are) NOT an? Open ?Sim",
+            "not an? Open ?Sim(?:ulator)? (?:world|grid)",
+            "Halcyon Simulator [\\d.]+"
+        ]
     }
 }

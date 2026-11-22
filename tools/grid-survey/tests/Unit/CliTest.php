@@ -29,17 +29,17 @@ describe('command line', function () {
         }
     });
 
-    test('run needs a list', function () {
-        $run = grid_survey(['run']);
+    test('run says when the list cannot be read', function () {
+        $run = grid_survey(['run', '--list', '/no/such/list.html']);
 
-        expect($run['code'])->toBe(1)->and($run['err'])->toContain('--list is required');
+        expect($run['code'])->toBe(1)->and($run['err'])->toContain('No such file');
     });
 
     test('run --offline classifies the saved pages and writes the dated result', function () {
         $dir = sys_get_temp_dir() . '/grid-survey-out-' . uniqid();
         $run = grid_survey([
             'run', '--list', sample('hb-active-grids.html'), '--stats', sample('hb-stats-2026-10.html'),
-            '--month', '2026-11', '--pages', sample('crawls'), '--offline', '--out', "$dir/result.json", '--quiet',
+            '--month', '2026-11', '--keep-pages', sample('crawls'), '--offline', '--out', "$dir/result.json", '--quiet',
         ]);
         $result = json_decode(file_get_contents("$dir/result.json"), true);
         $by = array_column($result['grids'], null, 'name');
@@ -53,12 +53,13 @@ describe('command line', function () {
             ->and($by['Cave Grid']['system'])->toBe('dreamgrid')
             ->and($result['excluded'][0]['name'])->toBe('3D Worldz')
             ->and($result['totals']['groups']['interface']['wordpress_w4os']['grids'])->toBe(2)
-            ->and($run['err'])->toContain('Excluded: 3D Worldz');
+            ->and($result['source']['list']['month'])->toBe('2026-11')
+            ->and($run['err'])->toContain('excluded: 1, see lists/excluded.json', 'added by request: 0, see lists/included.json');
     });
 
     test('--only makes a partial result, and update-page refuses it', function () {
         $dir = sys_get_temp_dir() . '/grid-survey-out-' . uniqid();
-        grid_survey(['run', '--list', sample('hb-active-grids.html'), '--pages', sample('crawls'), '--offline', '--only', 'kurtopia', '--out', "$dir/partial.json", '--quiet']);
+        grid_survey(['run', '--list', sample('hb-active-grids.html'), '--keep-pages', sample('crawls'), '--offline', '--only', 'kurtopia', '--out', "$dir/partial.json", '--quiet']);
         $update = grid_survey(['update-page', '--result', "$dir/partial.json", '--grids-json', sample('grids.json')]);
 
         expect(json_decode(file_get_contents("$dir/partial.json"), true)['source']['partial'])->toBeTrue()
@@ -71,7 +72,7 @@ describe('update-page', function () {
         $dir = sys_get_temp_dir() . '/grid-survey-out-' . uniqid();
         mkdir($dir);
         copy(sample('grids.json'), "$dir/grids.json");
-        grid_survey(['run', '--list', sample('hb-active-grids.html'), '--month', '2026-11', '--pages', sample('crawls'), '--offline', '--out', "$dir/result.json", '--quiet']);
+        grid_survey(['run', '--list', sample('hb-active-grids.html'), '--month', '2026-11', '--keep-pages', sample('crawls'), '--offline', '--out', "$dir/result.json", '--quiet']);
         $args = ['update-page', '--result', "$dir/result.json", '--grids-json', "$dir/grids.json"];
 
         $dry = grid_survey($args);

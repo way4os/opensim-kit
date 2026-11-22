@@ -43,6 +43,27 @@ describe('survey', function () use ($excluded, $groups) {
     });
 });
 
+describe('kept pages', function () {
+    test('a saved crawl comes back as it was, with the grid info it holds', function () {
+        $store = new GridSurvey\Store(sys_get_temp_dir() . '/grid-survey-store-' . uniqid());
+        $grid = ['name' => 'A', 'url' => 'http://a.example/'];
+        $crawl = ['status' => 'ok', 'note' => '', 'pages' => [page('home', 'http://a.example/', '<h1>A</h1>')],
+            'grid' => ['status' => 'ok', 'note' => '', 'info' => ['register' => 'http://a.example/wifi'], 'pages' => []]];
+        $store->save($grid, $crawl);
+        $back = $store->load($grid);
+
+        expect($back['grid'])->toBe($crawl['grid'])->and($back['listed'])->toBe($grid)->and($back['pages'][0]['body'])->toBe('<h1>A</h1>');
+    });
+
+    test('nothing is kept unless a folder is given', function () {
+        $http = site(['http://a.example/' => ['body' => '<h1>A</h1>']]);
+        $before = glob(sys_get_temp_dir() . '/grid-survey-*');
+        (new Survey(new Crawler($http), classifier()))->run([['name' => 'A', 'url' => 'http://a.example/']]);
+
+        expect(glob(sys_get_temp_dir() . '/grid-survey-*'))->toBe($before);
+    });
+});
+
 describe('totals', function () use ($groups) {
     $grids = [
         ['name' => 'A', 'url' => 'http://a/', 'actives' => 100, 'system' => 'wordpress_w4os', 'outcome' => 'classified'],

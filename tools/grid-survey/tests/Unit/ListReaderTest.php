@@ -26,6 +26,15 @@ describe('active grids page', function () {
     });
 });
 
+describe('the date of a real page', function () {
+    test('is found even when the page has scripts with a stray "<" and the date is in its own tags', function () {
+        $html = '<script>if (a<b) { x(); }</script><p><b>Last Update: </b>12/05/2026 <b> • Total grids: </b>371</p><table><tbody></tbody></table>';
+        $list = ListReader::activeGrids($html);
+
+        expect($list['updated'])->toBe('2026-12-05')->and($list['month'])->toBe('2026-12')->and($list['total'])->toBe(371);
+    });
+});
+
 describe('monthly stats page', function () {
     $stats = ListReader::stats(file_get_contents(sample('hb-stats-2026-10.html')));
 

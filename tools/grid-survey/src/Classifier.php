@@ -25,9 +25,78 @@ final class Classifier
     ) {
     }
 
+    /** A system that is a kind of another one: w4os is WordPress, jOpenSim is Joomla... */
+    private const REFINES = [
+        'wordpress_w4os' => 'wordpress',
+        'jopensim' => 'joomla',
+        'modlos' => 'other_cms',
+        'other_cms_ui' => 'other_cms',
+        'hosted' => 'other_cms',
+        'dreamgrid' => 'diva_wifi',
+    ];
+
     /**
+     * A grid, from its site and from what the grid itself publishes. The site decides; the grid info decides when the
+     * site has nothing known (custom code, or no answer); where both know something and differ, the site stays
+     * and the result says to review it.
+     *
+     * @param array{status: string, note: string, pages: list<array<string, mixed>>, grid?: array<string, mixed>} $crawl
+     * @return array<string, mixed> the classification of the site, with `by` (what each side says), `review`
+     */
+    public function classifyGrid(array $crawl): array
+    {
+        $site = $this->classify($crawl);
+        $grid = $site['outcome'] === 'robots' ? null : $this->gridSide($crawl['grid'] ?? null);
+        $prefix = fn (string $side, array $signals) => array_map(fn (string $s) => "$side: $s", $signals);
+        $site['by'] = ['site' => $site['system'] ?? $site['outcome'], 'grid_info' => $grid['system'] ?? null];
+        $site['review'] = null;
+        $site['signals'] = $prefix('site', $site['signals']);
+        if ($grid === null) {
+            return $site;
+        }
+        $site['signals'] = array_merge($site['signals'], $prefix('grid info', $grid['signals']));
+        $site['flags'] = array_values(array_unique(array_merge($site['flags'], $grid['flags'])));
+
+        if ($site['system'] === null || $site['fallback']) {
+            // the site says nothing known: the grid says what it runs
+            return array_merge($site, ['system' => $grid['system'], 'outcome' => 'classified', 'confidence' => 'medium', 'fallback' => false]);
+        }
+        $agree = $site['system'] === $grid['system']
+            || (self::REFINES[$site['system']] ?? null) === $grid['system']
+            || (self::REFINES[$grid['system']] ?? null) === $site['system'];
+        if ($agree) {
+            $site['confidence'] = 'high';
+        } else {
+            $site['confidence'] = 'low';
+            $site['review'] = "site says {$site['system']}, grid info says {$grid['system']}";
+        }
+
+        return $site;
+    }
+
+    /**
+     * What the pages the grid announces say, only when they say something known.
+     *
+     * @param array<string, mixed>|null $grid
+     * @return array<string, mixed>|null
+     */
+    private function gridSide(?array $grid): ?array
+    {
+        $pages = array_values(array_filter($grid['pages'] ?? [], fn ($p) => $p['status'] >= 200 && $p['status'] < 400));
+        if ($pages === []) {
+            return null;
+        }
+        // the published pages are read as the home pages of the grid
+        $result = $this->classify(['status' => 'ok', 'note' => '', 'pages' => array_map(fn ($p) => ['role' => 'home'] + $p, $pages)]);
+
+        return $result['system'] === null || $result['fallback'] ? null : $result;
+    }
+
+    /**
+     * The classification of the site alone.
+     *
      * @param array{status: string, note: string, pages: list<array<string, mixed>>} $crawl
-     * @return array{system: ?string, outcome: string, confidence: string, signals: list<string>, own_interface: bool, detected: array<string, array<string, mixed>>}
+     * @return array<string, mixed>
      */
     public function classify(array $crawl): array
     {
@@ -42,6 +111,7 @@ final class Classifier
             $all,
         );
 
+        $flags = isset($all['Not OpenSim statement']) ? ['says it is not OpenSim'] : [];
         $result = fn (?string $system, string $outcome, string $confidence, bool $own = false) => [
             'system' => $system,
             'outcome' => $outcome,
@@ -49,6 +119,9 @@ final class Classifier
             'signals' => $signals,
             'own_interface' => $own,
             'detected' => $all,
+            'flags' => $flags,
+            // nothing known was recognised: custom code, or the grid service alone
+            'fallback' => in_array($system, ['custom', 'custom_site', 'grid_server'], true),
         ];
 
         // No answer, or no readable site: the outcome of the crawl, unless the grid server itself answers

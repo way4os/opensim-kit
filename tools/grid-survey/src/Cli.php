@@ -11,37 +11,53 @@ final class Cli
     grid-survey: the web systems of the OpenSim grids listed by Hypergrid Business
 
     Usage:
-      grid-survey run --list SOURCE [options]            crawl the sites, classify, write the result (JSON)
+      grid-survey run [--list SOURCE] [options]          read the sites and the grids, classify, write the result (JSON)
       grid-survey update-page --result FILE --grids-json FILE [--write]
                                                           the numbers of the w4os.org page, as a diff
       grid-survey signatures [--update [SHA]]            the fingerprints in use, or fetch a new commit of them
       grid-survey --help | <command> --help
 
-    Read-only: robots.txt is respected, GET only, no login, no form. One request at a time per site, with a pause.
+    Public data only. Only what a site or a grid serves to any visitor and its robots.txt allows: plain GET requests,
+    no login, no form, no account, no cookie kept, no guessed address, nothing sent. Sites that forbid crawling are left
+    alone and counted as such. Only grid-level facts are kept (name, address, system found, counts), never personal
+    data and no copy of the pages. The user agent says what the tool is and where to reach its author.
     TXT;
 
     private const HELP_RUN = <<<'TXT'
-    grid-survey run --list SOURCE [options]
+    grid-survey run [options]
 
-    Crawls the sites of the grids of the list, classifies each one and writes a dated result (per-grid
-    classification and totals) as JSON.
+    For each grid: the grid info it publishes at its login address (/get_grid_info, as every viewer reads it) and the
+    pages it announces (register, welcome, password, about), then its website (home page, first sign-up link). The two
+    are combined; where they differ the result says "review". Writes a dated result (classification of each grid and
+    totals) as JSON. Public data only: see grid-survey --help.
 
-      --list SOURCE     the "Active OpenSim Grids" page of Hypergrid Business: its URL or a saved file
-      --stats SOURCE    the monthly "<Month> <year> OpenSim grid stats" page (active users): URL or file.
-                        Without it the shares by active users are empty.
-      --month YYYY-MM   the month of the survey (default: this month). Names the result and the pages folder.
+      --list SOURCE     the "Active OpenSim Grids" page of Hypergrid Business: its URL (default, the fixed address)
+                        or a saved file. Its "Last Update" date is read from the page; with a file that has no date
+                        pass --list-date.
+      --list-date DATE  the date of the list (YYYY-MM-DD) when the page does not carry it
+      --stats SOURCE    the monthly "<Month> <year> OpenSim grid stats" page (active users): URL or file. With the
+                        list read from its URL, the newest one is found from the Statistics page of Hypergrid
+                        Business each time. Without stats there are no shares by active users.
+      --no-stats        do not look for the stats page
+      --no-cross-check  do not compare the totals with the monthly article of Hypergrid Business
+      --month YYYY-MM   the month of the survey (default: the month of the list). Names the result.
       --out FILE        the result (default: docs/market/grid-web-systems-<month>.json in the kit)
-      --pages DIR       where the fetched pages are kept, to redo the classification without crawling
-                        (default: tools/grid-survey/results/<month>/pages)
-      --offline         classify the saved pages, fetch nothing from the sites
+      --keep-pages DIR  keep the pages fetched, to classify again with --offline (not kept by default: they may hold
+                        personal data, and are not to be published)
+      --offline         classify the kept pages (--keep-pages DIR), fetch nothing
+      --probe-w4os      on WordPress sites, also read /wp-content/plugins/w4os*/readme.txt, a public file at an
+                        address that is guessed, not published: off by default
       --only A,B        only the grids whose name or address contains one of these words (a dry run)
       --limit N         only the first N grids of the list
-      --include-excluded  do not apply the list of excluded grids (signatures/excluded.json)
       --cache DIR       where the fingerprint database is kept (default: tools/grid-survey/cache)
       --quiet           no progress lines
 
-    Rules kept: user agent "grid-web-survey/1.0; read-only market study", 15 s timeout, 0.5-1 s pause between
-    two requests to a site, robots.txt first, meta refresh followed, unreachable sites retried once.
+    Lists kept by hand (tools/grid-survey/lists): excluded.json (grids left out, with reason, source and date) and
+    included.json (grids that ask to be in the survey and are not in the Hypergrid Business list). Both are shown
+    in the summary and in the result.
+
+    Rules kept: 15 s timeout, 0.5-1 s pause between two requests to a site, one request at a time per site,
+    robots.txt first, redirects followed, unreachable sites retried once.
     TXT;
 
     private const HELP_UPDATE = <<<'TXT'
@@ -49,8 +65,8 @@ final class Cli
 
     Compares the counts of a survey result with the page data of w4os.org (pages/03.features/01.grids/grids.json)
     and prints the changes as a diff. Nothing is written unless --write is given. Only the grid counts and the
-    survey month change: the last-update dates of the interfaces, their sources, the order and the list of grids
-    stay as they are. The text of the page names the survey month in each language: change it by hand.
+    month of the list (`surveyed`) change: the last-update dates of the interfaces, their sources, the order and the
+    list of grids stay as they are. The text of the page names the month in each language: change it by hand.
     TXT;
 
     private string $root;
@@ -96,18 +112,34 @@ final class Cli
     /** @param array<string, string|true> $o */
     private function run(array $o): int
     {
-        if (!isset($o['list']) || $o['list'] === true) {
-            return $this->fail('--list is required (try run --help)');
+        $source = is_string($o['list'] ?? null) ? $o['list'] : Hb::LIST_URL;
+        $live = preg_match('~^https?://~i', $source) === 1;
+        $log = isset($o['quiet']) ? null : fn (string $line) => fwrite(STDERR, $line . "\n");
+
+        $list = ListReader::activeGrids($this->read($source));
+        if ($list['updated'] === null && is_string($o['list-date'] ?? null) && preg_match('~^\d{4}-\d{2}-\d{2}$~', $o['list-date'])) {
+            $list['updated'] = $o['list-date'];
+            $list['month'] = substr($o['list-date'], 0, 7);
         }
-        $month = is_string($o['month'] ?? null) ? $o['month'] : date('Y-m');
+        $month = is_string($o['month'] ?? null) ? $o['month'] : ($list['month'] ?? date('Y-m'));
         if (!preg_match('~^\d{4}-\d{2}$~', $month)) {
             return $this->fail('--month is YYYY-MM');
         }
-        $log = isset($o['quiet']) ? null : fn (string $line) => fwrite(STDERR, $line . "\n");
 
-        $list = ListReader::activeGrids($this->read((string) $o['list']));
-        $stats = isset($o['stats']) && is_string($o['stats']) ? ListReader::stats($this->read($o['stats'])) : null;
-        $grids = ListReader::join($list['grids'], $stats['grids'] ?? []);
+        // the grids of the list, and the ones that asked to be in the survey
+        $included = Lists::included($this->tool . '/lists/included.json');
+        $excluded = Lists::excluded($this->tool . '/lists/excluded.json');
+        $grids = Lists::merge($list['grids'], $included);
+
+        $statsSource = is_string($o['stats'] ?? null) ? $o['stats'] : null;
+        if ($statsSource === null && $live && !isset($o['no-stats'])) {
+            $found = Hb::latestStats(Http::plain(Hb::STATS_INDEX) ?? '', $month);
+            $statsSource = $found['url'] ?? null;
+            $log && $log($found ? "stats page: {$found['url']}" : 'no stats page found, no active users');
+        }
+        $stats = $statsSource ? ListReader::stats($this->read($statsSource)) : null;
+        $grids = ListReader::join($grids, $stats['grids'] ?? []);
+
         if (isset($o['only']) && is_string($o['only'])) {
             $words = array_filter(array_map('trim', explode(',', mb_strtolower($o['only']))));
             $grids = array_values(array_filter($grids, function (array $g) use ($words) {
@@ -131,34 +163,55 @@ final class Cli
         $classes = json_decode((string) file_get_contents($this->tool . '/signatures/classes.json'), true, flags: JSON_THROW_ON_ERROR);
         $signatures->load($classes['scope']);
         $matcher = new Matcher($signatures->technologies());
-        $excluded = isset($o['include-excluded'])
-            ? []
-            : json_decode((string) file_get_contents($this->tool . '/signatures/excluded.json'), true, flags: JSON_THROW_ON_ERROR);
-        $store = new Store(is_string($o['pages'] ?? null) ? $o['pages'] : $this->tool . "/results/$month/pages");
+        $keep = is_string($o['keep-pages'] ?? null) ? new Store($o['keep-pages']) : null;
+        if (isset($o['offline']) && $keep === null) {
+            return $this->fail('--offline needs --keep-pages DIR, the pages of an earlier run');
+        }
         $survey = new Survey(
-            new Crawler(new Http()),
+            new Crawler(new Http(), isset($o['probe-w4os'])),
             new Classifier($matcher, $classes, $signatures->technologies()),
-            $store,
+            $keep,
             $excluded,
             $log,
         );
         $classified = $survey->run($grids, isset($o['offline']));
 
+        $totals = Report::totals($classified, $classes['systems']);
+        $crossCheck = null;
+        if ($stats && $live && !isset($o['no-cross-check']) && !isset($o['only']) && !isset($o['limit'])) {
+            $crossCheck = $this->crossCheck($statsSource, $stats);
+        }
         $report = [
             'tool' => 'grid-survey',
             'source' => [
                 'month' => $month,
-                'list' => ['from' => $o['list'], 'updated' => $list['updated'], 'announced_total' => $list['total'], 'rows' => count($list['grids'])],
-                'stats' => $stats ? ['from' => $o['stats'], 'month' => $stats['month'], 'rows' => count($stats['grids'])] : null,
+                'list' => [
+                    'from' => $source,
+                    'updated' => $list['updated'],
+                    'month' => $list['month'],
+                    'announced_total' => $list['total'],
+                    'rows' => count($list['grids']),
+                ],
+                'stats' => $stats ? ['from' => $statsSource, 'month' => $stats['month'], 'rows' => count($stats['grids'])] : null,
+                'cross_check' => $crossCheck,
                 'fingerprints' => 'enthec/webappanalyzer@' . $signatures->pinned() . ' + signatures/own.json',
                 'user_agent' => Http::USER_AGENT,
+                'probe_w4os' => isset($o['probe-w4os']),
                 'partial' => isset($o['only']) || isset($o['limit']),
             ],
             'excluded' => array_values(array_map(
                 fn (array $g) => ['name' => $g['name'], 'url' => $g['url'], 'reason' => $g['note']],
                 array_filter($classified, fn (array $g) => $g['outcome'] === 'excluded'),
             )),
-            'totals' => Report::totals($classified, $classes['systems']),
+            'requested' => array_values(array_map(
+                fn (array $g) => ['name' => $g['name'], 'url' => $g['url'], 'in_list' => in_array(ListReader::key($g['url']), array_map(fn ($l) => ListReader::key($l['url']), $list['grids']), true)],
+                array_filter($classified, fn (array $g) => $g['requested'] ?? false),
+            )),
+            'review' => array_values(array_map(
+                fn (array $g) => ['name' => $g['name'], 'url' => $g['url'], 'why' => $g['review'] ?? implode(', ', $g['flags'])],
+                array_filter($classified, fn (array $g) => ($g['review'] ?? null) !== null || ($g['flags'] ?? []) !== []),
+            )),
+            'totals' => $totals,
             'grids' => $classified,
         ];
         $out = is_string($o['out'] ?? null) ? $o['out'] : $this->root . "/docs/market/grid-web-systems-$month.json";
@@ -166,6 +219,33 @@ final class Cli
         $this->summary($report, $out);
 
         return 0;
+    }
+
+    /**
+     * Compares the totals of the stats page with the monthly article of Hypergrid Business. Never fails the run.
+     *
+     * @param array<string, mixed> $stats
+     * @return array<string, mixed>
+     */
+    private function crossCheck(string $statsUrl, array $stats): array
+    {
+        $mine = [
+            'actives' => array_sum(array_column($stats['grids'], 'actives')),
+            'regions' => array_sum(array_column($stats['grids'], 'regions')),
+            'users' => array_sum(array_column($stats['grids'], 'users')),
+        ];
+        $date = Hb::pageDate($statsUrl);
+        $article = $date ? Hb::article($date) : null;
+        if ($article === null) {
+            return ['status' => 'skipped', 'note' => 'the monthly article was not found', 'stats_page_totals' => $mine];
+        }
+
+        return [
+            'status' => $article['actives'] === $mine['actives'] ? 'match' : 'differs',
+            'article' => $article['url'],
+            'article_totals' => ['actives' => $article['actives'], 'regions' => $article['regions'], 'users' => $article['users']],
+            'stats_page_totals' => $mine,
+        ];
     }
 
     /** @param array<string, string|true> $o */
@@ -251,7 +331,13 @@ final class Cli
         $t = $report['totals'];
         $line = fn (string $s) => fwrite(STDERR, $s . "\n");
         $line('');
-        $line(sprintf('%d grids listed, %d with a readable website. Result: %s', $t['listed'], $t['reachable'], $out));
+        $line(sprintf(
+            '%d grids listed (list of %s), %d with a system. Result: %s',
+            $t['listed'],
+            $report['source']['list']['updated'] ?? 'unknown date',
+            $t['reachable'],
+            $out,
+        ));
         $line('No system: ' . json_encode($t['outcomes']));
         foreach ($t['groups'] as $group => $systems) {
             $line("[$group]");
@@ -259,8 +345,24 @@ final class Cli
                 $line(sprintf('  %-16s %4d grids  %5.1f%%  %6d actives', $id, $row['grids'], $row['share_grids'], $row['actives']));
             }
         }
+        $line('excluded: ' . count($report['excluded']) . ', see lists/excluded.json');
         foreach ($report['excluded'] as $e) {
-            $line("Excluded: {$e['name']}: {$e['reason']}");
+            $line("  {$e['name']}: {$e['reason']}");
+        }
+        $line('added by request: ' . count($report['requested']) . ', see lists/included.json');
+        if ($report['review']) {
+            $line('to review by hand: ' . count($report['review']));
+            foreach ($report['review'] as $r) {
+                $line("  {$r['name']}: {$r['why']}");
+            }
+        }
+        if ($cc = $report['source']['cross_check']) {
+            $line(sprintf(
+                'cross-check with the monthly article: %s (actives: stats page %s, article %s)',
+                $cc['status'],
+                number_format($cc['stats_page_totals']['actives']),
+                isset($cc['article_totals']['actives']) ? number_format($cc['article_totals']['actives']) : 'n/a',
+            ));
         }
         if ($t['unknown_systems']) {
             $line('WARNING: systems missing from the groups: ' . implode(', ', $t['unknown_systems']));

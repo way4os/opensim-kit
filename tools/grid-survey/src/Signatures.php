@@ -143,6 +143,7 @@ final class Signatures
             1002 => 'OpenSim hosting',
             1003 => 'OpenSim grid server',
             1004 => 'Default server page',
+            1005 => 'Not OpenSim statement',
         ];
     }
 

@@ -22,7 +22,7 @@ final class Store
         }
         file_put_contents(
             $this->path($grid),
-            json_encode(['grid' => $grid] + $crawl, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE),
+            json_encode(['listed' => $grid] + $crawl, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE),
         );
     }
 

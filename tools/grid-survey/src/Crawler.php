@@ -7,9 +7,13 @@ namespace GridSurvey;
 use Spatie\Robots\RobotsTxt;
 
 /**
- * Reads the public pages of one grid's site, read-only: robots.txt first (a site that forbids crawling is left
- * alone), the listed address (following a meta refresh), the first registration-like link and the credits link of
- * the same site, and for WordPress the readme.txt of the w4os plugin. No login, no form, nothing sent.
+ * Reads the public pages of one grid, read-only, from two sides:
+ * - its site: robots.txt first (a site that forbids crawling is left alone), the listed address (following a
+ *   redirect), the first registration-like link and the credits link of the same site;
+ * - the grid itself: the grid info every viewer reads at the login address (`/get_grid_info`) and the pages it
+ *   announces (register, welcome, password, about).
+ * Only addresses the site or the grid publishes are read, never a guessed one, except the readme.txt of the w4os
+ * plugin on a WordPress site, and only when asked (--probe-w4os). No login, no form, nothing sent but GET requests.
  */
 final class Crawler
 {
@@ -28,16 +32,30 @@ final class Crawler
     /** @var array<string, ?RobotsTxt> */
     private array $robots = [];
 
-    public function __construct(private readonly Fetcher $http)
+    /** The addresses of the grid info that are websites (the others are services for the viewer) */
+    private const PUBLISHED = ['register', 'welcome', 'password', 'about'];
+
+    public function __construct(private readonly Fetcher $http, private readonly bool $probeW4os = false)
     {
     }
 
     /**
-     * @param array{name: string, url: string} $grid
-     * @return array{status: string, note: string, pages: list<array<string, mixed>>}
-     *   status: ok, robots (forbidden), unreachable (no answer) or error (an HTTP error or an empty page)
+     * @param array{name: string, url: string, login_uri?: string} $grid
+     * @return array{status: string, note: string, pages: list<array<string, mixed>>, grid: array<string, mixed>}
+     *   status of the site: ok, robots (forbidden), unreachable (no answer) or error (an HTTP error or an empty page)
      */
     public function crawl(array $grid): array
+    {
+        $site = $this->crawlSite($grid);
+        $site['grid'] = ($grid['login_uri'] ?? '') !== ''
+            ? $this->crawlGrid($grid['login_uri'], $site['pages'])
+            : ['status' => 'none', 'note' => 'no login address', 'info' => [], 'pages' => []];
+
+        return $site;
+    }
+
+    /** @return array{status: string, note: string, pages: list<array<string, mixed>>} */
+    private function crawlSite(array $grid): array
     {
         $url = $grid['url'];
         if (!$this->allowed($url)) {
@@ -76,7 +94,7 @@ final class Crawler
             }
         }
 
-        if (str_contains($home['body'], '/wp-content/')) {
+        if ($this->probeW4os && str_contains($home['body'], '/wp-content/')) {
             foreach ($this->probes($home['body'], $base) as $probe) {
                 if ($this->allowed($probe)) {
                     $page = $this->http->get($probe);
@@ -87,6 +105,77 @@ final class Crawler
         }
 
         return ['status' => 'ok', 'note' => '', 'pages' => $pages];
+    }
+
+    /**
+     * The grid info of the login address (the one the list gives, nothing guessed but the scheme: http, then https)
+     * and the pages it announces.
+     *
+     * @param list<array<string, mixed>> $sitePages
+     * @return array{status: string, note: string, info: array<string, string>, pages: list<array<string, mixed>>}
+     */
+    private function crawlGrid(string $login, array $sitePages): array
+    {
+        $login = rtrim(trim($login), '/');
+        $bases = preg_match('~^https?://~i', $login) ? [$login] : ["http://$login", "https://$login"];
+        $info = null;
+        foreach ($bases as $base) {
+            $url = $base . '/get_grid_info';
+            if (!$this->allowed($url)) {
+                return ['status' => 'robots', 'note' => 'robots.txt forbids the grid info', 'info' => [], 'pages' => []];
+            }
+            $page = $this->http->get($url);
+            if ($page['status'] === 0) {
+                continue;
+            }
+            $info = $page['status'] === 200 ? $this->gridInfo($page['body']) : null;
+            break;
+        }
+        if ($info === null) {
+            return ['status' => 'none', 'note' => 'no grid info', 'info' => [], 'pages' => []];
+        }
+
+        $seen = array_map(fn (array $p) => ListReader::key($p['final_url'] ?: $p['url']), $sitePages);
+        $pages = [];
+        foreach (self::PUBLISHED as $key) {
+            $url = $info[$key] ?? '';
+            if (!preg_match('~^https?://~i', $url) || in_array(ListReader::key($url), $seen, true) || !$this->allowed($url)) {
+                continue;
+            }
+            $seen[] = ListReader::key($url);
+            $page = $this->http->get($url);
+            $page['role'] = 'published';
+            $page['key'] = $key;
+            $pages[] = $page;
+        }
+
+        return ['status' => 'ok', 'note' => '', 'info' => $info, 'pages' => $pages];
+    }
+
+    /**
+     * The addresses of a grid info document (`<gridinfo><register>...`), null when it is not one.
+     *
+     * @return array<string, string>|null
+     */
+    private function gridInfo(string $xml): ?array
+    {
+        if (!str_contains($xml, '<gridinfo')) {
+            return null;
+        }
+        $previous = libxml_use_internal_errors(true);
+        $doc = simplexml_load_string($xml, options: LIBXML_NONET | LIBXML_NOCDATA);
+        libxml_use_internal_errors($previous);
+        if ($doc === false) {
+            return null;
+        }
+        $info = [];
+        foreach (['gridname', 'login', 'register', 'welcome', 'password', 'about', 'help', 'search'] as $key) {
+            if (isset($doc->{$key}) && trim((string) $doc->{$key}) !== '') {
+                $info[$key] = trim((string) $doc->{$key});
+            }
+        }
+
+        return $info;
     }
 
     /** @return list<string> the readme.txt of the w4os plugin, from the WordPress root the page shows */

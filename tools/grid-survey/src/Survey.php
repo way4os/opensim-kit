@@ -10,7 +10,7 @@ namespace GridSurvey;
 final class Survey
 {
     /**
-     * @param list<array<string, mixed>> $excluded signatures/excluded.json
+     * @param list<array<string, mixed>> $excluded lists/excluded.json
      * @param callable(string): void|null $log progress lines
      */
     public function __construct(
@@ -53,12 +53,13 @@ final class Survey
         $out = [];
         foreach ($grids as $i => $grid) {
             if (($why = $this->exclusion($grid)) !== null) {
-                $out[] = $grid + ['system' => null, 'outcome' => 'excluded', 'confidence' => 'n/a', 'signals' => [], 'note' => $why];
+                $out[] = $grid + ['system' => null, 'outcome' => 'excluded', 'confidence' => 'n/a', 'signals' => [], 'flags' => [], 'note' => $why];
                 continue;
             }
-            $class = $this->classifier->classify($crawls[$i]);
-            unset($class['detected']);
-            $out[] = $grid + $class + ['note' => $crawls[$i]['note']];
+            $class = $this->classifier->classifyGrid($crawls[$i]);
+            // grid-level facts only: the signals and the addresses the grid announces, never the pages
+            unset($class['detected'], $class['fallback']);
+            $out[] = $grid + $class + ['grid_info' => $crawls[$i]['grid']['info'] ?? [], 'note' => $crawls[$i]['note']];
         }
 
         return $out;
@@ -69,7 +70,7 @@ final class Survey
     {
         $host = (string) parse_url($grid['url'], PHP_URL_HOST);
         foreach ($this->excluded as $rule) {
-            if (str_ends_with(strtolower($host), $rule['host'])) {
+            if (strtolower($host) === $rule['host'] || str_ends_with(strtolower($host), '.' . $rule['host'])) {
                 return $rule['reason'];
             }
         }
@@ -84,6 +85,7 @@ final class Survey
             $this->say("[$n/$count] {$grid['name']} {$grid['url']}");
         }
         $crawl = $this->crawler->crawl($grid);
+        // the pages are kept only when asked (--keep-pages), to classify again without crawling
         $this->store?->save($grid, $crawl);
 
         return $crawl;

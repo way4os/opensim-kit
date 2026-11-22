@@ -18,6 +18,7 @@ final class Report
     public static function totals(array $grids, array $groups): array
     {
         $outcomes = [];
+        $sources = ['list' => 0, 'requested' => 0];
         $systems = [];
         $reachable = 0;
         $actives = 0;
@@ -27,6 +28,7 @@ final class Report
                 continue;
             }
             $reachable++;
+            $sources[$grid['requested'] ?? false ? 'requested' : 'list'] = ($sources[$grid['requested'] ?? false ? 'requested' : 'list'] ?? 0) + 1;
             $actives += (int) ($grid['actives'] ?? 0);
             $systems[$grid['system']]['grids'] = ($systems[$grid['system']]['grids'] ?? 0) + 1;
             $systems[$grid['system']]['actives'] = ($systems[$grid['system']]['actives'] ?? 0) + (int) ($grid['actives'] ?? 0);
@@ -53,6 +55,8 @@ final class Report
             'reachable' => $reachable,
             'actives' => $actives,
             'outcomes' => $outcomes,
+            // where the grids with a system come from: the Hypergrid Business list, or lists/included.json
+            'sources' => $sources,
             'groups' => $rows,
             'unknown_systems' => array_values($unknown),
         ];

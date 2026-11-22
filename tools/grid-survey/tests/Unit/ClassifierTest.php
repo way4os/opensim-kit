@@ -93,3 +93,66 @@ describe('sites with no known system', function () {
         expect($result['system'])->toBeNull()->and($result['outcome'])->toBe($status);
     })->with(['unreachable', 'error']);
 });
+
+describe('the site and the grid info together', function () {
+    $wp = fn () => page('home', 'http://a.example/', '<meta name="generator" content="WordPress 7.1.4"><link href="/wp-content/x.css">');
+    $wifi = fn () => ['status' => 'ok', 'note' => '', 'info' => [], 'pages' => [
+        ['key' => 'register', 'role' => 'published'] + page('published', 'http://a.example:8002/wifi/user/account/', '<link href="/wifi/fluid.css"><a href="/wifi/user/account/">x</a>'),
+    ]];
+    $wpLogin = fn () => ['status' => 'ok', 'note' => '', 'info' => [], 'pages' => [
+        ['key' => 'register'] + page('published', 'http://a.example/wp-login.php?action=register', '<meta name="generator" content="WordPress 7.1.4"><link href="/wp-includes/x.css">'),
+    ]];
+    $site = fn (array $pages, string $status = 'ok') => ['status' => $status, 'note' => '', 'pages' => $pages];
+
+    test('both say the same: high confidence', function () use ($wp, $wpLogin, $site) {
+        $result = classifier()->classifyGrid($site([$wp()]) + ['grid' => $wpLogin()]);
+
+        expect($result['system'])->toBe('wordpress')->and($result['confidence'])->toBe('high')->and($result['review'])->toBeNull();
+    });
+
+    test('the site is w4os, the grid info says WordPress: the same family, no review', function () use ($wpLogin, $site) {
+        $home = page('home', 'http://a.example/', '<link href="/wp-content/plugins/w4os/v2/public/public.css?ver=2.9.4"><meta name="generator" content="WordPress 7.1.4">');
+        $result = classifier()->classifyGrid($site([$home]) + ['grid' => $wpLogin()]);
+
+        expect($result['system'])->toBe('wordpress_w4os')->and($result['review'])->toBeNull()->and($result['confidence'])->toBe('high');
+    });
+
+    test('they differ: the site stays, the result says to review', function () use ($wp, $wifi, $site) {
+        $result = classifier()->classifyGrid($site([$wp()]) + ['grid' => $wifi()]);
+
+        expect($result['system'])->toBe('wordpress')->and($result['confidence'])->toBe('low')
+            ->and($result['review'])->toBe('site says wordpress, grid info says diva_wifi')
+            ->and($result['by'])->toBe(['site' => 'wordpress', 'grid_info' => 'diva_wifi']);
+    });
+
+    test('the site has nothing known: the grid info decides', function () use ($wifi, $site) {
+        $result = classifier()->classifyGrid($site([page('home', 'http://a.example/', '<h1>My grid</h1>')]) + ['grid' => $wifi()]);
+
+        expect($result['system'])->toBe('diva_wifi')->and($result['by']['site'])->toBe('custom_site');
+    });
+
+    test('the site does not answer, the grid info does: the grid is classified', function () use ($wifi, $site) {
+        $result = classifier()->classifyGrid($site([page('home', 'http://a.example/', '', status: 0)], 'unreachable') + ['grid' => $wifi()]);
+
+        expect($result['system'])->toBe('diva_wifi')->and($result['outcome'])->toBe('classified');
+    });
+
+    test('a site that forbids crawling stays out, whatever the grid info says', function () use ($wifi, $site) {
+        $result = classifier()->classifyGrid($site([], 'robots') + ['grid' => $wifi()]);
+
+        expect($result['system'])->toBeNull()->and($result['outcome'])->toBe('robots');
+    });
+
+    test('the signals say which side they come from', function () use ($wp, $wpLogin, $site) {
+        $signals = classifier()->classifyGrid($site([$wp()]) + ['grid' => $wpLogin()])['signals'];
+
+        expect($signals)->toContain('site: WordPress 7.1.4', 'grid info: WordPress 7.1.4');
+    });
+
+    test('a site that says it is not OpenSim is flagged, not excluded', function () use ($site) {
+        $home = page('home', 'http://a.example/', '<h1>Welcome</h1><p>This world is NOT an OpenSim world, it runs Halcyon.</p>');
+        $result = classifier()->classifyGrid($site([$home]));
+
+        expect($result['flags'])->toBe(['says it is not OpenSim'])->and($result['outcome'])->toBe('classified');
+    });
+});

@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace GridSurvey;
 
 /**
- * Read-only HTTP fetching: GET only, a fixed user agent, a timeout, a body size cap, a pause between
+ * Read-only HTTP fetching of public pages: GET only, no cookie kept, a fixed user agent that says what the tool is and
+ * where to reach its author, a timeout, a body size cap, a pause between
  * two requests to the same host. Nothing is ever sent but the request itself (no cookie, no form, no login).
  */
 final class Http implements Fetcher
 {
-    public const USER_AGENT = 'grid-web-survey/1.0; read-only market study';
+    public const USER_AGENT = 'grid-web-survey/1.0; read-only market study; +https://w4os.org/contact';
     public const TIMEOUT = 15;
     public const MAX_BODY = 524288;
 

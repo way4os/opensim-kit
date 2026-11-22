@@ -1,8 +1,21 @@
 {
     "scope": [
-        "CMS", "Blogs", "Wikis", "Message boards", "Ecommerce", "LMS", "Page builders", "Web frameworks",
-        "JavaScript frameworks", "UI frameworks", "Static site generator",
-        "OpenSim web interface", "OpenSim hosting", "OpenSim grid server", "Default server page"
+        "CMS",
+        "Blogs",
+        "Wikis",
+        "Message boards",
+        "Ecommerce",
+        "LMS",
+        "Page builders",
+        "Web frameworks",
+        "JavaScript frameworks",
+        "UI frameworks",
+        "Static site generator",
+        "OpenSim web interface",
+        "OpenSim hosting",
+        "OpenSim grid server",
+        "Default server page",
+        "Not OpenSim statement"
     ],
     "interfaces": {
         "w4os": "wordpress_w4os",
@@ -12,20 +25,64 @@
         "DreamGrid": "dreamgrid",
         "Diva Wifi": "diva_wifi"
     },
-    "hosted": ["Hosting4Opensim", "Kitely"],
+    "hosted": [
+        "Hosting4Opensim",
+        "Kitely"
+    ],
     "builders": [
-        "Wix", "Google Sites", "Weebly", "GoDaddy Website Builder", "Blogger", "Squarespace", "Jimdo", "Webflow",
-        "Sandvox", "WebAcappella", "Microsoft FrontPage", "Webnode", "Strikingly", "Carrd", "Shopify"
+        "Wix",
+        "Google Sites",
+        "Weebly",
+        "GoDaddy Website Builder",
+        "Blogger",
+        "Squarespace",
+        "Jimdo",
+        "Webflow",
+        "Sandvox",
+        "WebAcappella",
+        "Microsoft FrontPage",
+        "Webnode",
+        "Strikingly",
+        "Carrd",
+        "Shopify"
     ],
     "cms": {
         "WordPress": "wordpress",
         "Joomla": "joomla"
     },
     "frameworks": [
-        "Laravel", "CodeIgniter", "Symfony", "CakePHP", "Yii", "Zend", "Django", "Ruby on Rails", "Flask", "Slim", "FuelPHP", "Phalcon"
+        "Laravel",
+        "CodeIgniter",
+        "Symfony",
+        "CakePHP",
+        "Yii",
+        "Zend",
+        "Django",
+        "Ruby on Rails",
+        "Flask",
+        "Slim",
+        "FuelPHP",
+        "Phalcon"
     ],
     "systems": {
-        "interface": ["dreamgrid", "modlos", "oswebinterface", "wordpress_w4os", "diva_wifi", "jopensim", "hosted", "custom", "other_cms_ui"],
-        "none": ["custom_site", "wordpress", "builders", "joomla", "other_cms", "grid_server"]
+        "interface": [
+            "dreamgrid",
+            "modlos",
+            "oswebinterface",
+            "wordpress_w4os",
+            "diva_wifi",
+            "jopensim",
+            "hosted",
+            "custom",
+            "other_cms_ui"
+        ],
+        "none": [
+            "custom_site",
+            "wordpress",
+            "builders",
+            "joomla",
+            "other_cms",
+            "grid_server"
+        ]
     }
 }
