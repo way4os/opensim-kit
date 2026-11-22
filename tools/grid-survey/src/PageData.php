@@ -13,9 +13,12 @@ final class PageData
 {
     /**
      * @param array<string, mixed> $report a survey result
+     * @param list<array<string, mixed>> $declared the grids of lists/included.json that declare w4os (`w4os: true`): they
+     *   are in the names list whether or not the result has them, their figures join the totals at the next run
+     * @param list<array<string, mixed>> $excluded the grids of lists/excluded.json: they never appear
      * @return array{json: string, changes: list<string>, notes: list<string>}
      */
-    public static function propose(string $json, array $report): array
+    public static function propose(string $json, array $report, array $declared = [], array $excluded = []): array
     {
         $data = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
         $counts = [];
@@ -57,7 +60,7 @@ final class PageData
         }
 
         // the names of the grids that use w4os, written from the result
-        [$json, $listChanges, $listNotes] = self::names($json, $data['grids'], $report['grids']);
+        [$json, $listChanges, $listNotes] = self::names($json, $data['grids'], $report['grids'], $declared, $excluded);
         $changes = array_merge($changes, $listChanges);
         $notes = array_merge($notes, $listNotes);
 
@@ -91,10 +94,22 @@ final class PageData
      *
      * @param list<array{name: string, url: string}> $current
      * @param list<array<string, mixed>> $grids
+     * @param list<array<string, mixed>> $declared
+     * @param list<array<string, mixed>> $excluded
      * @return array{0: string, 1: list<string>, 2: list<string>} the new text, the changes, the notes
      */
-    private static function names(string $json, array $current, array $grids): array
+    private static function names(string $json, array $current, array $grids, array $declared, array $excluded): array
     {
+        $isExcluded = function (string $url) use ($excluded): bool {
+            $host = self::host($url);
+            foreach ($excluded as $rule) {
+                if ($host === $rule['host'] || str_ends_with($host, '.' . $rule['host'])) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
         $byHost = [];
         foreach ($current as $entry) {
             $byHost[self::host($entry['url'])] = $entry;
@@ -103,7 +118,7 @@ final class PageData
         $notes = [];
         $list = [];
         foreach ($grids as $grid) {
-            if ($grid['system'] !== 'wordpress_w4os' || $grid['outcome'] === 'excluded') {
+            if ($grid['system'] !== 'wordpress_w4os' || $grid['outcome'] === 'excluded' || $isExcluded($grid['url'])) {
                 continue;
             }
             $own = self::cleanName((string) ($grid['grid_info']['gridname'] ?? ''));
@@ -133,6 +148,19 @@ final class PageData
             $url = isset($byHost[self::host($url)]) ? $byHost[self::host($url)]['url'] : $url;
             $list[self::host($url)] = ['name' => $name, 'url' => $url];
         }
+
+        // the grids declared w4os by hand: the claim is the evidence, no crawl needed; counted once when the result has them
+        $declaredOnly = [];
+        foreach ($declared as $entry) {
+            $host = self::host($entry['url']);
+            if ($isExcluded($entry['url']) || isset($list[$host])) {
+                continue;
+            }
+            $written = $byHost[$host] ?? null;
+            $list[$host] = ['name' => $written['name'] ?? $entry['name'], 'url' => $written['url'] ?? $entry['url']];
+            $declaredOnly[$host] = true;
+            $notes[] = "names: {$entry['name']} is declared w4os in included.json and not in the result: its figures join the totals at the next full run";
+        }
         usort($list, fn (array $a, array $b) => mb_strtolower($a['name']) <=> mb_strtolower($b['name']));
 
         $changes = [];
@@ -141,7 +169,7 @@ final class PageData
         foreach ($list as $entry) {
             $old = $byHost[self::host($entry['url'])] ?? null;
             if ($old === null) {
-                $changes[] = 'names: + ' . $entry['name'];
+                $changes[] = 'names: + ' . $entry['name'] . (isset($declaredOnly[self::host($entry['url'])]) ? ' (declared, its figures join the totals at the next full run)' : '');
             } elseif ($old['name'] !== $entry['name']) {
                 $changes[] = "names: {$old['name']} -> {$entry['name']}";
             }

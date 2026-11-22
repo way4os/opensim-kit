@@ -62,12 +62,14 @@ final class Cli
     TXT;
 
     private const HELP_UPDATE = <<<'TXT'
-    grid-survey update-page --result FILE --grids-json FILE [--write]
+    grid-survey update-page --result FILE --grids-json FILE [--lists DIR] [--write]
 
     Compares a survey result with the page data of w4os.org (pages/03.features/01.grids/grids.json) and prints the
     changes as a diff. Nothing is written unless --write is given. What changes: the grid counts of each system,
     the month of the list (`surveyed`) and the list of the grids that use w4os (name and address of every grid of
-    the w4os row, in alphabetical order, excluded grids never; a grid already on the page keeps its name and address,
+    the w4os row plus the grids declared w4os in lists/included.json, whether or not the result has them: a
+    declared one is shown as "declared" and its figures join the totals at the next full run; in alphabetical
+    order, excluded grids never; a grid already on the page keeps its name and address,
     a new one takes the name of its grid info, cleaned, and each difference with the written name is shown; added,
     removed and renamed grids are listed). Hand-kept: the
     last-update dates of the interfaces, their sources and the years a development ended. The text of the page
@@ -268,7 +270,9 @@ final class Cli
         if ($report['source']['partial'] ?? false) {
             return $this->fail('This result is from a partial run (--only or --limit): its counts are not the whole survey');
         }
-        $proposal = PageData::propose($old, $report);
+        $lists = is_string($o['lists'] ?? null) ? $o['lists'] : $this->tool . '/lists';
+        $declared = array_values(array_filter(Lists::included($lists . '/included.json'), fn (array $e) => ($e['w4os'] ?? false) === true));
+        $proposal = PageData::propose($old, $report, $declared, Lists::excluded($lists . '/excluded.json'));
 
         foreach ($proposal['notes'] as $note) {
             fwrite(STDERR, "note: $note\n");

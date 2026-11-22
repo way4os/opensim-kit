@@ -168,7 +168,41 @@ describe('the names of the grids that use w4os', function () {
         expect(array_column($entries(PageData::propose($json, $result)['json']), 'name'))->toBe(['Ankabi']);
     });
 
-    test('a grid that claims w4os through included.json is in the list and marked requested', function () use ($json, $counts, $entries) {
+    $watta = ['name' => 'Watta World', 'url' => 'https://watta.world/', 'asked' => 'x', 'recorded_by' => 'y', 'date' => '2026-11-22', 'w4os' => true, 'w4os_source' => 'its owner'];
+
+    test('a grid declared w4os in included.json is in the list without being in the result, its figures are not in the totals', function () use ($json, $counts, $entries, $watta) {
+        $result = result($counts, w4os: ['Ankabi' => 'https://ankabi.de/']);
+        $proposal = PageData::propose($json, $result, declared: [$watta]);
+        $new = json_decode($proposal['json'], true);
+
+        expect(array_column($entries($proposal['json']), 'name'))->toBe(['Ankabi', 'Watta World'])
+            ->and($proposal['changes'])->toContain('names: + Watta World (declared, its figures join the totals at the next full run)')
+            ->and($new['groups'][0]['systems'][3]['grids'])->toBe(1);
+    });
+
+    test('a declared grid that is also in the result is counted once', function () use ($json, $counts, $entries, $watta) {
+        $result = result($counts, w4os: ['Watta World' => ['url' => 'https://watta.world/', 'requested' => true, 'decided_by' => 'claim']]);
+        $proposal = PageData::propose($json, $result, declared: [$watta]);
+
+        expect(array_column($entries($proposal['json']), 'name'))->toBe(['Watta World'])
+            ->and(implode("\n", $proposal['changes']))->not->toContain('declared');
+    });
+
+    test('a declared grid that is excluded never appears', function () use ($json, $counts, $entries, $watta) {
+        $excluded = [['name' => 'Watta World', 'host' => 'watta.world', 'reason' => 'asked by its owner', 'source' => 's', 'date' => 'd']];
+        $proposal = PageData::propose($json, result($counts, w4os: ['Ankabi' => 'https://ankabi.de/']), declared: [$watta], excluded: $excluded);
+
+        expect(array_column($entries($proposal['json']), 'name'))->toBe(['Ankabi']);
+    });
+
+    test('a grid of the result that is excluded since never appears either', function () use ($json, $counts, $entries) {
+        $excluded = [['name' => 'Ankabi', 'host' => 'ankabi.de', 'reason' => 'asked by its owner', 'source' => 's', 'date' => 'd']];
+        $proposal = PageData::propose($json, result($counts, w4os: ['Ankabi' => 'https://ankabi.de/', 'Neverworld' => 'https://neverworldgrid.com/']), excluded: $excluded);
+
+        expect(array_column($entries($proposal['json']), 'name'))->toBe(['Neverworld']);
+    });
+
+    test('a grid that claims w4os through included.json and was read is in the list and marked requested', function () use ($json, $counts, $entries) {
         $result = result($counts, w4os: ['Watta World' => ['url' => 'https://watta.world/', 'requested' => true, 'decided_by' => 'claim']]);
         $proposal = PageData::propose($json, $result);
 

@@ -82,4 +82,17 @@ describe('update-page', function () {
         grid_survey([...$args, '--write']);
         expect(json_decode(file_get_contents("$dir/grids.json"), true)['surveyed'])->toBe('2026-11');
     });
+
+    test('the declared w4os grids of included.json are read from --lists, no crawl, no result needed', function () {
+        $dir = sys_get_temp_dir() . '/grid-survey-out-' . uniqid();
+        mkdir("$dir/lists", 0775, true);
+        copy(sample('grids.json'), "$dir/grids.json");
+        file_put_contents("$dir/lists/excluded.json", '[]');
+        file_put_contents("$dir/lists/included.json", json_encode([['name' => 'Watta World', 'url' => 'https://watta.world/', 'asked' => 'x', 'recorded_by' => 'y', 'date' => '2026-11-22', 'w4os' => true, 'w4os_source' => 'its owner']]));
+        grid_survey(['run', '--list', sample('hb-active-grids.html'), '--keep-pages', sample('crawls'), '--offline', '--lists', sample('lists'), '--out', "$dir/result.json", '--quiet']);
+        $update = grid_survey(['update-page', '--result', "$dir/result.json", '--grids-json', "$dir/grids.json", '--lists', "$dir/lists"]);
+
+        expect($update['out'])->toContain('+    {"name": "Watta World", "url": "https://watta.world/"}')
+            ->and($update['err'])->toContain('declared');
+    });
 });
