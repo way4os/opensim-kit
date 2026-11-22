@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace GridSurvey;
 
 /**
- * Updates the numbers of the w4os.org page data (grids.json) from a survey result. Only the grid counts of the
- * systems and the survey month are touched, by editing the text in place: the layout, the dates of the last
- * update of each interface and their sources (hand-kept) are left as they are, as is the list of grids.
+ * Updates the w4os.org page data (grids.json) from a survey result: the grid counts of the systems, the survey month
+ * and the list of the grids that use w4os, by editing the text in place. The layout, the dates of the last update of
+ * each interface and their sources, the years a development ended (hand-kept) are left as they are.
  */
 final class PageData
 {
@@ -56,19 +56,10 @@ final class PageData
             $changes[] = 'surveyed: ' . ($data['surveyed'] ?? 'none') . " -> $month";
         }
 
-        // the grids running w4os, for the list of the page (hand-kept: grids may ask not to be on it)
-        $listed = array_map(fn (array $g) => self::host($g['url']), $data['grids']);
-        foreach ($report['grids'] as $grid) {
-            if ($grid['system'] === 'wordpress_w4os' && !in_array(self::host($grid['url']), $listed, true)) {
-                $notes[] = "w4os detected on {$grid['name']} ({$grid['url']}), not in the list of the page";
-            }
-        }
-        $found = array_map(fn (array $g) => self::host($g['url']), array_filter($report['grids'], fn ($g) => $g['system'] === 'wordpress_w4os'));
-        foreach ($data['grids'] as $grid) {
-            if (!in_array(self::host($grid['url']), $found, true)) {
-                $notes[] = "{$grid['name']} is in the list of the page, w4os not detected in this survey";
-            }
-        }
+        // the names of the grids that use w4os, written from the result
+        [$json, $listChanges, $listNotes] = self::names($json, $data['grids'], $report['grids']);
+        $changes = array_merge($changes, $listChanges);
+        $notes = array_merge($notes, $listNotes);
 
         json_decode($json, true, flags: JSON_THROW_ON_ERROR);
 
@@ -79,5 +70,88 @@ final class PageData
     private static function host(string $url): string
     {
         return preg_replace('~^www\.~', '', strtolower((string) parse_url($url, PHP_URL_HOST)));
+    }
+
+    /**
+     * The list of the grids that use w4os (name and address), from every grid the survey put in the w4os row, in
+     * alphabetical order. The name is the one the grid gives itself when it has one (the list's name is shown when it
+     * differs); a grid already on the page keeps its address when the site is the same; a grid whose site gives an error
+     * but whose announced pages carry w4os takes the address of that page.
+     *
+     * @param list<array{name: string, url: string}> $current
+     * @param list<array<string, mixed>> $grids
+     * @return array{0: string, 1: list<string>, 2: list<string>} the new text, the changes, the notes
+     */
+    private static function names(string $json, array $current, array $grids): array
+    {
+        $byHost = [];
+        foreach ($current as $entry) {
+            $byHost[self::host($entry['url'])] = $entry;
+        }
+
+        $notes = [];
+        $list = [];
+        foreach ($grids as $grid) {
+            if ($grid['system'] !== 'wordpress_w4os' || $grid['outcome'] === 'excluded') {
+                continue;
+            }
+            $own = trim((string) ($grid['grid_info']['gridname'] ?? ''));
+            $name = $own !== '' ? $own : $grid['name'];
+            if ($own !== '' && $own !== $grid['name']) {
+                $notes[] = "name: the list says '{$grid['name']}', the grid says '$own' (the grid's is used)";
+            }
+
+            $url = $grid['url'];
+            $site = $grid['by']['site'] ?? 'wordpress_w4os';
+            $page = $grid['decisive']['page'] ?? null;
+            $announced = $page !== null ? ($grid['grid_info'][$page] ?? '') : '';
+            if (!in_array($site, ['wordpress_w4os', 'wordpress', 'custom', 'custom_site', 'other_cms', 'other_cms_ui', 'builders', 'joomla'], true) && $announced !== '') {
+                $parts = parse_url($announced);
+                $url = ($parts['scheme'] ?? 'https') . '://' . ($parts['host'] ?? '') . (isset($parts['port']) ? ':' . $parts['port'] : '');
+            }
+            // a grid already on the page keeps the address written there when the site is the same
+            $url = isset($byHost[self::host($url)]) ? $byHost[self::host($url)]['url'] : $url;
+            $list[self::host($url)] = ['name' => $name, 'url' => $url];
+        }
+        usort($list, fn (array $a, array $b) => mb_strtolower($a['name']) <=> mb_strtolower($b['name']));
+
+        $changes = [];
+        $before = array_column($current, 'name', 'url');
+        $now = array_column($list, 'name', 'url');
+        foreach ($list as $entry) {
+            $old = $byHost[self::host($entry['url'])] ?? null;
+            if ($old === null) {
+                $changes[] = 'names: + ' . $entry['name'];
+            } elseif ($old['name'] !== $entry['name']) {
+                $changes[] = "names: {$old['name']} -> {$entry['name']}";
+            }
+        }
+        $kept = array_map(fn (array $e) => self::host($e['url']), $list);
+        foreach ($current as $entry) {
+            if (!in_array(self::host($entry['url']), $kept, true)) {
+                $changes[] = 'names: - ' . $entry['name'];
+            }
+        }
+        if ($before === $now) {
+            return [$json, $changes, $notes];
+        }
+
+        $lines = array_map(
+            fn (array $e) => '    {"name": ' . json_encode($e['name'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                . ', "url": ' . json_encode($e['url'], JSON_UNESCAPED_SLASHES) . '}',
+            $list,
+        );
+        $new = preg_replace_callback(
+            '~("grids"\s*:\s*\[)(.*?)(\n\s*\])~s',
+            fn (array $m) => $m[1] . "\n" . implode(",\n", $lines) . $m[3],
+            $json,
+            1,
+            $count,
+        );
+        if ($count !== 1 || $new === null) {
+            throw new \RuntimeException('Cannot find the list of the grids in the page data');
+        }
+
+        return [$new, $changes, $notes];
     }
 }

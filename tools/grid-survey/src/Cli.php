@@ -63,10 +63,13 @@ final class Cli
     private const HELP_UPDATE = <<<'TXT'
     grid-survey update-page --result FILE --grids-json FILE [--write]
 
-    Compares the counts of a survey result with the page data of w4os.org (pages/03.features/01.grids/grids.json)
-    and prints the changes as a diff. Nothing is written unless --write is given. Only the grid counts and the
-    month of the list (`surveyed`) change: the last-update dates of the interfaces, their sources, the order and the
-    list of grids stay as they are. The text of the page names the month in each language: change it by hand.
+    Compares a survey result with the page data of w4os.org (pages/03.features/01.grids/grids.json) and prints the
+    changes as a diff. Nothing is written unless --write is given. What changes: the grid counts of each system,
+    the month of the list (`surveyed`) and the list of the grids that use w4os (name and address of every grid of
+    the w4os row, in alphabetical order, excluded grids never; the name is the grid's own when it has one, and each
+    difference with the name of the list is shown; added, removed and renamed grids are listed). Hand-kept: the
+    last-update dates of the interfaces, their sources and the years a development ended. The text of the page
+    names the month in each language: change it by hand.
     TXT;
 
     private string $root;
@@ -346,10 +349,11 @@ final class Cli
             }
         }
         $line(sprintf(
-            'decided by: site %d, grid info %d, both %d; grid info pages %s; w4os only from grid pages: %d',
+            'decided by: site %d, grid info %d, both %d, claim %d; grid info pages %s; w4os only from grid pages: %d',
             $t['decided_by']['site'],
             $t['decided_by']['grid_info'],
             $t['decided_by']['both'],
+            $t['decided_by']['claim'],
             json_encode($t['grid_info_pages']),
             $t['w4os_only_from_grid_pages'],
         ));

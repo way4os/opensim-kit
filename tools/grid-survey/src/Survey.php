@@ -57,6 +57,17 @@ final class Survey
                 continue;
             }
             $class = $this->classifier->classifyGrid($crawls[$i]);
+            if (($grid['w4os_claim'] ?? '') !== '') {
+                // a grid that uses w4os without it being visible from outside: the claim, kept by hand, decides
+                $class = array_merge($class, [
+                    'system' => 'wordpress_w4os',
+                    'outcome' => 'classified',
+                    'confidence' => 'claimed',
+                    'decided_by' => 'claim',
+                    'w4os_signal' => 'claimed',
+                    'decisive' => ['page' => 'included.json', 'tech' => 'w4os', 'evidence' => $grid['w4os_claim']],
+                ]);
+            }
             // grid-level facts only: the signals and the addresses the grid announces, never the pages
             unset($class['detected'], $class['fallback']);
             if ($class['w4os_signal'] === null) {

@@ -19,7 +19,7 @@ final class Report
     {
         $outcomes = [];
         $sources = ['list' => 0, 'requested' => 0];
-        $decidedBy = ['site' => 0, 'grid_info' => 0, 'both' => 0];
+        $decidedBy = ['site' => 0, 'grid_info' => 0, 'both' => 0, 'claim' => 0];
         $pagesOfGrid = [];
         $w4osFromGrid = 0;
         $systems = [];

@@ -43,6 +43,28 @@ describe('survey', function () use ($excluded, $groups) {
     });
 });
 
+describe('a grid that claims w4os', function () {
+    test('is w4os whatever the tool sees, decided by the claim, and counted as requested', function () {
+        $http = site(['http://w.example/' => ['body' => '<h1>A custom site</h1>']]);
+        $grids = (new Survey(new Crawler($http), classifier()))->run([
+            ['name' => 'W', 'url' => 'http://w.example/', 'requested' => true, 'w4os_claim' => 'its owner, 2026-11-22'],
+        ]);
+        $totals = Report::totals($grids, json_decode(file_get_contents(tool() . '/signatures/classes.json'), true)['systems']);
+
+        expect($grids[0])->toMatchArray(['system' => 'wordpress_w4os', 'decided_by' => 'claim', 'w4os_signal' => 'claimed'])
+            ->and($grids[0]['decisive'])->toMatchArray(['page' => 'included.json', 'tech' => 'w4os', 'evidence' => 'its owner, 2026-11-22'])
+            ->and($grids[0]['by']['site'])->toBe('custom_site')
+            ->and($totals['groups']['interface']['wordpress_w4os']['grids'])->toBe(1)->and($totals['sources']['requested'])->toBe(1);
+    });
+
+    test('an excluded grid stays out even when it claims w4os', function () {
+        $excluded = [['name' => 'W', 'host' => 'w.example', 'reason' => 'asked', 'source' => 's', 'date' => 'd']];
+        $grids = (new Survey(new Crawler(site([])), classifier(), null, $excluded))->run([['name' => 'W', 'url' => 'http://w.example/', 'w4os_claim' => 'x']]);
+
+        expect($grids[0]['outcome'])->toBe('excluded')->and($grids[0]['system'])->toBeNull();
+    });
+});
+
 describe('kept pages', function () {
     test('a saved crawl comes back as it was, with the grid info it holds', function () {
         $store = new GridSurvey\Store(sys_get_temp_dir() . '/grid-survey-store-' . uniqid());
@@ -98,7 +120,7 @@ describe('totals', function () use ($groups) {
         ];
         $totals = Report::totals($grids, $groups);
 
-        expect($totals['decided_by'])->toBe(['site' => 1, 'grid_info' => 2, 'both' => 1])
+        expect($totals['decided_by'])->toBe(['site' => 1, 'grid_info' => 2, 'both' => 1, 'claim' => 0])
             ->and($totals['grid_info_pages'])->toBe(['login' => 1, 'welcome' => 1])
             ->and($totals['w4os_only_from_grid_pages'])->toBe(1);
     });

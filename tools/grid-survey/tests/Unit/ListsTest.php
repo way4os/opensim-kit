@@ -42,4 +42,19 @@ describe('the lists kept by hand', function () {
 
         expect($merged)->toHaveCount(1)->and($merged[0]['requested'])->toBeTrue()->and($merged[0]['name'])->toBe('A');
     });
+
+    test('a grid that uses w4os without being seen from outside says where the claim comes from', function () {
+        $file = sys_get_temp_dir() . '/included-' . uniqid() . '.json';
+        file_put_contents($file, json_encode([['name' => 'W', 'url' => 'https://w.example/', 'asked' => 'mail', 'recorded_by' => 'Olivier', 'date' => '2026-11-22', 'w4os' => true]]));
+
+        expect(fn () => Lists::included($file))->toThrow(RuntimeException::class, 'has no "w4os_source"');
+    });
+
+    test('the claim goes with the grid, also when it is already in the list', function () {
+        $included = [['name' => 'W', 'url' => 'https://w.example/', 'asked' => 'mail', 'recorded_by' => 'Olivier', 'date' => '2026-11-22', 'w4os' => true, 'w4os_source' => 'its owner']];
+        $added = Lists::merge([], $included);
+        $already = Lists::merge([['name' => 'W', 'url' => 'http://w.example', 'login_uri' => '']], $included);
+
+        expect($added[0]['w4os_claim'])->toBe('its owner')->and($already[0]['w4os_claim'])->toBe('its owner')->and($already[0]['requested'])->toBeTrue();
+    });
 });

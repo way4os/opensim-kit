@@ -19,10 +19,22 @@ final class Lists
         return self::read($file, ['name', 'host', 'reason', 'source', 'date']);
     }
 
-    /** @return list<array{name: string, url: string, asked: string, recorded_by: string, date: string, login_uri?: string}> */
+    /**
+     * `w4os: true` says the grid uses w4os without it being visible from outside (helpers only, for instance); it then
+     * says where the claim comes from in `w4os_source`.
+     *
+     * @return list<array{name: string, url: string, asked: string, recorded_by: string, date: string, login_uri?: string, w4os?: bool, w4os_source?: string}>
+     */
     public static function included(string $file): array
     {
-        return self::read($file, ['name', 'url', 'asked', 'recorded_by', 'date']);
+        $rows = self::read($file, ['name', 'url', 'asked', 'recorded_by', 'date']);
+        foreach ($rows as $i => $row) {
+            if (($row['w4os'] ?? false) === true && ($row['w4os_source'] ?? '') === '') {
+                throw new \RuntimeException(basename($file) . ': entry ' . ($i + 1) . ' has no "w4os_source"');
+            }
+        }
+
+        return $rows;
     }
 
     /**
@@ -42,10 +54,12 @@ final class Lists
         $known = array_flip(array_map(fn (array $g) => ListReader::key($g['url']), $grids));
         foreach ($included as $entry) {
             $key = ListReader::key($entry['url']);
+            $claim = ($entry['w4os'] ?? false) === true ? $entry['w4os_source'] : null;
             if (isset($known[$key])) {
                 foreach ($grids as &$grid) {
                     if (ListReader::key($grid['url']) === $key) {
                         $grid['requested'] = true;
+                        $claim === null || $grid['w4os_claim'] = $claim;
                     }
                 }
                 unset($grid);
@@ -58,7 +72,7 @@ final class Lists
                 'login_uri' => $entry['login_uri'] ?? '',
                 'features' => '',
                 'requested' => true,
-            ];
+            ] + ($claim === null ? [] : ['w4os_claim' => $claim]);
         }
 
         return $grids;
