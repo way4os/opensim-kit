@@ -7,7 +7,7 @@
 	branch = 7.x-1.x
 [submodule "contrib/wordpress/w4os"]
 	path = dev/contrib/w4os
-	url = https://github.com/GuduleLapointe/w4os/
+	url = https://github.com/way4os/w4os-wp/
 [submodule "contrib/currency/Gloebit"]
 	path = contrib/Gloebit/src
 	url = https://github.com/gloebit/opensim-moneymodule-gloebit.git

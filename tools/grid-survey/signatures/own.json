@@ -4,7 +4,7 @@
             1001
         ],
         "description": "w4os, the WordPress plugin: its assets and blocks in the page, or its readme.txt (probe, opt-in)",
-        "website": "https://github.com/GuduleLapointe/w4os",
+        "website": "https://github.com/way4os/w4os-wp",
         "html": [
             "/wp-content/plugins/w4os(?:-opensimulator-web-interface)?/",
             "w4os-(?:shortcode|public-js|public-css)",

@@ -176,7 +176,7 @@ Outdated:
 **Additional tools**
 
 - https://github.com/way4os/w4os-helpers/
-- https://github.com/GuduleLapointe/w4os/
+- https://github.com/way4os/w4os-wp/
 - http://opensimulator.org/wiki/Webinterface
 - https://github.com/Outworldz/os-webrtc-janus (webrtc voice)
 

@@ -13,7 +13,7 @@ Decided items are marked ✅ (all decided on 2026-11-20).
 | opensim-engine (deb, magicoli/opensim-engine, GitHub GuduleLapointe/opensim-engine) | w4os-engine | ✅ |
 | opensim-helpers (deb, magicoli/opensim-helpers, GitHub GuduleLapointe/opensim-helpers) | w4os-helpers | ✅ |
 | w4os-site | unchanged | ✅ |
-| w4os-wp (GitHub GuduleLapointe/w4os, wordpress.org slug w4os-opensimulator-web-interface) | unchanged; the wordpress.org slug cannot move | ✅ |
+| w4os-wp (GitHub way4os/w4os-wp, wordpress.org slug w4os-opensimulator-web-interface) | unchanged; the wordpress.org slug cannot move | ✅ |
 | grav-plugin-w4os | unchanged | ✅ |
 | w4os-views | unchanged | ✅ |
 | opensim-kit, opensim, opensim-core, opensim-0.9.3.0-*, opensim-unstable | unchanged: the kit installs OpenSimulator and the tools around it (w4os, Gloebit, the search module…) | ✅ |

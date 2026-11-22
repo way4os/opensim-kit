@@ -6,7 +6,7 @@ Create many accounts from a list given by a third party, on a grid made by the k
 
 ## Decided
 
-- **Not through the console of Robust**: too slow and too fragile for hundreds of accounts, and no live answer is needed for each one (unlike the regions, where it is). The accounts are written **directly in the database of the grid**, as w4os does (at least in its older releases, to check in its code: <https://github.com/GuduleLapointe/w4os>).
+- **Not through the console of Robust**: too slow and too fragile for hundreds of accounts, and no live answer is needed for each one (unlike the regions, where it is). The accounts are written **directly in the database of the grid**, as w4os does (at least in its older releases, to check in its code: <https://github.com/way4os/w4os-wp>).
 - Two formats to start from, the ideal ones for us: **CSV** and **JSON**. A concrete proposal is then submitted to the users for their feedback.
 
 ## Known: what `create user` does
