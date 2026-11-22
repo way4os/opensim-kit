@@ -707,6 +707,9 @@ Features:
       parcels; for the admins, tickets and mail campaigns. All through the engine API (the "run the grid" layer), shown by every bridge.
       What H4HUB lacks and w4os keeps: design choice first (Olivier: our best asset, their site hurts the eyes), openness (leaving
       the host keeps the site), multilingual, hypergrid search and profiles
+- [ ] the owner of a grid as an administrator of its sites, only while the grid has no god: 3.0 gives it, always, to the owner of the first estate whatever its user level (`accessLevel`, `owner`); an owner of the first estate who has become a secondary one would keep the rights of a god, a rare case, not an impossible one
+    - an administrators list in the w4os settings (an ACL): when it is empty and the grid has no god (a service account is not one), the owner of the first estate is added to it
+    - the engine reads both, the list and the user levels, to know whether an avatar is an administrator; the administrator who adds user levels or administrators later removes the first one from the list or keeps it, as needed
 - [ ] the kind of the teleport links a preference of the user that `AUTO` reads: auto (as now), hop://, secondlife://, or a menu on the link that offers the choices
     - a link is shown in the format auto (or the one the user chose), with a small icon beside it that opens its other forms (OpenSimWorld does it more heavily: the address of the region in a box, then buttons Hop, V3HG, HG, Local Grid and "Add this grid to Firestorm")
     - the engine gives, for each destination, the main link (`AUTO`, or the preferred one) and the list of the others: HOP, GRID, LOCAL, MAP, and the URI as text, to copy
