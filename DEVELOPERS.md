@@ -14,6 +14,33 @@ The command line, the engine, the helpers and the site are projects of their own
 (opensim-tools: the `opensim` command in PHP, its setup, its tests) are gone: what they did and where it is now is in
 [OPENSIM-TOOLS-PORTING.md](OPENSIM-TOOLS-PORTING.md), their code at the commit `de51268`.
 
+## Layout
+
+```
+opensim-kit/
+├─ core/                        OpenSimulator as upstream makes it, never modified
+│  ├─ releases/                 the official release archives (downloaded, gitignored): opensim-0.9.3.0.tar.gz...
+│  │                            -> the packages of the stable versions are built from the CONTENT OF THE ARCHIVE, never rebuilt from a clone
+│  │                               (a rebuilt core makes Firestorm warn users crossing regions that run different core builds, even for the same version)
+│  └─ unstable/                 git submodule of github.com/opensim/opensim (master) -> compiled for the deb of opensim-unstable, no change in it
+├─ contrib/                     other people's modules, shipped as they are
+│  └─ Gloebit/                  submodule (src), built unchanged per core version
+│  └─ MoneyServer/              binaries for 0.9.2.0, until it becomes our own fork in modules/
+├─ modules/                     the modules we maintain (our forks)
+│  └─ OpenSimSearch/            submodule (sources); MoneyServer joins later as our own fork
+├─ packaging/
+│  ├─ opensim-core.versions     versions and SHA-256 of the release archives
+│  ├─ opensim-modules.versions  one line per DLL: module, core, version, file
+│  └─ modules/                  the DLLs the packages ship
+│     └─ opensimsearch/
+│        ├─ 0.9.2.2/…dll        built by us (upstream has none for it)
+│        ├─ 0.9.3.0/…dll        built by us
+│        └─ unstable/…dll       built from core/unstable
+└─ tools/, docs/, tests/ … unchanged
+```
+
+Each of `core/`, `contrib/`, `modules/` and `packaging/modules/` has a `README.md` with the same meaning.
+
 ## Packaging
 
 The packages are built with [nfpm](https://nfpm.goreleaser.com) and published to an apt repository with the tools of [build-tools](https://github.com/magicoli/build-tools) (`apt-package`, `apt-publish`), the repository being the one `APT_REPO_DIR` names in `.env`. Everything lives in `packaging/`, one definition per package:
@@ -23,7 +50,7 @@ The packages are built with [nfpm](https://nfpm.goreleaser.com) and published to
 | `opensim-<version>`       | `opensim-core.yaml`     | OpenSimulator release + revision | an OpenSimulator release, in `/usr/share/opensim/<version>`, for amd64 and arm64                                |
 | `opensim`                 | `opensim.yaml`          | same as the latest release       | metapackage, the latest release                                                                                 |
 | `opensim-kit`             | `opensim-kit.yaml`      | git tag of this repository       | metapackage, `w4os-cli`, `w4os-site`, the latest release, its essential modules and a database server           |
-| `opensim-unstable`        | `opensim-unstable.yaml` | source version, date and commit  | OpenSimulator built from the `upstream/opensim` submodule, in `/usr/share/opensim/unstable`                     |
+| `opensim-unstable`        | `opensim-unstable.yaml` | source version, date and commit  | OpenSimulator built from the `core/unstable` submodule, in `/usr/share/opensim/unstable`                     |
 | `opensim-<core>-<module>` | `opensim-<module>.yaml` | module version + revision        | a module for a release or `unstable`, in `/usr/share/opensim-modules/<core>/<module>`, not loaded until enabled |
 
 The command line (`w4os-cli`), the engine (`w4os-engine`, with `opensim-rest-php`) and the website of a grid (`w4os-site`, which carries the helpers) are built and packaged by their own projects. `opensim-kit` depends on them; the releases install without them. `w4os-engine` makes the system layout and adds an install profile for each release in `/usr/share/opensim`, and removes it with the release, through a dpkg trigger; the postinst of `opensim-kit` enables its essential modules once.
@@ -51,9 +78,9 @@ Publishing skips the packages whose version is already in the repository, so the
 
 `packaging/build` runs first and prepares only the packages asked for:
 
-- `opensim-core`, `opensim`: the release of `packaging/opensim-core.versions`, the last one or `OPENSIM_VERSION`, e.g. `OPENSIM_VERSION=0.9.3.0 vendor/bin/apt-package opensim-core`. Its tarball is downloaded into `cache/downloads/` and checked against its SHA256.
+- `opensim-core`, `opensim`: the release of `packaging/opensim-core.versions`, the last one or `OPENSIM_VERSION`, e.g. `OPENSIM_VERSION=0.9.3.0 vendor/bin/apt-package opensim-core`. Its official archive is downloaded into `core/releases/` and checked against its SHA256, and the package is made from its content, never from a clone of the source.
 
-- `opensim-unstable`: OpenSimulator built from the commit of the `upstream/opensim` submodule (a shallow clone of the upstream repository, `master`), in a .NET SDK container (podman, or `CONTAINER=docker`). Each commit is built once, into `build/cache/`. With `BUILD_HOST=name` in `.env` (an ssh host with git, podman and rsync, see `.env.example`) the build runs on that machine instead, in the same container, so its system does not matter: it keeps a clone of the repository and the NuGet packages in `~/.cache/opensim-kit`, always builds from the files of the commit, and only what the package needs (`bin/` and the documents) comes back. The build is much faster there than in the podman machine of a laptop. Update it with `git submodule update --remote upstream/opensim`.
+- `opensim-unstable`: OpenSimulator built from the commit of the `core/unstable` submodule (a shallow clone of the upstream repository, `master`), in a .NET SDK container (podman, or `CONTAINER=docker`). Each commit is built once, into `build/cache/`. With `BUILD_HOST=name` in `.env` (an ssh host with git, podman and rsync, see `.env.example`) the build runs on that machine instead, in the same container, so its system does not matter: it keeps a clone of the repository and the NuGet packages in `~/.cache/opensim-kit`, always builds from the files of the commit, and only what the package needs (`bin/` and the documents) comes back. The build is much faster there than in the podman machine of a laptop. Update it with `git submodule update --remote core/unstable`.
 - `opensim-<module>`: the files listed for the module in `packaging/opensim-modules.versions`, for the release of `opensim-core`, or the core of `MODULES_CORE` (a release or `unstable`), e.g. `MODULES_CORE=unstable vendor/bin/apt-package opensim-gloebit`. The files downloaded go to `cache/downloads/`, checked against their SHA256. The packages are named after the modules.
 
 A new OpenSimulator release is added at the end of `packaging/opensim-core.versions`, with its checksum. A published package is never changed: a packaging change of a published release gets the next revision in that file, as for the modules in `packaging/opensim-modules.versions`.

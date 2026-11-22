@@ -504,7 +504,7 @@ Checks on real installs:
     - the module tells it to the helpers with the secure session of the avatar (`avatar_publish_update`)
     - [ ] test with Firestorm on vonda
     - [ ] when OpenSimulator keeps the box itself (patch to submit): the module must check it before it applies the change
-    - the DLLs are in `contrib/OpenSimSearch` until a release holds them
+    - the DLLs are in `packaging/modules/opensimsearch` until a release holds them
 - [ ] `opensim stop` on a simulator with an NPC: confirm with a real NPC (only the format was checked on a real core; it does not seem to skip the NPCs)
 - [ ] libgdiplus on Linux: what the regions do with the 6.1 of the distributions
     - the wiki advises 6.0.5 (mono repository, with `libtiff5`, held) and says to avoid 6.1 (broken or leaking memory)
@@ -939,7 +939,7 @@ Engine:
 
 Kit:
 
-- [ ] setup from a clone: the archive of the core belongs in the cache
+- [ ] setup from a clone: the archive of the core belongs in `core/releases/`
     - today downloaded into `src/` of the clone (`src/opensim-0.9.3.0.tar.gz`), the folder of the PHP code
 - [ ] `setup.sh` in a clone builds the packages and installs them by default (developers' mode, with the scenarios of the tests)
     - [ ] running from the clone with composer becomes an option
@@ -947,8 +947,8 @@ Kit:
     - [ ] the grid tells the rest of its description in `setup.json` (as a grid of this machine does)
     - [ ] presets of complete grids (the whole folder)
     - [ ] the in-world search of speculoos.world is the 2do directory with `gk=`: check it
-- [ ] one place for the OpenSimulator cores
-    - the release ones (`core/`) and the development one (`upstream/opensim`, a submodule) all go to `core/`
+- [x] one place for the OpenSimulator cores
+    - the release ones (`core/releases/`) and the development one (`core/unstable`, a submodule)
     - OpenSimulator is not an upstream of the kit, the kit includes it
     - files: `packaging/build`, `packaging/remote-build`, `.gitmodules`, `DEVELOPERS.md`
 - [ ] bash 4 or later for the scripts that use bash-tools, and bash 3 for the ones a person runs

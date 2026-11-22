@@ -1,13 +1,12 @@
-Third-party modules
-===================
+Contrib
+=======
 
-Binaries and sources of modules for OpenSimulator, packaged by the project
-but written by others. They are **not** covered by the license of this
+Other people's modules, shipped as they are. They are **not** covered by the license of this
 project (AGPL-3.0-or-later): each one keeps the terms of its authors.
 
 | Folder | Upstream | License |
 | --- | --- | --- |
 | `Gloebit/` | https://github.com/gloebit/opensim-moneymodule-gloebit | LGPL-3.0-or-later |
-| `MoneyServer/` | | not checked yet |
+| `MoneyServer/` | the DTL/NSL money server (`NSL.*` assemblies), binaries for OpenSimulator 0.9.2.0 | not checked yet |
 
-OpenSimSearch is in `modules/`.
+`MoneyServer/` stays here until it becomes one of our forks in `modules/`. Our own forks (OpenSimSearch) are in `modules/`.
