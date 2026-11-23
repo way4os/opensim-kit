@@ -19,7 +19,7 @@ https://www.speculoos.world/opensim-debian-installation-framework/
 repository, installs the packages, the database server and the .NET runtime, and can start the setup.
 
 ```bash
-curl -fsSL -O https://w4os.org/kickstart.sh
+curl -fsSL -O https://raw.githubusercontent.com/way4os/w4os-cli/master/kickstart.sh
 chmod +x kickstart.sh
 sudo ./kickstart.sh --setup
 ```
