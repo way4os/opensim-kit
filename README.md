@@ -24,8 +24,8 @@ chmod +x kickstart.sh
 sudo ./kickstart.sh --setup
 ```
 
-`./kickstart.sh --help` lists its options. The test builds come with the installer of the development branch:
-`https://w4os.org/kickstart-dev.sh`, then `sudo ./kickstart-dev.sh --testing` (`--tools` for the command line and the engine alone).
+`./kickstart.sh --help` lists its options. The test builds come with `sudo ./kickstart.sh --testing` (`--tools` for the command line
+and the engine alone), the beta releases and the development version of OpenSimulator with `--unstable-core`.
 
 **From the packages** (Debian, Ubuntu):
 
