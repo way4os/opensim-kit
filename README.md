@@ -47,7 +47,8 @@ opensim setup
 | --------------------------------------------- | ----------------------------------------------------------------------- |
 | `w4os-cli`                                    | the `opensim` command and its service                                   |
 | `w4os-engine`                                 | the rules and the work behind it, with `opensim-rest-php`               |
-| `w4os-site`                                   | the website of a grid, with the helpers (`w4os-site setup`, then `web`) |
+| `w4os-site`                                   | the website of a grid (`w4os-site setup`, then `web`)                   |
+| `w4os-helpers` (recommended)                  | its helpers: the economy, the search, the offline messages V1           |
 | `opensim`                                     | the latest OpenSimulator release                                        |
 | `opensim-<version>-opensimsearch`, `-gloebit` | its essential modules, enabled once                                     |
 | `default-mysql-server`                        | the database server                                                     |

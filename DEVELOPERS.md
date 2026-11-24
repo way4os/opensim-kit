@@ -7,8 +7,8 @@ The packages of OpenSimulator for Debian and Ubuntu, and the metapackage that in
 - the releases of OpenSimulator (`opensim-<version>`), its development version (`opensim-unstable`) and the essential modules
   (`opensim-<version>-<module>`), each in its own folder;
 - `opensim`, the latest release, and `opensim-kit`, which installs the command line (`w4os-cli`), the engine
-  (`w4os-engine`, with `opensim-rest-php`), the website of a grid (`w4os-site`, which carries `w4os-helpers`), the latest
-  release, its essential modules and a database server.
+  (`w4os-engine`, with `opensim-rest-php`), the website of a grid (`w4os-site`), its helpers (`w4os-helpers`,
+  recommended), the latest release, its essential modules and a database server.
 
 The command line, the engine, the helpers and the site are projects of their own. The tools this repository had before
 (opensim-tools: the `opensim` command in PHP, its setup, its tests) are gone: what they did and where it is now is in
@@ -53,7 +53,7 @@ The packages are built with [nfpm](https://nfpm.goreleaser.com) and published to
 | `opensim-unstable`        | `opensim-unstable.yaml` | source version, date and commit  | OpenSimulator built from the `core/unstable` submodule, in `/usr/share/opensim/unstable`                     |
 | `opensim-<core>-<module>` | `opensim-<module>.yaml` | module version + revision        | a module for a release or `unstable`, in `/usr/share/opensim-modules/<core>/<module>`, not loaded until enabled |
 
-The command line (`w4os-cli`), the engine (`w4os-engine`, with `opensim-rest-php`) and the website of a grid (`w4os-site`, which carries the helpers) are built and packaged by their own projects. `opensim-kit` depends on them; the releases install without them. `w4os-engine` makes the system layout and adds an install profile for each release in `/usr/share/opensim`, and removes it with the release, through a dpkg trigger; the postinst of `opensim-kit` enables its essential modules once.
+The command line (`w4os-cli`), the engine (`w4os-engine`, with `opensim-rest-php`) the website of a grid (`w4os-site`) and its helpers (`w4os-helpers`) are built and packaged by their own projects. `opensim-kit` depends on them, and recommends the helpers: they are optional, a full install brings them (`--no-install-recommends` leaves them out); the releases install without them. `w4os-engine` makes the system layout and adds an install profile for each release in `/usr/share/opensim`, and removes it with the release, through a dpkg trigger; the postinst of `opensim-kit` enables its essential modules once.
 
 `opensim-tools` and `opensim-web`, the generation before, are no longer built; what opensim-tools did and where it is now is in [OPENSIM-TOOLS-PORTING.md](OPENSIM-TOOLS-PORTING.md). `w4os-cli` conflicts with and replaces `opensim-tools`: installing the new `opensim-kit` removes it (`apt full-upgrade`, or `apt install opensim-kit`). `opensim-web` has no successor of the same files (the site of `w4os-site` is in `/var/lib/w4os/www`, not in `/var/www/html`): a server that has it keeps it, with `w4os-helpers`, until the site of `w4os-site` is set up (`w4os-site setup`, `w4os-site web`); then `apt purge opensim-web`. Nothing depends on it any more, so `apt autoremove` would take it away with `w4os-helpers` (`apt-mark manual opensim-web` keeps it). `apt upgrade` holds the kit back (it would remove a package); the prerm of `opensim-tools` stops the service and the instances when it goes: they are started again by hand (`systemctl start opensim`).
 
