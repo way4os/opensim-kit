@@ -1,0 +1,120 @@
+From 460ed81f41d15b8eeb5a438fe7a2479618015038 Mon Sep 17 00:00:00 2001
+From: UbitUmarov <ajlduarte@sapo.pt>
+Date: Fri, 7 Aug 2026 11:21:34 +0100
+Subject: [PATCH] a few changes on the local maptiles folder code
+
+---
+ .../World/Warp3DMap/Warp3DImageModule.cs      | 16 +++++++++---
+ .../World/WorldMap/WorldMapModule.cs          | 26 +++++++++++++++----
+ bin/OpenSimDefaults.ini                       |  2 +-
+ 3 files changed, 35 insertions(+), 9 deletions(-)
+
+diff --git a/OpenSim/Region/CoreModules/World/Warp3DMap/Warp3DImageModule.cs b/OpenSim/Region/CoreModules/World/Warp3DMap/Warp3DImageModule.cs
+index deb94606b2..a0a5c84948 100644
+--- a/OpenSim/Region/CoreModules/World/Warp3DMap/Warp3DImageModule.cs
++++ b/OpenSim/Region/CoreModules/World/Warp3DMap/Warp3DImageModule.cs
+@@ -137,6 +137,18 @@ public void Initialise(IConfigSource source)
+ 
+             m_mapTilesDirectory =
+                 Util.GetConfigVarFromSections<string>(source, "MapTilesDirectory", configSections, m_mapTilesDirectory);
++            if(!string.IsNullOrEmpty(m_mapTilesDirectory))
++            {
++                try
++                {
++                    Directory.CreateDirectory(m_mapTilesDirectory);
++                }
++                catch(Exception e)
++                {
++                    m_log.Error($"[MAPTILE]: failed to create folder {m_mapTilesDirectory} for local map tiles {e.Message}");
++                    m_mapTilesDirectory = null;
++                }
++            }
+         }
+ 
+         public void AddRegion(Scene scene)
+@@ -215,10 +227,8 @@ public Bitmap CreateMapTile()
+             // image may be reloaded elsewhere, so no compression format
+             string filename = "MAP-" + m_scene.RegionInfo.RegionID.ToString() + ".png";
+             if (!string.IsNullOrEmpty(m_mapTilesDirectory))
+-            {
+-                Directory.CreateDirectory(m_mapTilesDirectory);
+                 filename = System.IO.Path.Combine(m_mapTilesDirectory, filename);
+-            }
++
+             tile.Save(filename,ImageFormat.Png);
+             m_primMesher = null;
+             return tile;
+diff --git a/OpenSim/Region/CoreModules/World/WorldMap/WorldMapModule.cs b/OpenSim/Region/CoreModules/World/WorldMap/WorldMapModule.cs
+index f6dbf89ba8..1ececea8c8 100644
+--- a/OpenSim/Region/CoreModules/World/WorldMap/WorldMapModule.cs
++++ b/OpenSim/Region/CoreModules/World/WorldMap/WorldMapModule.cs
+@@ -27,7 +27,6 @@
+ 
+ using System;
+ using System.Collections;
+-using System.Collections.Concurrent;
+ using System.Collections.Generic;
+ using System.Drawing;
+ using System.Drawing.Imaging;
+@@ -161,6 +160,19 @@ public virtual void Initialise(IConfigSource config)
+                 Util.GetConfigVarFromSections<bool>(config, "LocalV1MapAssets", configSections, m_localV1MapAssets);
+             m_mapTilesDirectory =
+                 Util.GetConfigVarFromSections<string>(config, "MapTilesDirectory", configSections, m_mapTilesDirectory);
++            if(!string.IsNullOrEmpty(m_mapTilesDirectory))
++            {
++                try
++                {
++                    Directory.CreateDirectory(m_mapTilesDirectory);
++                }
++                catch(Exception e)
++                {
++                    m_log.Error($"[WORLD MAP]: failed to create folder {m_mapTilesDirectory} for local map tiles {e.Message}");
++                    m_mapTilesDirectory = null;
++                }
++            }
++
+         }
+ 
+         public virtual void AddRegion(Scene scene)
+@@ -1340,12 +1352,12 @@ public void HandleExportWorldMapConsoleCommand(string module, string[] cmdparams
+             startX--;
+             startY--;
+ 
+-            bool doneLocal = false;
++            bool doneLocal;
+             string filename = "MAP-" + m_scene.RegionInfo.RegionID.ToString() + ".png";
+-            if (!string.IsNullOrEmpty(m_mapTilesDirectory))
+-                filename = Path.Combine(m_mapTilesDirectory, filename);
+             try
+             {
++                if (!string.IsNullOrEmpty(m_mapTilesDirectory))
++                    filename = Path.Combine(m_mapTilesDirectory, filename);
+                 using(Image localMap = Bitmap.FromFile(filename))
+                 {
+                     int x = regionX - startX;
+@@ -1364,7 +1376,11 @@ public void HandleExportWorldMapConsoleCommand(string module, string[] cmdparams
+                 }
+                 doneLocal = true;
+             }
+-            catch {}
++            catch(Exception ex)
++            {
++                m_log.Error($"[WORLD MAP]: failed Export map file {ex.Message}");
++                return;
++            }
+ 
+             if(regions.Count > 0)
+             {
+diff --git a/bin/OpenSimDefaults.ini b/bin/OpenSimDefaults.ini
+index fbfe80bb95..af69673354 100644
+--- a/bin/OpenSimDefaults.ini
++++ b/bin/OpenSimDefaults.ini
+@@ -470,7 +470,7 @@
+     ; Directory used to load and save the generated MAP-<region uuid>.png tile images.
+     ; If left empty the current working directory is used (default behaviour).
+     ; The directory is created automatically if it does not exist.
+-    ;MapTilesDirectory = "./maptiles"
++    ;MapTilesDirectory = "./localmaptiles"
+ 
+     ; World map blacklist timeout in seconds
+     ;BlacklistTimeout = 600

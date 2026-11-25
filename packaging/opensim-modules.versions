@@ -21,3 +21,6 @@ gloebit 0.9.3.0 88 1 https://github.com/gloebit/opensim-moneymodule-gloebit/rele
 gloebit 0.9.3.0 88 1 contrib/Gloebit/Gloebit.ini.example
 gloebit unstable 88 1 https://github.com/gloebit/opensim-moneymodule-gloebit/releases/download/build-88/Gloebit--0.9.3.1Dev--linux--2026-06-07--de5bc63.dll bdb23dbeca3c62718b4392386e5d65c575872380fdbc59200be3bdbcd2739913 Gloebit.dll
 gloebit unstable 88 1 contrib/Gloebit/Gloebit.ini.example
+
+# The core modules of a release with the fixes of upstream for its map tiles, built from packaging/modules/maptiles (its README)
+maptiles 0.9.3.0 0.0~git20261104.acb3dd2 1 packaging/modules/maptiles/0.9.3.0/OpenSim.Region.CoreModules.dll

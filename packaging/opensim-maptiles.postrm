@@ -1,0 +1,12 @@
+#!/bin/sh
+# The official OpenSim.Region.CoreModules.dll of the release put back; the
+# simulators load it at their next start
+set -e
+core=${DPKG_MAINTSCRIPT_PACKAGE#opensim-}
+core=${core%-maptiles}
+file=/usr/share/opensim/$core/bin/OpenSim.Region.CoreModules.dll
+case "$1" in
+    remove | purge | abort-install | disappear)
+        dpkg-divert --package "$DPKG_MAINTSCRIPT_PACKAGE" --remove --rename --divert "$file.official" "$file"
+        ;;
+esac

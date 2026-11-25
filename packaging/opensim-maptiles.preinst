@@ -1,0 +1,12 @@
+#!/bin/sh
+# The official OpenSim.Region.CoreModules.dll of the release kept aside, as
+# .official, while the one of this package is installed
+set -e
+core=${DPKG_MAINTSCRIPT_PACKAGE#opensim-}
+core=${core%-maptiles}
+file=/usr/share/opensim/$core/bin/OpenSim.Region.CoreModules.dll
+case "$1" in
+    install | upgrade)
+        dpkg-divert --package "$DPKG_MAINTSCRIPT_PACKAGE" --add --rename --divert "$file.official" "$file"
+        ;;
+esac

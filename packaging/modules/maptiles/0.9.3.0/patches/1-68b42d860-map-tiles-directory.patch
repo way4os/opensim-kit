@@ -1,0 +1,105 @@
+From 68b42d860a94b33325daa04107af7468b6c271d4 Mon Sep 17 00:00:00 2001
+From: Typhaine Artez <typhaine.artez@gmail.com>
+Date: Wed, 5 Aug 2026 23:56:03 +0200
+Subject: [PATCH] Add MapTilesDirectory setting to configure map tile location
+
+Introduce a new MapTilesDirectory option in the [Map] config section
+that controls where the MAP-<region uuid>.png tile images are saved and
+loaded from. Previously these were always written to and read from the
+current working directory.
+
+- Warp3DImageModule saves the tile into the configured directory,
+  creating it if needed.
+- WorldMapModule loads the local tile from the configured directory when
+  exporting the world map.
+- Document the option in OpenSimDefaults.ini.
+
+When left empty the current working directory is used, preserving the
+previous behaviour.
+---
+ .../CoreModules/World/Warp3DMap/Warp3DImageModule.cs   | 10 ++++++++++
+ .../CoreModules/World/WorldMap/WorldMapModule.cs       |  5 +++++
+ bin/OpenSimDefaults.ini                                |  5 +++++
+ 3 files changed, 20 insertions(+)
+
+diff --git a/OpenSim/Region/CoreModules/World/Warp3DMap/Warp3DImageModule.cs b/OpenSim/Region/CoreModules/World/Warp3DMap/Warp3DImageModule.cs
+index 63c33aa3b9..deb94606b2 100644
+--- a/OpenSim/Region/CoreModules/World/Warp3DMap/Warp3DImageModule.cs
++++ b/OpenSim/Region/CoreModules/World/Warp3DMap/Warp3DImageModule.cs
+@@ -84,6 +84,8 @@ public class Warp3DImageModule : IMapImageGenerator, INonSharedRegionModule
+         private float m_renderMinHeight = -100f;
+         private float m_renderMaxHeight = 4096f;
+ 
++        private string m_mapTilesDirectory = string.Empty; // directory to load/save map tile images
++
+         private bool m_Enabled = false;
+ 
+         #region Region Module interface
+@@ -132,6 +134,9 @@ public void Initialise(IConfigSource source)
+                 m_renderMinHeight = -100f;
+             else if (m_renderMinHeight > m_renderMaxHeight - 10f)
+                 m_renderMinHeight = m_renderMaxHeight - 10f;
++
++            m_mapTilesDirectory =
++                Util.GetConfigVarFromSections<string>(source, "MapTilesDirectory", configSections, m_mapTilesDirectory);
+         }
+ 
+         public void AddRegion(Scene scene)
+@@ -209,6 +214,11 @@ public Bitmap CreateMapTile()
+             Bitmap tile = GenImage();
+             // image may be reloaded elsewhere, so no compression format
+             string filename = "MAP-" + m_scene.RegionInfo.RegionID.ToString() + ".png";
++            if (!string.IsNullOrEmpty(m_mapTilesDirectory))
++            {
++                Directory.CreateDirectory(m_mapTilesDirectory);
++                filename = System.IO.Path.Combine(m_mapTilesDirectory, filename);
++            }
+             tile.Save(filename,ImageFormat.Png);
+             m_primMesher = null;
+             return tile;
+diff --git a/OpenSim/Region/CoreModules/World/WorldMap/WorldMapModule.cs b/OpenSim/Region/CoreModules/World/WorldMap/WorldMapModule.cs
+index ca2e98f7bb..56ad668c35 100644
+--- a/OpenSim/Region/CoreModules/World/WorldMap/WorldMapModule.cs
++++ b/OpenSim/Region/CoreModules/World/WorldMap/WorldMapModule.cs
+@@ -100,6 +100,7 @@ public class WorldMapModule : INonSharedRegionModule, IWorldMapModule, IDisposab
+         protected bool m_exportPrintScale = false; // prints the scale of map in meters on exported map
+         protected bool m_exportPrintRegionName = false; // prints the region name exported map
+         protected bool m_localV1MapAssets = false; // keep V1 map assets only on  local cache
++        protected string m_mapTilesDirectory = string.Empty; // directory to load/save map tile images
+ 
+         private readonly object m_sceneLock = new object();
+         public WorldMapModule()
+@@ -158,6 +159,8 @@ public virtual void Initialise(IConfigSource config)
+                 Util.GetConfigVarFromSections<bool>(config, "ExportMapAddRegionName", configSections, m_exportPrintRegionName);
+             m_localV1MapAssets =
+                 Util.GetConfigVarFromSections<bool>(config, "LocalV1MapAssets", configSections, m_localV1MapAssets);
++            m_mapTilesDirectory =
++                Util.GetConfigVarFromSections<string>(config, "MapTilesDirectory", configSections, m_mapTilesDirectory);
+         }
+ 
+         public virtual void AddRegion(Scene scene)
+@@ -1339,6 +1342,8 @@ public void HandleExportWorldMapConsoleCommand(string module, string[] cmdparams
+ 
+             bool doneLocal = false;
+             string filename = "MAP-" + m_scene.RegionInfo.RegionID.ToString() + ".png";
++            if (!string.IsNullOrEmpty(m_mapTilesDirectory))
++                filename = Path.Combine(m_mapTilesDirectory, filename);
+             try
+             {
+                 using(Image localMap = Bitmap.FromFile(filename))
+diff --git a/bin/OpenSimDefaults.ini b/bin/OpenSimDefaults.ini
+index 1526604506..fbfe80bb95 100644
+--- a/bin/OpenSimDefaults.ini
++++ b/bin/OpenSimDefaults.ini
+@@ -467,6 +467,11 @@
+     ; generate better images.
+     ;MapImageModule = "MapImageModule"
+ 
++    ; Directory used to load and save the generated MAP-<region uuid>.png tile images.
++    ; If left empty the current working directory is used (default behaviour).
++    ; The directory is created automatically if it does not exist.
++    ;MapTilesDirectory = "./maptiles"
++
+     ; World map blacklist timeout in seconds
+     ;BlacklistTimeout = 600
+ 

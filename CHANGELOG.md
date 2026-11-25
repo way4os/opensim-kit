@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (packaging): opensim-0.9.3.0-maptiles, the core modules of 0.9.3.0 with MapTilesDirectory (Warp3D), by a dpkg diversion
 - change (packaging): opensim-kit recommends w4os-helpers (economy, search, offline V1): a full install brings them; w4os-site does not carry them
 - fix (tests): kit-check takes where its containers run on its command line (--connection NAME, or --local), never from the environment, and refuses to run on macOS without it; a named connection must exist, and the machine used is the one podman itself reports
 - update (rename): the kit installs w4os-cli and w4os-engine (opensim-cli and opensim-engine the empty packages of before w4os), enables its modules in /etc/w4os/w4os.conf; kit-check tries the upgrade that moves /etc/opensim/opensim.conf there; the repository way4os/opensim-kit

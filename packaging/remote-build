@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # Builds OpenSimulator from a commit of its upstream repository on another machine, and brings back what the package
-# needs (what `distribution` of packaging/build copies). Nothing of this machine is sent, the other one fetches the
-# commit itself.
+# needs (what `distribution` of packaging/build copies). Nothing of this machine is sent but the patches given, the other
+# one fetches the commit itself.
 #
-#   packaging/remote-build HOST COMMIT DEST
+#   packaging/remote-build HOST COMMIT DEST [PATCH...]
+#
+# Each PATCH (a git diff or a commit as `git format-patch` gives it) is applied in order on the files of the commit before
+# the build: a release with fixes of upstream that came after it. A commit with patches is another build, kept apart.
 #
 # HOST is an ssh host (BUILD_HOST in .env) with git, podman and rsync: the build runs in the .NET SDK container, so the
 # system of that machine does not matter. It keeps a clone of the repository, and the NuGet packages, in
@@ -14,8 +17,10 @@ set -e
 host=$1
 commit=$2
 dest=$3
+shift 3 || true
+patches=("$@")
 if [[ -z "$host" || -z "$commit" || -z "$dest" ]]; then
-    USAGE="packaging/remote-build HOST COMMIT DEST"
+    USAGE="packaging/remote-build HOST COMMIT DEST [PATCH...]"
     usage >&2
     exit 2
 fi
@@ -37,24 +42,45 @@ if [[ -n "$missing" ]]; then
     die "$host lacks: $missing"
 fi
 
+# The patches go to the other machine, in a folder named after the commit and what they hold
+key=$commit
+if ((${#patches[@]})); then
+    for patch in "${patches[@]}"; do
+        [[ -f "$patch" ]] || die "No patch $patch"
+    done
+    key=$commit-$(cat "${patches[@]}" | shasum -a 256 | cut -c1-12)
+    "${ssh[@]}" "$host" "mkdir -p .cache/opensim-kit/patches/$key"
+    i=0
+    for patch in "${patches[@]}"; do
+        i=$((i + 1))
+        rsync -a -e 'ssh -o BatchMode=yes' "$patch" "$host:.cache/opensim-kit/patches/$key/$(printf %02d "$i")-$(basename "$patch")"
+    done
+fi
+
 # The build on the other machine; its messages go to stderr, the last line it prints is where the result is
-built=$("${ssh[@]}" "$host" bash -s -- "$url" "$commit" "$image" <<'REMOTE'
+built=$("${ssh[@]}" "$host" bash -s -- "$url" "$commit" "$image" "$key" <<'REMOTE'
 set -e
 url=$1
 commit=$2
 image=$3
+key=$4
 cache=${XDG_CACHE_HOME:-$HOME/.cache}/opensim-kit
-built=$cache/built/opensim-$commit
+built=$cache/built/opensim-$key
 if [ ! -f "$built/bin/OpenSim.dll" ]; then
     mkdir -p "$cache"
     repo=$cache/opensim.git
     [ -d "$repo" ] || git init -q --bare "$repo"
     echo "Fetching $commit" >&2
     git -C "$repo" fetch -q --depth 1 "$url" "$commit"
-    work=$cache/work/opensim-$commit
+    work=$cache/work/opensim-$key
     rm -rf "$work"
     mkdir -p "$work"
     git -C "$repo" archive "$commit" | tar -x -C "$work"
+    for patch in "$cache/patches/$key"/*; do
+        [ -f "$patch" ] || continue
+        echo "Applying $(basename "$patch")" >&2
+        (cd "$work" && git apply -p1 "$patch")
+    done
     echo "Building in $image" >&2
     podman run --rm -v "$work:/opensim" -v opensim-kit-nuget:/root/.nuget/packages -w /opensim "$image" \
         bash -c './runprebuild.sh && dotnet build --configuration Release OpenSim.sln' >&2

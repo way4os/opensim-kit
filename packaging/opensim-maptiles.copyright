@@ -1,0 +1,13 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: OpenSimulator
+Source: https://github.com/opensim/opensim/tree/0.9.3.0
+
+Files: *
+Copyright: Contributors, http://opensimulator.org/
+License: BSD-3-Clause
+ OpenSim.Region.CoreModules.dll of OpenSimulator 0.9.3.0 (branch 0.9.3.0,
+ commit 1f4a6dd1d) with the upstream commits 68b42d860, 460ed81f4 and
+ acb3dd2d6 (packaging/modules/maptiles/0.9.3.0/patches), built in the .NET SDK
+ 8.0 container. The full text of the license is in
+ /usr/share/opensim/0.9.3.0/LICENSE.txt, its list of contributors in
+ /usr/share/opensim/0.9.3.0/CONTRIBUTORS.txt.

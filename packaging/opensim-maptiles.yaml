@@ -1,0 +1,42 @@
+# The map tiles of an OpenSimulator release in a folder of its own: its
+# OpenSim.Region.CoreModules.dll built again with the fixes of upstream that
+# came after it (MapTilesDirectory), from packaging/modules/maptiles
+# (packaging/opensim-modules.versions). Put over the one of the release by a
+# dpkg diversion, which keeps the official one aside and puts it back when
+# this package is removed.
+name: opensim-${MODULES_CORE}-maptiles
+arch: all
+platform: linux
+version: ${MAPTILES_VERSION}
+release: ${MAPTILES_REVISION}
+version_schema: none
+section: net
+priority: optional
+maintainer: Gudule Lapointe <gudule@speculoos.world>
+description: |-
+  Map tiles in a folder of their own for OpenSimulator ${MODULES_CORE}
+  The core modules of OpenSimulator ${MODULES_CORE} with the MapTilesDirectory
+  setting of the next releases: the 3D map renderer (Warp3DImageModule) writes
+  its tiles where the simulator may write, not in the read-only folder of the
+  release. Replaces OpenSim.Region.CoreModules.dll of opensim-${MODULES_CORE}
+  through a dpkg diversion; removing this package puts the official one back.
+homepage: https://github.com/opensim/opensim
+license: BSD-3-Clause
+
+# Built for this release only: the other assemblies are the ones of its package
+depends:
+  - opensim-${MODULES_CORE}
+
+contents:
+  - src: build/modules/maptiles/OpenSim.Region.CoreModules.dll
+    dst: /usr/share/opensim/${MODULES_CORE}/bin/OpenSim.Region.CoreModules.dll
+    file_info:
+      mode: 0644
+  - src: packaging/opensim-maptiles.copyright
+    dst: /usr/share/doc/opensim-${MODULES_CORE}-maptiles/copyright
+    file_info:
+      mode: 0644
+
+scripts:
+  preinstall: packaging/opensim-maptiles.preinst
+  postremove: packaging/opensim-maptiles.postrm
