@@ -21,6 +21,7 @@ while [[ "${1:-}" == --* ]]; do
 	*) echo "kit-check: unknown option $1" >&2; exit 2 ;;
 	esac
 done
+image=${1:-docker.io/library/debian:trixie}
 if [[ -z $CONNECTION && $LOCAL != 1 && $(uname -s) == Darwin ]]; then
 	echo "kit-check: say where the container runs: --connection NAME (podman system connection list), or --local for this Mac" >&2
 	exit 2
@@ -132,6 +133,7 @@ SH
 status=0
 for run in fresh upgrade kept; do
 	echo "=== $run ($image)"
-	tar -cf - -C "$stage" . | "${podman[@]}" run --rm -i --memory 2g "$image" bash -c "$($run)" || status=1
+	# macOS's tar adds AppleDouble files (._*.deb), which dpkg-scanpackages refuses
+	COPYFILE_DISABLE=1 tar -cf - -C "$stage" . | "${podman[@]}" run --rm -i --memory 2g "$image" bash -c "$($run)" || status=1
 done
 exit "$status"
