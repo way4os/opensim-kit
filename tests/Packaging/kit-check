@@ -65,7 +65,9 @@ new_generation() {
 	check "opensim-tools not installed" sh -c "! dpkg-query -W -f='\${db:Status-Abbrev}' opensim-tools 2>/dev/null | grep -q '^ii'"
 	check "/usr/bin/opensim is w4os-cli's" sh -c "dpkg -S /usr/bin/opensim | grep -q '^w4os-cli:'"
 	check "opensim runs" opensim --help
-	check "the modules are enabled" sh -c "grep -q opensimsearch /etc/w4os/w4os.conf && grep -q gloebit /etc/w4os/w4os.conf"
+	check "opensimsearch is enabled" sh -c "grep EnabledModules /etc/w4os/w4os.conf | grep -q opensimsearch"
+	check "the kit does not depend on Gloebit" sh -c "! dpkg-query -W -f='\${Depends}' opensim-kit | grep -q gloebit"
+	check "the kit suggests Gloebit" sh -c "dpkg-query -W -f='\${Suggests}' opensim-kit | grep -q gloebit"
 	check "opensim.service is enabled" test -L /etc/systemd/system/multi-user.target.wants/opensim.service
 }
 SH
@@ -78,6 +80,8 @@ current
 apt-get update -qq
 apt-get install -y -qq opensim-kit >/tmp/install.log 2>&1 || { tail -30 /tmp/install.log; exit 1; }
 new_generation
+check "Gloebit is not installed" sh -c "! dpkg-query -W -f='\${db:Status-Abbrev}' 'opensim-*-gloebit' 2>/dev/null | grep -q '^ii'"
+check "Gloebit is not enabled" sh -c "! grep EnabledModules /etc/w4os/w4os.conf | grep -q gloebit"
 [ -z "$FAILED" ] && echo "FRESH: all checks passed" || { echo "FRESH: failures"; exit 1; }
 SH
 }
@@ -106,8 +110,27 @@ check "the site of opensim-web still serves" test -f /var/www/html/index.php
 SH
 }
 
+# An install of the kit that enabled Gloebit (before it was suggested only): its modules and its package kept
+kept() {
+	scenario
+	cat <<'SH'
+echo "deb [signed-by=/usr/share/keyrings/magiiic-packaging.gpg] https://apt.magiiic.com charm stable unstable" >/etc/apt/sources.list.d/charm.list
+echo "deb [trusted=yes] https://apt.magiiic.com charm-tests dev" >/etc/apt/sources.list.d/charm-tests.list
+apt-get update -qq
+apt-get install -y -qq opensim-kit >/tmp/before.log 2>&1 || { tail -30 /tmp/before.log; exit 1; }
+check "before: the kit enabled Gloebit" sh -c "grep EnabledModules /etc/w4os/w4os.conf | grep -q gloebit"
+current
+apt-get update -qq
+apt-get full-upgrade -y >/tmp/full.log 2>&1 || { tail -30 /tmp/full.log; exit 1; }
+new_generation
+check "the install keeps its modules, Gloebit too" sh -c "grep EnabledModules /etc/w4os/w4os.conf | grep -q opensimsearch && grep EnabledModules /etc/w4os/w4os.conf | grep -q gloebit"
+check "the Gloebit package of before stays" sh -c "dpkg-query -W -f='\${db:Status-Abbrev}' 'opensim-*-gloebit' | grep -q '^ii'"
+[ -z "$FAILED" ] && echo "KEPT: all checks passed" || { echo "KEPT: failures"; exit 1; }
+SH
+}
+
 status=0
-for run in fresh upgrade; do
+for run in fresh upgrade kept; do
 	echo "=== $run ($image)"
 	tar -cf - -C "$stage" . | "${podman[@]}" run --rm -i --memory 2g "$image" bash -c "$($run)" || status=1
 done
