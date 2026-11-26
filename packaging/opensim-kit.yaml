@@ -19,10 +19,9 @@ license: AGPL-3.0-or-later
 
 depends:
   - opensim
-  # The handful of essential modules, for the latest release; the others are
-  # in the repository, not installed automatically
+  # The essential modules, for the latest release; the others are in the
+  # repository, installed when a grid uses them (kickstart --with)
   - opensim-${OPENSIM_VERSION}-opensimsearch
-  - opensim-${OPENSIM_VERSION}-gloebit
   # The command line; it removes opensim-tools, the approach before it
   - w4os-cli
   # The postinst enables the essential modules through it
@@ -35,6 +34,10 @@ depends:
 # The helpers of a grid (its economy, its search, its offline messages V1): optional, a full install brings them
 recommends:
   - w4os-helpers
+
+# Gloebit, for a grid whose economy it is: kickstart --with gloebit installs it and enables its module
+suggests:
+  - opensim-${OPENSIM_VERSION}-gloebit
 
 scripts:
   postinstall: packaging/opensim-kit.postinst
