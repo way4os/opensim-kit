@@ -1,6 +1,6 @@
 ## Changelog
 
-### Unreleased
+### 3.0.0-beta.15
 
 - change (packaging): Gloebit suggested, not installed: kickstart --with gloebit; opensimsearch the one default module
 - new (packaging): opensim-0.9.3.0-maptiles, the core modules of 0.9.3.0 with MapTilesDirectory (Warp3D), by a dpkg diversion
